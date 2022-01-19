@@ -789,9 +789,17 @@ function parse_declare_queryable(tree, buf)
   local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
+  local val, len = parse_zint(buf(i, -1))
+  tree:add(buf(i, len), "Kind: ", val)
+  i = i + len
+
   if bit.band(h_flags, 0x02) == 0x02 then
     local val, len = parse_zint(buf(i, -1))
-    tree:add(buf(i, len), "Kind: ", val)
+    tree:add(buf(i, len), "Complete: ", val)
+    i = i + len
+
+    local val, len = parse_zint(buf(i, -1))
+    tree:add(buf(i, len), "Distance: ", val)
     i = i + len
   end
 
@@ -842,6 +850,10 @@ function parse_forget_queryable(tree, buf)
   i = i + 1
 
   local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
+  i = i + len
+
+  local val, len = parse_zint(buf(i, -1))
+  tree:add(buf(i, len), "Kind: ", val)
   i = i + len
 
   return i
@@ -1033,6 +1045,10 @@ function parse_datainfo(tree, buf)
   if bit.band(d_options, 0x02) == 0x02 then
     val, len = parse_zint(buf(i, -1))
     tree:add(buf(i, len), "Encoding: ", val)
+    i = i + len
+
+    val, len = parse_zstring(buf(i, -1))
+    tree:add(buf(i, len), "Encoding Suffix: ", val)
     i = i + len
   end
 
