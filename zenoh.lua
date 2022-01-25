@@ -557,6 +557,16 @@ end
 
 
 ------ DISSECTOR HELPERS ------
+function parse_uint8(buf)
+  local i = 0
+  local val = 0
+
+  val = buf(i, 1):uint()
+  i = i + 1
+
+  return val, i
+end
+
 function parse_zint(buf)
   local i = 0
   local val = 0
