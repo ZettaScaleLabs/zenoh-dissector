@@ -91,8 +91,10 @@ proto_zenoh.fields.join_lease        = ProtoField.bytes("zenoh.join.lease", "Lea
 proto_zenoh.fields.join_snresolution = ProtoField.uint8("zenoh.join.sn_resolution", "SN Resolution", base.u8)
 
 -- Scout Message Specific
-proto_zenoh.fields.scout_flags = ProtoField.uint8("zenoh.scout.flags", "Flags", base.HEX)
-proto_zenoh.fields.scout_what  = ProtoField.uint8("zenoh.scout.what", "What", base.u8)
+proto_zenoh.fields.scout_flags   = ProtoField.uint8("zenoh.scout.flags", "Flags", base.HEX)
+proto_zenoh.fields.scout_version = ProtoField.uint8("zenoh.scout.version", "Version", base.u8)
+proto_zenoh.fields.scout_what    = ProtoField.uint8("zenoh.scout.what", "What", base.u8)
+proto_zenoh.fields.scout_zenohid = ProtoField.bytes("zenoh.scout.zid", "Zenoh ID", base.NONE)
 
 -- Hello Message Specific
 proto_zenoh.fields.hello_flags   = ProtoField.uint8("zenoh.hello.flags", "Flags", base.HEX)
@@ -475,9 +477,9 @@ end
 function get_scout_flag_description(flag)
   local f_description = "Unknown"
 
-  if flag == 0x04 then f_description     = "Unused"  -- X
-  elseif flag == 0x02 then f_description = "WhatAmI" -- W
-  elseif flag == 0x01 then f_description = "PeerID"  -- I
+  if flag == 0x04 then f_description     = "Zenoh Extensions" -- Z
+  elseif flag == 0x02 then f_description = "Unused"           -- X
+  elseif flag == 0x01 then f_description = "ZenohID"          -- I
   end
 
   return f_description
@@ -1434,9 +1436,17 @@ end
 function parse_scout(tree, buf)
   local i = 0
 
-  if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1))
-    tree:add(proto_zenoh.fields.scout_what, val)
+  val, len = parse_uint8(buf(i, -1))
+  tree:add(proto_zenoh.fields.scout_version, buf(i, len), val)
+  i = i + len
+
+  val, len = parse_uint8(buf(i, -1))
+  tree:add(proto_zenoh.fields.scout_what, buf(i, len), bit.band(val, 0x07))
+  i = i + len
+
+  if bit.band(h_flags, 0x01) == 0x01 then
+    local val, len = parse_zbytes(buf(i, -1))
+    tree:add(proto_zenoh.fields.scout_zenohid, val)
     i = i + len
   end
 
