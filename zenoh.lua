@@ -559,8 +559,9 @@ function get_replycontext_flag_description(flag)
 end
 
 
------- DISSECTOR HELPERS ------
-function parse_uint8(buf)
+-------- DISSECTOR HELPERS --------
+------ Get basic zenoh-types ------
+function get_uint8(buf)
   local i = 0
   local val = 0
 
@@ -570,7 +571,7 @@ function parse_uint8(buf)
   return val, i
 end
 
-function parse_zint(buf)
+function get_zint(buf)
   local i = 0
   local val = 0
 
@@ -583,10 +584,10 @@ function parse_zint(buf)
   return val, i
 end
 
-function parse_zbytes(buf)
+function get_zbytes(buf)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   i = i + len
 
   if val > buf:len() - i then
@@ -597,25 +598,27 @@ function parse_zbytes(buf)
   return buf(i, val), i + val
 end
 
-function parse_zstring(buf)
+function get_zstring(buf)
   local i = 0
 
-  local b_val, len = parse_zbytes(buf(i, -1))
+  local b_val, len = get_zbytes(buf(i, -1))
   i = i + len
 
   return b_val:string(), i
 end
 
+------------ DISSECTOR HELPERS -------------
+------ Dissect structured zenoh-types ------
 function parse_reskey(tree, buf, is_k)
   local i = 0
 
   local subtree = tree:add("ResKey")
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   subtree:add(buf(i, len), "Resource ID: ", val)
   i = i + len
 
   if is_k == true then
-    val, len = parse_zstring(buf(i, -1))
+    val, len = get_zstring(buf(i, -1))
     subtree:add(buf(i, len), "Suffix: ", val)
     i = i + len
   end
@@ -626,8 +629,8 @@ end
 function parse_payload(tree, buf)
   local i = 0
 
-  local pl_val, pl_len = parse_zint(buf(i, -1))
-  local p_val, p_len = parse_zbytes(buf(i, -1))
+  local pl_val, pl_len = get_zint(buf(i, -1))
+  local p_val, p_len = get_zbytes(buf(i, -1))
   local subtree = tree:add(buf(i, p_len), "Payload")
   subtree:add(buf(i, pl_len), "Length: ", pl_val)
   subtree:add(buf(i + pl_len, p_len - pl_len), "Payload: ", p_val:bytes():tohex())
@@ -639,7 +642,7 @@ end
 function parse_declare(tree, buf)
   local i = 0
 
-  local a_size, len = parse_zint(buf(i, -1))
+  local a_size, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.declare_num_of_declaration, buf(i, len), a_size)
   i = i + len
 
@@ -733,7 +736,7 @@ function parse_declare_resource(tree, buf)
   parse_declare_flags(tree, buf(i, 1), DECLARATION_ID.RESOURCE)
   i = i + 1
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(buf(i, len), "Resource ID: ", val)
   i = i + len
 
@@ -771,15 +774,15 @@ function parse_declare_subscriber(tree, buf)
     i = i + 1
 
     if is_p == true then
-      local val, len = parse_zint(buf(i, -1))
+      local val, len = get_zint(buf(i, -1))
       tree:add(buf(i, len), "Period Origin: ", val)
       i = i + len
 
-      val, len = parse_zint(buf(i, -1))
+      val, len = get_zint(buf(i, -1))
       tree:add(buf(i, len), "Period Period: ", val)
       i = i + len
 
-      val, len = parse_zint(buf(i, -1))
+      val, len = get_zint(buf(i, -1))
       tree:add(buf(i, len), "Period Duration: ", val)
       i = i + len
     end
@@ -797,16 +800,16 @@ function parse_declare_queryable(tree, buf)
   local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(buf(i, len), "Kind: ", val)
   i = i + len
 
   if bit.band(h_flags, 0x02) == 0x02 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = get_zint(buf(i, -1))
     tree:add(buf(i, len), "Complete: ", val)
     i = i + len
 
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = get_zint(buf(i, -1))
     tree:add(buf(i, len), "Distance: ", val)
     i = i + len
   end
@@ -820,7 +823,7 @@ function parse_forget_resource(tree, buf)
   parse_declare_flags(tree, buf(i, 1), DECLARATION_ID.FORGET_RESOURCE)
   i = i + 1
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(buf(i, len), "Resource ID: ", val)
   i = i + len
 
@@ -860,7 +863,7 @@ function parse_forget_queryable(tree, buf)
   local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(buf(i, len), "Kind: ", val)
   i = i + len
 
@@ -887,7 +890,7 @@ end
 function parse_link(tree, buf)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(buf(i, len), "Link: ", val)
   i = i + len
 
@@ -897,7 +900,7 @@ end
 function parse_links(tree, buf)
   local i = 0
 
-  local a_size, len = parse_zint(buf(i, -1))
+  local a_size, len = get_zint(buf(i, -1))
   subtree = tree:add(buf(i, len), "Links Size Array: ", a_size)
   i = i + len
 
@@ -914,7 +917,7 @@ end
 function parse_locator(tree, buf)
   local i = 0
 
-  val, len = parse_zstring(buf(i, -1))
+  local val, len = get_zstring(buf(i, -1))
   tree:add(buf(i, len), "Locator: ", val)
   i = i + len
 
@@ -924,8 +927,8 @@ end
 function parse_locators(tree, buf)
   local i = 0
 
-  local a_size, len = parse_zint(buf(i, -1))
-  subtree = tree:add(buf(i, len), "Locators Size Array: ", a_size)
+  local a_size, len = get_zint(buf(i, -1))
+  subtree = tree:add(buf(i, len), "Locators Array [" .. a_size .. "]")
   i = i + len
 
   while a_size > 0 do
@@ -967,22 +970,22 @@ function parse_link_state(tree, buf)
   local o_flags, len = parse_link_state_options(tree, buf(i, -1))
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(buf(i, len), "PS ID: ", val)
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(buf(i, len), "SN: ", val)
   i = i + len
 
   if bit.band(o_flags, 0x01) == 0x01 then
-    local val, len = parse_zbytes(buf(i, -1))
+    local val, len = get_zbytes(buf(i, -1))
     tree:add(buf(i, len), "Peer ID: ", val:bytes():tohex())
     i = i + len
   end
 
   if bit.band(o_flags, 0x02) == 0x02 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = get_zint(buf(i, -1))
     tree:add(buf(i, len), "WhatAmI: ", val)
     i = i + len
   end
@@ -1001,7 +1004,7 @@ end
 function parse_link_state_list(tree, buf)
   local i = 0
 
-  local a_size, len = parse_zint(buf(i, -1))
+  local a_size, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.linkstatelist_size, buf(i, len), a_size)
   i = i + len
 
@@ -1020,7 +1023,7 @@ function parse_data_flags(tree, buf)
   local i = 0
 
   local f_bitwise = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01}
-  local flags, len = parse_zint(buf(i, -1))
+  local flags, len = get_zint(buf(i, -1))
   i = i + len
 
   local f_str = ""
@@ -1045,17 +1048,17 @@ function parse_datainfo(tree, buf)
   i = i + len
 
   if bit.band(d_options, 0x01) == 0x01 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = get_zint(buf(i, -1))
     tree:add(buf(i, len), "Kind: ", val)
     i = i + len
   end
 
   if bit.band(d_options, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = get_zint(buf(i, -1))
     tree:add(buf(i, len), "Encoding: ", val)
     i = i + len
 
-    val, len = parse_zstring(buf(i, -1))
+    val, len = get_zstring(buf(i, -1))
     tree:add(buf(i, len), "Encoding Suffix: ", val)
     i = i + len
   end
@@ -1066,25 +1069,25 @@ function parse_datainfo(tree, buf)
   end
 
   if bit.band(d_options, 0x80) == 0x80 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = get_zbytes(buf(i, -1))
     tree:add(buf(i, len), "Source ID: ", val:bytes():tohex())
     i = i + len
   end
 
   if bit.band(d_options, 0x100) == 0x100 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = get_zint(buf(i, -1))
     tree:add(buf(i, len), "Source SN: ", val)
     i = i + len
   end
 
   if bit.band(d_options, 0x200) == 0x200 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = get_zbytes(buf(i, -1))
     tree:add(buf(i, len), "First Router ID: ", val:bytes():tohex())
     i = i + len
   end
 
   if bit.band(d_options, 0x400) == 0x400 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = get_zint(buf(i, -1))
     tree:add(buf(i, len), "First Router SN: ", val)
     i = i + len
   end
@@ -1097,11 +1100,11 @@ function parse_timestamp(tree, buf)
 
   local subtree = tree:add("Timestamp")
 
-  val, len = parse_zint(buf(i, -1))
+  val, len = get_zint(buf(i, -1))
   subtree:add(buf(i, len), "Time: ", val)
   i = i + len
 
-  val, len = parse_zbytes(buf(i, -1))
+  val, len = get_zbytes(buf(i, -1))
   subtree:add(buf(i, len), "ID: ", val:bytes():tohex())
   i = i + len
 
@@ -1114,12 +1117,12 @@ function parse_pull(tree, buf)
   local len = parse_reskey(tree, buf(i, -1), bit.band(h_flags, 0x04) == 0x04)
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.pull_pullid, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = get_zint(buf(i, -1))
     tree:add(proto_zenoh.fields.pull_maxsamples, buf(i, len), val)
     i = i + len
   end
@@ -1141,11 +1144,11 @@ function parse_query(tree, buf)
   local len = parse_reskey(tree, buf(i, -1), bit.band(h_flags, 0x04) == 0x04)
   i = i + len
 
-  local val, len = parse_zstring(buf(i, -1))
+  local val, len = get_zstring(buf(i, -1))
   tree:add(proto_zenoh.fields.query_predicate, buf(i, len), val)
   i = i + len
 
-  val, len = parse_zint(buf(i, -1))
+  val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.query_qid, buf(i, len), val)
   i = i + len
 
@@ -1243,11 +1246,11 @@ end
 function parse_initial_sn_plain(tree, buf)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   subtree = tree:add(buf(i, len), "Reliable: ", val)
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   subtree = tree:add(buf(i, len), "Best Effort: ", val)
   i = i + len
 
@@ -1259,7 +1262,7 @@ function parse_init(tree, buf)
   local i = 0
 
   if bit.band(h_flags, 0x04) == 0x04 then
-    o_flags, len = parse_zint(buf(i, -1))
+    o_flags, len = get_zint(buf(i, -1))
 
     local f_str = ""
     local f_bitwise = {0x800, 0x400, 0x200, 0x100, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01} -- FIXME: make it cleaner
@@ -1280,22 +1283,22 @@ function parse_init(tree, buf)
     i = i + 1
   end
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.init_whatami, buf(i, len), val)
   i = i + len
 
-  val, len = parse_zbytes(buf(i, -1))
+  val, len = get_zbytes(buf(i, -1))
   tree:add(proto_zenoh.fields.init_peerid, val)
   i = i + len
 
   if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = get_zint(buf(i, -1))
     tree:add(proto_zenoh.fields.init_snresolution, buf(i, len), val)
     i = i + len
   end
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = get_zbytes(buf(i, -1))
     tree:add(proto_zenoh.fields.init_cookie, val)
     i = i + len
   end
@@ -1306,7 +1309,7 @@ end
 function parse_open(tree, buf)
   local i = 0
 
-  local val, len = parse_zint(buf, i)
+  local val, len = get_zint(buf, i)
   if bit.band(h_flags, 0x02) == 0x02 then
     tree:add(proto_zenoh.fields.open_lease, buf(i, len), val):append_text(" seconds")
   else
@@ -1314,12 +1317,12 @@ function parse_open(tree, buf)
   end
   i = i + len
 
-  val, len = parse_zint(buf(i, -1))
+  val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.open_initialsn, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x00 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = get_zbytes(buf(i, -1))
     tree:add(proto_zenoh.fields.open_cookie, val)
     i = i + len
   end
@@ -1331,12 +1334,12 @@ function parse_close(tree, buf)
   local i = 0
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = get_zbytes(buf(i, -1))
     tree:add(proto_zenoh.fields.close_peerid, val)
     i = i + len
   end
 
-  val, len = parse_zint(buf(i, -1))
+  val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.close_reason, buf(i, len), val)
   i = i + len
 
@@ -1346,12 +1349,12 @@ end
 function parse_sync(tree, buf)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.sync_sn, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x01 and bit.band(h_flags, 0x02) == 0x02 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = get_zint(buf(i, -1))
     tree:add(proto_zenoh.fields.sync_count, buf(i, len), val)
     i = i + len
   end
@@ -1362,12 +1365,12 @@ end
 function parse_acknack(tree, buf)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.acknack_sn, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = get_zint(buf(i, -1))
     tree:add(proto_zenoh.fields.acknack_mask, buf(i, len), val)
     i = i + len
   end
@@ -1380,7 +1383,7 @@ function parse_join(tree, buf)
 
   local o_flags
   if bit.band(h_flags, 0x04) == 0x04 then
-    o_flags, len = parse_zint(buf(i, -1))
+    o_flags, len = get_zint(buf(i, -1))
 
     local f_bitwise = {0x800, 0x400, 0x200, 0x100, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01} -- FIXME: make it cleaner
     local f_str = ""
@@ -1401,15 +1404,15 @@ function parse_join(tree, buf)
     i = i + 1
   end
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.join_whatami, buf(i, len), val)
   i = i + len
 
-  val, len = parse_zbytes(buf(i, -1))
+  val, len = get_zbytes(buf(i, -1))
   tree:add(proto_zenoh.fields.join_peerid, val)
   i = i + len
 
-  local val, len = parse_zint(buf, i)
+  local val, len = get_zint(buf, i)
   if bit.band(h_flags, 0x02) == 0x02 then
     tree:add(proto_zenoh.fields.join_lease, buf(i, len), val):append_text(" seconds")
   else
@@ -1418,7 +1421,7 @@ function parse_join(tree, buf)
   i = i + len
 
   if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = get_zint(buf(i, -1))
     tree:add(proto_zenoh.fields.join_snresolution, buf(i, len), val)
     i = i + len
   end
@@ -1437,16 +1440,16 @@ end
 function parse_scout(tree, buf)
   local i = 0
 
-  val, len = parse_uint8(buf(i, -1))
+  val, len = get_uint8(buf(i, -1))
   tree:add(proto_zenoh.fields.scout_version, buf(i, len), val)
   i = i + len
 
-  val, len = parse_uint8(buf(i, -1))
+  val, len = get_uint8(buf(i, -1))
   tree:add(proto_zenoh.fields.scout_what, buf(i, len), bit.band(val, 0x07))
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    local val, len = parse_zbytes(buf(i, -1))
+    local val, len = get_zbytes(buf(i, -1))
     tree:add(proto_zenoh.fields.scout_zenohid, val)
     i = i + len
   end
@@ -1458,15 +1461,15 @@ function parse_hello(tree, buf)
   local i = 0
   local val = 0
 
-  val, len = parse_uint8(buf(i, -1))
+  val, len = get_uint8(buf(i, -1))
   tree:add(proto_zenoh.fields.hello_version, buf(i, len), val)
   i = i + len
 
-  val, len = parse_uint8(buf(i, -1))
+  val, len = get_uint8(buf(i, -1))
   tree:add(proto_zenoh.fields.hello_whatami, buf(i, len), bit.band(val, 0x02))
   i = i + len
 
-  val, len = parse_zbytes(buf(i, -1))
+  val, len = get_zbytes(buf(i, -1))
   tree:add(proto_zenoh.fields.hello_zenohid, val)
   i = i + len
 
@@ -1482,7 +1485,7 @@ function parse_keepalive(tree, buf)
   local i = 0
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = get_zbytes(buf(i, -1))
     tree:add(proto_zenoh.fields.keepalive_peerid, val)
     i = i + len
   end
@@ -1493,7 +1496,7 @@ end
 function parse_pingpong(tree, buf)
   local i = 0
 
-  local val, len = parse_zint(buf, i)
+  local val, len = get_zint(buf, i)
   tree:add(proto_zenoh.fields.pingpong_hash, buf(i, len), val)
   i = i + len
 
@@ -1503,7 +1506,7 @@ end
 function parse_frame(tree, buf, f_size)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.frame_sn, buf(i, len), val)
   i = i + len
 
@@ -1541,7 +1544,7 @@ end
 function parse_routing_context(tree, buf)
   local i = 0
 
-  local val, len = parse_zint(buf, i)
+  local val, len = get_zint(buf, i)
   tree:add(proto_zenoh.fields.routingcontext_tid, buf(i, len), val)
   i = i + len
 
@@ -1551,18 +1554,18 @@ end
 function parse_reply_context(tree, buf)
   local i = 0
 
-  local val, len = parse_zint(buf, i)
+  local val, len = get_zint(buf, i)
   tree:add(proto_zenoh.fields.replycontext_qid, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x00 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = get_zint(buf(i, -1))
     tree:add(proto_zenoh.fields.replycontext_replierkind, buf(i, len), val)
     i = i + len
   end
 
   if bit.band(h_flags, 0x01) == 0x00 then
-    local val, len = parse_zbytes(buf(i, -1))
+    local val, len = get_zbytes(buf(i, -1))
     tree:add(proto_zenoh.fields.replycontext_replierid, buf(i, len), val)
     i = i + len
   end
