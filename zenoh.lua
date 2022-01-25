@@ -19,6 +19,46 @@ local proto_zenoh_tcp = Proto("zenoh-tcp", "Zenoh Protocol over TCP")
 local proto_zenoh_udp = Proto("zenoh-udp", "Zenoh Protocol over UDP")
 local proto_zenoh = Proto("zenoh", "Zenoh Protocol")
 
+local what_bit_fields = {
+  [0] = "None",
+  [1] = "Router",
+  [2] = "Peer",
+  [3] = "Peer | Router",
+  [4] = "Client",
+  [5] = "Client | Router",
+  [6] = "Client | Peer",
+  [7] = "Client | Peer | Router"
+}
+
+local whatami_bit_fields = {
+  [0] = "Router",
+  [1] = "Peer",
+  [2] = "Client",
+  [3] = "Reserved"
+}
+
+local scout_hdr_flags = {
+  [0] = "None",
+  [1] = "Zenoh ID",
+  [2] = "Unused",
+  [3] = "Unused | Zenoh ID",
+  [4] = "ZExtensions",
+  [5] = "ZExtensions | Zenoh ID",
+  [6] = "ZExtensions | Unused",
+  [7] = "ZExtensions | Unused | Zenoh ID"
+}
+
+local hello_hdr_flags = {
+  [0] = "None",
+  [1] = "Locators",
+  [2] = "Unused",
+  [3] = "Unused | Locators",
+  [4] = "ZExtensions",
+  [5] = "ZExtensions | Locators",
+  [6] = "ZExtensions | Unused",
+  [7] = "ZExtensions | Unused | Locators"
+}
+
 -- Zenoh TCP
 proto_zenoh_tcp.fields.len = ProtoField.uint16("zenoh.len", "Len", base.u16)
 
@@ -91,15 +131,15 @@ proto_zenoh.fields.join_lease        = ProtoField.bytes("zenoh.join.lease", "Lea
 proto_zenoh.fields.join_snresolution = ProtoField.uint8("zenoh.join.sn_resolution", "SN Resolution", base.u8)
 
 -- Scout Message Specific
-proto_zenoh.fields.scout_flags   = ProtoField.uint8("zenoh.scout.flags", "Flags", base.HEX)
+proto_zenoh.fields.scout_flags   = ProtoField.uint8("zenoh.scout.flags", "Flags", base.DEC, scout_hdr_flags, 0xE0)
 proto_zenoh.fields.scout_version = ProtoField.uint8("zenoh.scout.version", "Version", base.u8)
-proto_zenoh.fields.scout_what    = ProtoField.uint8("zenoh.scout.what", "What", base.u8)
+proto_zenoh.fields.scout_what    = ProtoField.uint8("zenoh.scout.what", "What", base.DEC, what_bit_fields, 0x07)
 proto_zenoh.fields.scout_zenohid = ProtoField.bytes("zenoh.scout.zid", "Zenoh ID", base.NONE)
 
 -- Hello Message Specific
-proto_zenoh.fields.hello_flags   = ProtoField.uint8("zenoh.hello.flags", "Flags", base.HEX)
+proto_zenoh.fields.hello_flags   = ProtoField.uint8("zenoh.hello.flags", "Flags", base.DEC, hello_hdr_flags, 0xE0)
 proto_zenoh.fields.hello_version = ProtoField.uint8("zenoh.hello.version", "Version", base.u8)
-proto_zenoh.fields.hello_whatami = ProtoField.uint8("zenoh.hello.whatami", "WhatAmI", base.u8)
+proto_zenoh.fields.hello_whatami = ProtoField.uint8("zenoh.hello.whatami", "WhatAmI", base.DEC, whatami_bit_fields, 0x03)
 proto_zenoh.fields.hello_zenohid = ProtoField.bytes("zenoh.hello.zid", "Zenoh ID", base.NONE)
 
 -- Keep Alive Message Specific
@@ -469,30 +509,6 @@ function get_join_flag_description(flag)
   if flag == 0x04 then f_description     = "Options"       -- O
   elseif flag == 0x02 then f_description = "SN Resolution" -- S
   elseif flag == 0x01 then f_description = "TimeRes"       -- U
-  end
-
-  return f_description
-end
-
--- Scout flags
-function get_scout_flag_description(flag)
-  local f_description = "Unknown"
-
-  if flag == 0x04 then f_description     = "Zenoh Extensions" -- Z
-  elseif flag == 0x02 then f_description = "Unused"           -- X
-  elseif flag == 0x01 then f_description = "ZenohID"          -- I
-  end
-
-  return f_description
-end
-
--- Hello flags
-function get_hello_flag_description(flag)
-  local f_description = "Unknown"
-
-  if flag == 0x04 then f_description     = "Zenoh Extensions" -- Z
-  elseif flag == 0x02 then f_description = "Unused"           -- X
-  elseif flag == 0x01 then f_description = "Locators"         -- L
   end
 
   return f_description
@@ -1466,7 +1482,7 @@ function parse_hello(tree, buf)
   i = i + len
 
   val, len = get_uint8(buf(i, -1))
-  tree:add(proto_zenoh.fields.hello_whatami, buf(i, len), bit.band(val, 0x02))
+  tree:add(proto_zenoh.fields.hello_whatami, buf(i, len), bit.band(val, 0x03))
   i = i + len
 
   val, len = get_zbytes(buf(i, -1))
@@ -1599,11 +1615,13 @@ function parse_header_id(tree, buf)
 end
 
 function parse_header_flags(tree, buf, msgid)
+  local i = 0
+  local val, len = get_uint8(buf(i, -1))
   local f_bitwise = {0x04, 0x02, 0x01}
   h_flags = bit.rshift(buf(0,1):uint(), 5)
 
   local f_str = ""
-  for i,v in ipairs(f_bitwise) do
+  for j,v in ipairs(f_bitwise) do
     if msgid == ZENOH_MSGID.DECLARE then
       flag = get_declare_flag_description(bit.band(h_flags, v))
     elseif msgid == ZENOH_MSGID.DATA then
@@ -1619,9 +1637,13 @@ function parse_header_flags(tree, buf, msgid)
     elseif msgid == SESSION_MSGID.JOIN then
       flag = get_join_flag_description(bit.band(h_flags, v))
     elseif msgid == SESSION_MSGID.SCOUT then
-      flag = get_scout_flag_description(bit.band(h_flags, v))
+      tree:add(proto_zenoh.fields.scout_flags, buf(i, len), val)
+      i = i + len
+      return
     elseif msgid == SESSION_MSGID.HELLO then
-      flag = get_hello_flag_description(bit.band(h_flags, v))
+      tree:add(proto_zenoh.fields.hello_flags, buf(i, len), val)
+      i = i + len
+      return
     elseif msgid == SESSION_MSGID.INIT then
       flag = get_init_flag_description(bit.band(h_flags, v))
     elseif msgid == SESSION_MSGID.OPEN then
@@ -1665,10 +1687,6 @@ function parse_header_flags(tree, buf, msgid)
     tree:add(proto_zenoh.fields.linkstatelist_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.JOIN then
     tree:add(proto_zenoh.fields.join_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
-  elseif msgid == SESSION_MSGID.SCOUT then
-    tree:add(proto_zenoh.fields.scout_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
-  elseif msgid == SESSION_MSGID.HELLO then
-    tree:add(proto_zenoh.fields.hello_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.INIT then
     tree:add(proto_zenoh.fields.init_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.OPEN then
@@ -1692,8 +1710,6 @@ function parse_header_flags(tree, buf, msgid)
   elseif msgid == DECORATORS_MSGID.REPLY_CONTEXT then
     tree:add(proto_zenoh.fields.replycontext_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   end
-
-  -- TODO: add bitwise flag substree
 end
 
 function parse_msgid(tree, buf)
