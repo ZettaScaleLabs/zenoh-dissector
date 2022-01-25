@@ -1894,10 +1894,16 @@ function dissector(buf, pinfo, root, is_tcp)
 end
 
 function proto_zenoh_udp.dissector(buf, pinfo, root)
+    local udp_port_table = DissectorTable.get("udp.port")
+    udp_port_table:add(pinfo.src_port, proto_zenoh_udp)
+
     dissector(buf, pinfo, root, false)
 end
 
 function proto_zenoh_tcp.dissector(buf, pinfo, root)
+    local tcp_port_table = DissectorTable.get("tcp.port")
+    tcp_port_table:add(pinfo.src_port, proto_zenoh_tcp)
+
     dissector(buf, pinfo, root, true)
 end
 
