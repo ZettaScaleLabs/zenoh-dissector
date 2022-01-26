@@ -37,6 +37,17 @@ local whatami_bit_fields = {
   [3] = "Reserved"
 }
 
+local snbs_bit_fields = {
+  [0] = "1 Byte",
+  [1] = "2 Byte",
+  [2] = "3 Byte",
+  [3] = "4 Byte",
+  [4] = "5 Byte",
+  [5] = "6 Byte",
+  [6] = "7 Byte",
+  [7] = "8 Byte",
+}
+
 local scout_hdr_flags = {
   [0] = "None",
   [1] = "Zenoh ID",
@@ -57,6 +68,17 @@ local hello_hdr_flags = {
   [5] = "ZExtensions | Locators",
   [6] = "ZExtensions | Unused",
   [7] = "ZExtensions | Unused | Locators"
+}
+
+local init_hdr_flags = {
+  [0] = "None",
+  [1] = "Ack",
+  [2] = "Unused",
+  [3] = "Unused | Ack",
+  [4] = "ZExtensions",
+  [5] = "ZExtensions | Ack",
+  [6] = "ZExtensions | Unused",
+  [7] = "ZExtensions | Unused | Ack"
 }
 
 -- Zenoh TCP
@@ -90,14 +112,12 @@ proto_zenoh.fields.query_predicate = ProtoField.bytes("zenoh.query.predicate", "
 proto_zenoh.fields.query_qid       = ProtoField.uint8("zenoh.query.qid", "Query ID", base.u8)
 
 -- Init Message Specific
-proto_zenoh.fields.init_flags        = ProtoField.uint8("zenoh.init.flags", "Flags", base.HEX)
-proto_zenoh.fields.init_option_flags = ProtoField.uint8("zenoh.init.option_flags", "Option Flags", base.HEX)
-proto_zenoh.fields.init_vmaj         = ProtoField.uint8("zenoh.init.v_maj", "VMaj", base.u8)
-proto_zenoh.fields.init_vmin         = ProtoField.uint8("zenoh.init.v_min", "VMin", base.u8)
-proto_zenoh.fields.init_whatami      = ProtoField.uint8("zenoh.init.whatami", "WhatAmI", base.u8)
-proto_zenoh.fields.init_peerid       = ProtoField.bytes("zenoh.init.peer_id", "Peer ID", base.NONE)
-proto_zenoh.fields.init_snresolution = ProtoField.uint8("zenoh.init.sn_resolution", "SN Resolution", base.u8)
-proto_zenoh.fields.init_cookie       = ProtoField.bytes("zenoh.init.cookie", "Cookie", base.NONE)
+proto_zenoh.fields.init_flags   = ProtoField.uint8("zenoh.init.flags", "Flags", base.DEC, init_hdr_flags, 0xE0)
+proto_zenoh.fields.init_version = ProtoField.uint8("zenoh.init.version", "Version", base.u8)
+proto_zenoh.fields.init_whatami = ProtoField.uint8("zenoh.init.whatami", "WhatAmI", base.DEC, whatami_bit_fields, 0x03)
+proto_zenoh.fields.init_snbs    = ProtoField.uint8("zenoh.init.sn_bs", "SN Resolution Bytes", base.DEC, snbs_bit_fields, 0x1C)
+proto_zenoh.fields.init_zenohid = ProtoField.bytes("zenoh.init.zid", "Zenoh ID", base.NONE)
+proto_zenoh.fields.init_cookie  = ProtoField.bytes("zenoh.init.cookie", "Cookie", base.NONE)
 
 -- Open Message Specific
 proto_zenoh.fields.open_flags     = ProtoField.uint8("zenoh.open.flags", "Flags", base.HEX)
@@ -199,7 +219,7 @@ SESSION_MSGID = {
   JOIN       = 0x00,
   SCOUT      = 0x01,
   HELLO      = 0x02,
-  INIT       = 0x03,
+  INIT       = 0x01,
   OPEN       = 0x04,
   CLOSE      = 0x05,
   SYNC       = 0x06,
@@ -437,18 +457,6 @@ function get_query_flag_description(flag)
   if flag == 0x04 then f_description     = "ResourceKey" -- K
   elseif flag == 0x02 then f_description = "Unused"      -- X
   elseif flag == 0x01 then f_description = "QueryTarget" -- T
-  end
-
-  return f_description
-end
-
--- Init flags
-function get_init_flag_description(flag)
-  local f_description = "Unknown"
-
-  if flag == 0x04 then f_description     = "Options"       -- O
-  elseif flag == 0x02 then f_description = "SN Resolution" -- S
-  elseif flag == 0x01 then f_description = "Ack"           -- A
   end
 
   return f_description
@@ -1277,41 +1285,18 @@ end
 function parse_init(tree, buf)
   local i = 0
 
-  if bit.band(h_flags, 0x04) == 0x04 then
-    o_flags, len = get_zint(buf(i, -1))
+  val, len = get_uint8(buf(i, -1))
+  tree:add(proto_zenoh.fields.init_version, buf(i, len), val)
+  i = i + len
 
-    local f_str = ""
-    local f_bitwise = {0x800, 0x400, 0x200, 0x100, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01} -- FIXME: make it cleaner
-    for i,v in ipairs(f_bitwise) do
-      flag = get_options_flag_description(bit.band(o_flags, v))
-
-      if bit.band(o_flags, v) == v then
-        f_str = f_str .. flag .. ", "
-      end
-    end
-
-    i = i + len
-  end
-
-  if bit.band(h_flags, 0x01) == 0x00 then
-    tree:add(proto_zenoh.fields.init_vmaj, buf(i, 1), bit.rshift(buf(i, 1):uint(), 4))
-    tree:add(proto_zenoh.fields.init_vmin, buf(i, 1), bit.band(buf(i, 1):uint(), 0xff))
-    i = i + 1
-  end
-
-  local val, len = get_zint(buf(i, -1))
-  tree:add(proto_zenoh.fields.init_whatami, buf(i, len), val)
+  val, len = get_uint8(buf(i, -1))
+  tree:add(proto_zenoh.fields.init_whatami, buf(i, len), bit.band(val, 0x03))
+  tree:add(proto_zenoh.fields.init_snbs, buf(i, len), bit.band(val, 0x1C))
   i = i + len
 
   val, len = get_zbytes(buf(i, -1))
-  tree:add(proto_zenoh.fields.init_peerid, val)
+  tree:add(proto_zenoh.fields.init_zenohid, val)
   i = i + len
-
-  if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = get_zint(buf(i, -1))
-    tree:add(proto_zenoh.fields.init_snresolution, buf(i, len), val)
-    i = i + len
-  end
 
   if bit.band(h_flags, 0x01) == 0x01 then
     val, len = get_zbytes(buf(i, -1))
@@ -1645,7 +1630,9 @@ function parse_header_flags(tree, buf, msgid)
       i = i + len
       return
     elseif msgid == SESSION_MSGID.INIT then
-      flag = get_init_flag_description(bit.band(h_flags, v))
+      tree:add(proto_zenoh.fields.init_flags, buf(i, len), val)
+      i = i + len
+      return
     elseif msgid == SESSION_MSGID.OPEN then
       flag = get_open_flag_description(bit.band(h_flags, v))
     elseif msgid == SESSION_MSGID.CLOSE then
