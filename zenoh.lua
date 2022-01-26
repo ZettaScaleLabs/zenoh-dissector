@@ -938,11 +938,15 @@ function parse_links(tree, buf)
   return i
 end
 
-function parse_locator(tree, buf)
+function parse_locator(tree, buf, index)
   local i = 0
 
   local val, len = get_zstring(buf(i, -1))
-  tree:add(buf(i, len), "Locator: ", val)
+  if index == -1 then
+    tree:add(buf(i, len), "Locator: ", val)
+  else
+    tree:add(buf(i, len), "[#" .. index .. "]:", val)
+  end
   i = i + len
 
   return i
@@ -952,11 +956,11 @@ function parse_locators(tree, buf)
   local i = 0
 
   local a_size, len = get_zint(buf(i, -1))
-  subtree = tree:add(buf(i, len), "Locators Array [" .. a_size .. "]")
+  subtree = tree:add(buf(i, len), "Locators Array [size=" .. a_size .. "]")
   i = i + len
 
   while a_size > 0 do
-    len = parse_locator(subtree, buf(i, -1))
+    len = parse_locator(subtree, buf(i, -1), a_size)
     i = i + len
 
     a_size = a_size - 1
