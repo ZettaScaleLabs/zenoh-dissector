@@ -81,6 +81,17 @@ local init_hdr_flags = {
   [7] = "ZExtensions | Unused | Ack"
 }
 
+local open_hdr_flags = {
+  [0] = "None",
+  [1] = "Ack",
+  [2] = "Lease period",
+  [3] = "Lease period | Ack",
+  [4] = "ZExtensions",
+  [5] = "ZExtensions | Ack",
+  [6] = "ZExtensions | Lease period",
+  [7] = "ZExtensions | Lease period | Ack"
+}
+
 -- Zenoh TCP
 proto_zenoh_tcp.fields.len = ProtoField.uint16("zenoh.len", "Len", base.u16)
 
@@ -120,7 +131,7 @@ proto_zenoh.fields.init_zenohid = ProtoField.bytes("zenoh.init.zid", "Zenoh ID",
 proto_zenoh.fields.init_cookie  = ProtoField.bytes("zenoh.init.cookie", "Cookie", base.NONE)
 
 -- Open Message Specific
-proto_zenoh.fields.open_flags     = ProtoField.uint8("zenoh.open.flags", "Flags", base.HEX)
+proto_zenoh.fields.open_flags     = ProtoField.uint8("zenoh.open.flags", "Flags", base.DEC, open_hdr_flags, 0xE0)
 proto_zenoh.fields.open_lease     = ProtoField.uint8("zenoh.open.lease", "Lease Period", base.u8)
 proto_zenoh.fields.open_initialsn = ProtoField.uint8("zenoh.open.initial_sn", "Initial SN", base.u8)
 proto_zenoh.fields.open_cookie    = ProtoField.bytes("zenoh.open.cookie", "Cookie", base.NONE)
@@ -220,7 +231,7 @@ SESSION_MSGID = {
   SCOUT      = 0x01,
   HELLO      = 0x02,
   INIT       = 0x01,
-  OPEN       = 0x04,
+  OPEN       = 0x02,
   CLOSE      = 0x05,
   SYNC       = 0x06,
   ACK_NACK   = 0x07,
@@ -457,18 +468,6 @@ function get_query_flag_description(flag)
   if flag == 0x04 then f_description     = "ResourceKey" -- K
   elseif flag == 0x02 then f_description = "Unused"      -- X
   elseif flag == 0x01 then f_description = "QueryTarget" -- T
-  end
-
-  return f_description
-end
-
--- Open flags
-function get_open_flag_description(flag)
-  local f_description = "Unknown"
-
-  if flag == 0x04 then f_description     = "Unused"  -- X
-  elseif flag == 0x02 then f_description = "TimeRes" -- T
-  elseif flag == 0x01 then f_description = "Ack"     -- A
   end
 
   return f_description
@@ -1314,7 +1313,7 @@ end
 function parse_open(tree, buf)
   local i = 0
 
-  local val, len = get_zint(buf, i)
+  local val, len = get_zint(buf, -1)
   if bit.band(h_flags, 0x02) == 0x02 then
     tree:add(proto_zenoh.fields.open_lease, buf(i, len), val):append_text(" seconds")
   else
@@ -1638,7 +1637,9 @@ function parse_header_flags(tree, buf, msgid)
       i = i + len
       return
     elseif msgid == SESSION_MSGID.OPEN then
-      flag = get_open_flag_description(bit.band(h_flags, v))
+      tree:add(proto_zenoh.fields.open_flags, buf(i, len), val)
+      i = i + len
+      return
     elseif msgid == SESSION_MSGID.CLOSE then
       flag = get_close_flag_description(bit.band(h_flags, v))
     elseif msgid == SESSION_MSGID.SYNC then
@@ -1678,10 +1679,6 @@ function parse_header_flags(tree, buf, msgid)
     tree:add(proto_zenoh.fields.linkstatelist_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.JOIN then
     tree:add(proto_zenoh.fields.join_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
-  elseif msgid == SESSION_MSGID.INIT then
-    tree:add(proto_zenoh.fields.init_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
-  elseif msgid == SESSION_MSGID.OPEN then
-    tree:add(proto_zenoh.fields.open_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.CLOSE then
     tree:add(proto_zenoh.fields.close_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.SYNC then
