@@ -92,6 +92,17 @@ local open_hdr_flags = {
   [7] = "ZExtensions | Lease period | Ack"
 }
 
+local join_hdr_flags = {
+  [0] = "None",
+  [1] = "Unused",
+  [2] = "Lease period",
+  [3] = "Lease period | Unused",
+  [4] = "ZExtensions",
+  [5] = "ZExtensions | Unused",
+  [6] = "ZExtensions | Lease period",
+  [7] = "ZExtensions | Lease period | Unused"
+}
+
 -- Zenoh TCP
 proto_zenoh_tcp.fields.len = ProtoField.uint16("zenoh.len", "Len", base.u16)
 
@@ -152,14 +163,14 @@ proto_zenoh.fields.acknack_sn    = ProtoField.uint8("zenoh.acknack.sn", "SN", ba
 proto_zenoh.fields.acknack_mask  = ProtoField.uint8("zenoh.acknack.mask", "Mask", base.u8)
 
 -- Join Message Specific
-proto_zenoh.fields.join_flags        = ProtoField.uint8("zenoh.join.flags", "Flags", base.HEX)
-proto_zenoh.fields.join_option_flags = ProtoField.uint8("zenoh.join.option_flags", "Option Flags", base.HEX)
-proto_zenoh.fields.join_vmaj         = ProtoField.uint8("zenoh.join.v_maj", "VMaj", base.u8)
-proto_zenoh.fields.join_vmin         = ProtoField.uint8("zenoh.join.v_min", "VMin", base.u8)
-proto_zenoh.fields.join_whatami      = ProtoField.uint8("zenoh.join.whatami", "WhatAmI", base.u8)
-proto_zenoh.fields.join_peerid       = ProtoField.bytes("zenoh.join.peer_id", "Peer ID", base.NONE)
-proto_zenoh.fields.join_lease        = ProtoField.bytes("zenoh.join.lease", "Lease", base.u8)
-proto_zenoh.fields.join_snresolution = ProtoField.uint8("zenoh.join.sn_resolution", "SN Resolution", base.u8)
+proto_zenoh.fields.join_flags        = ProtoField.uint8("zenoh.join.flags", "Flags", base.DEC, join_hdr_flags, 0xE0)
+proto_zenoh.fields.join_version      = ProtoField.uint8("zenoh.join.version", "Version", base.u8)
+proto_zenoh.fields.join_whatami      = ProtoField.uint8("zenoh.join.whatami", "WhatAmI", base.DEC, whatami_bit_fields, 0x03)
+proto_zenoh.fields.join_snbs         = ProtoField.uint8("zenoh.join.sn_bs", "SN Resolution Bytes", base.DEC, snbs_bit_fields, 0x1C)
+proto_zenoh.fields.join_zenohid      = ProtoField.bytes("zenoh.join.zid", "Zenoh ID", base.NONE)
+proto_zenoh.fields.join_lease        = ProtoField.uint8("zenoh.join.lease", "Lease Period", base.u8)
+proto_zenoh.fields.join_snbesteffort = ProtoField.uint8("zenoh.join.next_sn.best_effort", "Best Effort", base.u8)
+proto_zenoh.fields.join_snreliable   = ProtoField.uint8("zenoh.join.next_sn.reliable", "Reliable", base.u8)
 
 -- Scout Message Specific
 proto_zenoh.fields.scout_flags   = ProtoField.uint8("zenoh.scout.flags", "Flags", base.DEC, scout_hdr_flags, 0xE0)
@@ -227,11 +238,11 @@ ZENOH_MSGID = protect(ZENOH_MSGID)
 
 -- Session Message Types
 SESSION_MSGID = {
-  JOIN       = 0x00,
   SCOUT      = 0x01,
   HELLO      = 0x02,
   INIT       = 0x01,
   OPEN       = 0x02,
+  JOIN       = 0x03,
   CLOSE      = 0x05,
   SYNC       = 0x06,
   ACK_NACK   = 0x07,
@@ -504,18 +515,6 @@ function get_acknack_flag_description(flag)
   if flag == 0x04 then f_description     = "Unused" -- X
   elseif flag == 0x02 then f_description = "Unused" -- X
   elseif flag == 0x01 then f_description = "Mask"   -- M
-  end
-
-  return f_description
-end
-
--- Join flags
-function get_join_flag_description(flag)
-  local f_description = "Unknown"
-
-  if flag == 0x04 then f_description     = "Options"       -- O
-  elseif flag == 0x02 then f_description = "SN Resolution" -- S
-  elseif flag == 0x01 then f_description = "TimeRes"       -- U
   end
 
   return f_description
@@ -1254,36 +1253,6 @@ function parse_query_consolidation(tree, buf)
   return i
 end
 
-function parse_initial_sn_qos(tree, buf)
-  local i = 0
-
-  local a_size = PRIORITY_NUM
-  subtree = tree:add(buf(i, len), "Initial SN Array: ", a_size)
-
-  while a_size > 0 do
-    len = parse_initial_sn_plain(subtree, buf(i, -1))
-    i = i + len
-
-    a_size = a_size - 1
-  end
-
-  return i
-end
-
-function parse_initial_sn_plain(tree, buf)
-  local i = 0
-
-  local val, len = get_zint(buf(i, -1))
-  subtree = tree:add(buf(i, len), "Reliable: ", val)
-  i = i + len
-
-  local val, len = get_zint(buf(i, -1))
-  subtree = tree:add(buf(i, len), "Best Effort: ", val)
-  i = i + len
-
-  return i
-end
-
 -------------------------------------------------------------------------------
 function parse_init(tree, buf)
   local i = 0
@@ -1313,7 +1282,7 @@ end
 function parse_open(tree, buf)
   local i = 0
 
-  local val, len = get_zint(buf, -1)
+  local val, len = get_zint(buf(i, -1))
   if bit.band(h_flags, 0x02) == 0x02 then
     tree:add(proto_zenoh.fields.open_lease, buf(i, len), val):append_text(" seconds")
   else
@@ -1385,38 +1354,20 @@ end
 function parse_join(tree, buf)
   local i = 0
 
-  local o_flags
-  if bit.band(h_flags, 0x04) == 0x04 then
-    o_flags, len = get_zint(buf(i, -1))
+  local val, len = get_uint8(buf(i, -1))
+  tree:add(proto_zenoh.fields.join_version, buf(i, len), val)
+  i = i + len
 
-    local f_bitwise = {0x800, 0x400, 0x200, 0x100, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01} -- FIXME: make it cleaner
-    local f_str = ""
-    for i,v in ipairs(f_bitwise) do
-      flag = get_options_flag_description(bit.band(o_flags, v))
+  local val, len = get_uint8(buf(i, -1))
+  tree:add(proto_zenoh.fields.join_whatami, buf(i, len), bit.band(val, 0x03))
+  tree:add(proto_zenoh.fields.join_snbs, buf(i, len), bit.band(val, 0x1C))
+  i = i + len
 
-      if bit.band(o_flags, v) == v then
-        f_str = f_str .. flag .. ", "
-      end
-    end
-
-    i = i + len
-  end
-
-  if bit.band(h_flags, 0x01) == 0x00 then
-    tree:add(proto_zenoh.fields.join_vmaj, buf(i, 1), bit.rshift(buf(i, 1):uint(), 4))
-    tree:add(proto_zenoh.fields.join_vmin, buf(i, 1), bit.band(buf(i, 1):uint(), 0xff))
-    i = i + 1
-  end
+  local val, len = get_zbytes(buf(i, -1))
+  tree:add(proto_zenoh.fields.join_zenohid, val)
+  i = i + len
 
   local val, len = get_zint(buf(i, -1))
-  tree:add(proto_zenoh.fields.join_whatami, buf(i, len), val)
-  i = i + len
-
-  val, len = get_zbytes(buf(i, -1))
-  tree:add(proto_zenoh.fields.join_peerid, val)
-  i = i + len
-
-  local val, len = get_zint(buf, i)
   if bit.band(h_flags, 0x02) == 0x02 then
     tree:add(proto_zenoh.fields.join_lease, buf(i, len), val):append_text(" seconds")
   else
@@ -1424,19 +1375,12 @@ function parse_join(tree, buf)
   end
   i = i + len
 
-  if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = get_zint(buf(i, -1))
-    tree:add(proto_zenoh.fields.join_snresolution, buf(i, len), val)
-    i = i + len
-  end
-
-  if bit.band(o_flags, 0x01) == 0x01 then
-    local len = parse_initial_sn_qos(tree, buf(i, -1))
-    i = i + len
-  else
-    local len = parse_initial_sn_plain(tree, buf(i, -1))
-    i = i + len
-  end
+  local val, len = get_zint(buf(i, -1))
+  tree:add(proto_zenoh.fields.join_snbesteffort, buf(i, len), val)
+  i = i + len
+  local val, len = get_zint(buf(i, -1))
+  tree:add(proto_zenoh.fields.join_snreliable, buf(i, len), val)
+  i = i + len
 
   return i
 end
@@ -1623,7 +1567,9 @@ function parse_header_flags(tree, buf, msgid)
     elseif msgid == ZENOH_MSGID.LINK_STATE_LIST then
       flag = get_linkstatelist_flag_description(bit.band(h_flags, v))
     elseif msgid == SESSION_MSGID.JOIN then
-      flag = get_join_flag_description(bit.band(h_flags, v))
+      tree:add(proto_zenoh.fields.join_flags, buf(i, len), val)
+      i = i + len
+      return
     elseif msgid == SESSION_MSGID.SCOUT then
       tree:add(proto_zenoh.fields.scout_flags, buf(i, len), val)
       i = i + len
@@ -1677,8 +1623,6 @@ function parse_header_flags(tree, buf, msgid)
     tree:add(proto_zenoh.fields.unit_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == ZENOH_MSGID.LINK_STATE_LIST then
     tree:add(proto_zenoh.fields.linkstatelist_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
-  elseif msgid == SESSION_MSGID.JOIN then
-    tree:add(proto_zenoh.fields.join_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.CLOSE then
     tree:add(proto_zenoh.fields.close_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.SYNC then
@@ -1727,6 +1671,9 @@ function parse_msgid(tree, buf)
   elseif msgid == SESSION_MSGID.HELLO then
     tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Hello)")
     return SESSION_MSGID.HELLO
+  elseif msgid == SESSION_MSGID.JOIN then
+    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Join)")
+    return SESSION_MSGID.JOIN
   elseif msgid == SESSION_MSGID.INIT then
     tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Init)")
     return SESSION_MSGID.INIT
