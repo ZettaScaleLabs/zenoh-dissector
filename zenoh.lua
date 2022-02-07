@@ -114,6 +114,17 @@ local close_hdr_flags = {
   [7] = "ZExtensions | Unused | Unused"
 }
 
+local keepalive_hdr_flags = {
+  [0] = "None",
+  [1] = "Unused",
+  [2] = "Unused",
+  [3] = "Unused | Unused",
+  [4] = "ZExtensions",
+  [5] = "ZExtensions | Unused",
+  [6] = "ZExtensions | Unused",
+  [7] = "ZExtensions | Unused | Unused"
+}
+
 -- Zenoh TCP
 proto_zenoh_tcp.fields.len = ProtoField.uint16("zenoh.len", "Len", base.u16)
 
@@ -195,8 +206,7 @@ proto_zenoh.fields.hello_whatami = ProtoField.uint8("zenoh.hello.whatami", "What
 proto_zenoh.fields.hello_zenohid = ProtoField.bytes("zenoh.hello.zid", "Zenoh ID", base.NONE)
 
 -- Keep Alive Message Specific
-proto_zenoh.fields.keepalive_flags  = ProtoField.uint8("zenoh.keepalive.flags", "Flags", base.HEX)
-proto_zenoh.fields.keepalive_peerid = ProtoField.bytes("zenoh.keepalive.peerid", "Peer ID", base.NONE)
+proto_zenoh.fields.keepalive_flags  = ProtoField.uint8("zenoh.keepalive.flags", "Flags", base.DEC, keepalive_hdr_flags, 0xE0)
 
 -- Frame Message Specific
 proto_zenoh.fields.frame_flags   = ProtoField.uint8("zenoh.frame.flags", "Flags", base.HEX)
@@ -250,9 +260,9 @@ SESSION_MSGID = {
   OPEN       = 0x02,
   JOIN       = 0x03,
   CLOSE      = 0x04,
+  KEEP_ALIVE = 0x05,
   SYNC       = 0x06,
   ACK_NACK   = 0x07,
-  KEEP_ALIVE = 0x08,
   FRAME      = 0x0a
 }
 SESSION_MSGID = protect(SESSION_MSGID)
@@ -508,18 +518,6 @@ function get_acknack_flag_description(flag)
   if flag == 0x04 then f_description     = "Unused" -- X
   elseif flag == 0x02 then f_description = "Unused" -- X
   elseif flag == 0x01 then f_description = "Mask"   -- M
-  end
-
-  return f_description
-end
-
--- Keep Alive flags
-function get_keepalive_flag_description(flag)
-  local f_description = "Unknown"
-
-  if flag == 0x04 then f_description     = "Unused" -- X
-  elseif flag == 0x02 then f_description = "Unused" -- X
-  elseif flag == 0x01 then f_description = "PeerID" -- I
   end
 
   return f_description
@@ -1407,11 +1405,7 @@ end
 function parse_keepalive(tree, buf)
   local i = 0
 
-  if bit.band(h_flags, 0x01) == 0x01 then
-    val, len = get_zbytes(buf(i, -1))
-    tree:add(proto_zenoh.fields.keepalive_peerid, val)
-    i = i + len
-  end
+  -- Nothing to decode
 
   return i
 end
@@ -1560,7 +1554,9 @@ function parse_header_flags(tree, buf, msgid)
     elseif msgid == SESSION_MSGID.ACK_NACK then
       flag = get_acknack_flag_description(bit.band(h_flags, v))
     elseif msgid == SESSION_MSGID.KEEP_ALIVE then
-      flag = get_keepalive_flag_description(bit.band(h_flags, v))
+      tree:add(proto_zenoh.fields.keepalive_flags, buf(i, len), val)
+      i = i + len
+      return
     elseif msgid == SESSION_MSGID.FRAME then
       flag = get_frame_flag_description(bit.band(h_flags, v))
     elseif msgid == DECORATORS_MSGID.ATTACHMENT then
@@ -1592,8 +1588,6 @@ function parse_header_flags(tree, buf, msgid)
     tree:add(proto_zenoh.fields.sync_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.ACK_NACK then
     tree:add(proto_zenoh.fields.acknack_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
-  elseif msgid == SESSION_MSGID.KEEP_ALIVE then
-    tree:add(proto_zenoh.fields.keepalive_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.FRAME then
     tree:add(proto_zenoh.fields.frame_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == DECORATORS_MSGID.ATTACHMENT then
