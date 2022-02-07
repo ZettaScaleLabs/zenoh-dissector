@@ -103,6 +103,17 @@ local join_hdr_flags = {
   [7] = "ZExtensions | Lease period | Unused"
 }
 
+local close_hdr_flags = {
+  [0] = "None",
+  [1] = "Unused",
+  [2] = "Unused",
+  [3] = "Unused | Unused",
+  [4] = "ZExtensions",
+  [5] = "ZExtensions | Unused",
+  [6] = "ZExtensions | Unused",
+  [7] = "ZExtensions | Unused | Unused"
+}
+
 -- Zenoh TCP
 proto_zenoh_tcp.fields.len = ProtoField.uint16("zenoh.len", "Len", base.u16)
 
@@ -148,8 +159,7 @@ proto_zenoh.fields.open_initialsn = ProtoField.uint8("zenoh.open.initial_sn", "I
 proto_zenoh.fields.open_cookie    = ProtoField.bytes("zenoh.open.cookie", "Cookie", base.NONE)
 
 -- Close Message Specific
-proto_zenoh.fields.close_flags  = ProtoField.uint8("zenoh.close.flags", "Flags", base.HEX)
-proto_zenoh.fields.close_peerid = ProtoField.bytes("zenoh.close.peerid", "Peer ID", base.NONE)
+proto_zenoh.fields.close_flags  = ProtoField.uint8("zenoh.close.flags", "Flags", base.DEC, close_hdr_flags, 0xE0)
 proto_zenoh.fields.close_reason = ProtoField.uint8("zenoh.close.reason", "Reason", base.u8)
 
 -- Sync Message Specific
@@ -243,7 +253,7 @@ SESSION_MSGID = {
   INIT       = 0x01,
   OPEN       = 0x02,
   JOIN       = 0x03,
-  CLOSE      = 0x05,
+  CLOSE      = 0x04,
   SYNC       = 0x06,
   ACK_NACK   = 0x07,
   KEEP_ALIVE = 0x08,
@@ -479,18 +489,6 @@ function get_query_flag_description(flag)
   if flag == 0x04 then f_description     = "ResourceKey" -- K
   elseif flag == 0x02 then f_description = "Unused"      -- X
   elseif flag == 0x01 then f_description = "QueryTarget" -- T
-  end
-
-  return f_description
-end
-
--- Close flags
-function get_close_flag_description(flag)
-  local f_description = "Unknown"
-
-  if flag == 0x04 then f_description     = "Unused"    -- X
-  elseif flag == 0x02 then f_description = "CloseLink" -- K
-  elseif flag == 0x01 then f_description = "PeerID"    -- I
   end
 
   return f_description
@@ -1306,12 +1304,6 @@ end
 function parse_close(tree, buf)
   local i = 0
 
-  if bit.band(h_flags, 0x01) == 0x01 then
-    val, len = get_zbytes(buf(i, -1))
-    tree:add(proto_zenoh.fields.close_peerid, val)
-    i = i + len
-  end
-
   val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.close_reason, buf(i, len), val)
   i = i + len
@@ -1587,7 +1579,9 @@ function parse_header_flags(tree, buf, msgid)
       i = i + len
       return
     elseif msgid == SESSION_MSGID.CLOSE then
-      flag = get_close_flag_description(bit.band(h_flags, v))
+      tree:add(proto_zenoh.fields.close_flags, buf(i, len), val)
+      i = i + len
+      return
     elseif msgid == SESSION_MSGID.SYNC then
       flag = get_sync_flag_description(bit.band(h_flags, v))
     elseif msgid == SESSION_MSGID.ACK_NACK then
@@ -1623,8 +1617,6 @@ function parse_header_flags(tree, buf, msgid)
     tree:add(proto_zenoh.fields.unit_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == ZENOH_MSGID.LINK_STATE_LIST then
     tree:add(proto_zenoh.fields.linkstatelist_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
-  elseif msgid == SESSION_MSGID.CLOSE then
-    tree:add(proto_zenoh.fields.close_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.SYNC then
     tree:add(proto_zenoh.fields.sync_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.ACK_NACK then
