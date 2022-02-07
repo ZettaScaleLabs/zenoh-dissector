@@ -1807,7 +1807,7 @@ function dissector(buf, pinfo, root, is_tcp)
     end
 
   while i < buf:len() do
-    len = decode_message(tree, buf(i, f_size - i))
+    len = decode_message(tree, buf(i, f_size))
     i = i + len
   end
   return 0
