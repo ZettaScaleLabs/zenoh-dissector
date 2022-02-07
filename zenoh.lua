@@ -198,10 +198,6 @@ proto_zenoh.fields.hello_zenohid = ProtoField.bytes("zenoh.hello.zid", "Zenoh ID
 proto_zenoh.fields.keepalive_flags  = ProtoField.uint8("zenoh.keepalive.flags", "Flags", base.HEX)
 proto_zenoh.fields.keepalive_peerid = ProtoField.bytes("zenoh.keepalive.peerid", "Peer ID", base.NONE)
 
--- Ping Pong Message Specific
-proto_zenoh.fields.pingpong_flags = ProtoField.uint8("zenoh.pingpong.flags", "Flags", base.HEX)
-proto_zenoh.fields.pingpong_hash  = ProtoField.bytes("zenoh.pingpong.hash", "Hash", base.NONE)
-
 -- Frame Message Specific
 proto_zenoh.fields.frame_flags   = ProtoField.uint8("zenoh.frame.flags", "Flags", base.HEX)
 proto_zenoh.fields.frame_sn      = ProtoField.uint8("zenoh.frame.sn", "SN", base.u8)
@@ -257,7 +253,6 @@ SESSION_MSGID = {
   SYNC       = 0x06,
   ACK_NACK   = 0x07,
   KEEP_ALIVE = 0x08,
-  PING_PONG  = 0x09,
   FRAME      = 0x0a
 }
 SESSION_MSGID = protect(SESSION_MSGID)
@@ -513,18 +508,6 @@ function get_acknack_flag_description(flag)
   if flag == 0x04 then f_description     = "Unused" -- X
   elseif flag == 0x02 then f_description = "Unused" -- X
   elseif flag == 0x01 then f_description = "Mask"   -- M
-  end
-
-  return f_description
-end
-
--- PingPong flags
-function get_pingpong_flag_description(flag)
-  local f_description = "Unknown"
-
-  if flag == 0x04 then f_description     = "Unused"     -- X
-  elseif flag == 0x02 then f_description = "Unused"     -- X
-  elseif flag == 0x01 then f_description = "PingOrPong" -- P
   end
 
   return f_description
@@ -1433,16 +1416,6 @@ function parse_keepalive(tree, buf)
   return i
 end
 
-function parse_pingpong(tree, buf)
-  local i = 0
-
-  local val, len = get_zint(buf, i)
-  tree:add(proto_zenoh.fields.pingpong_hash, buf(i, len), val)
-  i = i + len
-
-  return i
-end
-
 function parse_frame(tree, buf, f_size)
   local i = 0
 
@@ -1588,8 +1561,6 @@ function parse_header_flags(tree, buf, msgid)
       flag = get_acknack_flag_description(bit.band(h_flags, v))
     elseif msgid == SESSION_MSGID.KEEP_ALIVE then
       flag = get_keepalive_flag_description(bit.band(h_flags, v))
-    elseif msgid == SESSION_MSGID.PING_PONG then
-      flag = get_pingpong_flag_description(bit.band(h_flags, v))
     elseif msgid == SESSION_MSGID.FRAME then
       flag = get_frame_flag_description(bit.band(h_flags, v))
     elseif msgid == DECORATORS_MSGID.ATTACHMENT then
@@ -1623,8 +1594,6 @@ function parse_header_flags(tree, buf, msgid)
     tree:add(proto_zenoh.fields.acknack_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.KEEP_ALIVE then
     tree:add(proto_zenoh.fields.keepalive_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
-  elseif msgid == SESSION_MSGID.PING_PONG then
-    tree:add(proto_zenoh.fields.pingpong_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.FRAME then
     tree:add(proto_zenoh.fields.frame_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == DECORATORS_MSGID.ATTACHMENT then
@@ -1684,9 +1653,6 @@ function parse_msgid(tree, buf)
   elseif msgid == SESSION_MSGID.KEEP_ALIVE then
     tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Keep Alive)")
     return SESSION_MSGID.KEEP_ALIVE
-  elseif msgid == SESSION_MSGID.PING_PONG then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Ping Pong)")
-    return SESSION_MSGID.PING_PONG
   elseif msgid == SESSION_MSGID.FRAME then
     tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Frame)")
     return SESSION_MSGID.FRAME
@@ -1772,8 +1738,6 @@ function decode_message(tree, buf)
     len = parse_acknack(p_subtree, buf(i, -1))
   elseif msgid == SESSION_MSGID.KEEP_ALIVE then
     len = parse_keepalive(p_subtree, buf(i, -1))
-  elseif msgid == SESSION_MSGID.PING_PONG then
-    len = parse_pingpong(p_subtree, buf(i, -1))
   elseif msgid == SESSION_MSGID.FRAME then
     len = parse_frame(p_subtree, buf(i, -1), buf:len())
   elseif msgid == DECORATORS_MSGID.ROUTING_CONTEXT then
