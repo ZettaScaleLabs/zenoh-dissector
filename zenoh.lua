@@ -125,6 +125,17 @@ local keepalive_hdr_flags = {
   [7] = "ZExtensions | Unused | Unused"
 }
 
+local frame_hdr_flags = {
+  [0] = "None",
+  [1] = "Reliable",
+  [2] = "Unused",
+  [3] = "Unused | Reliable",
+  [4] = "ZExtensions",
+  [5] = "ZExtensions | Reliable",
+  [6] = "ZExtensions | Unused",
+  [7] = "ZExtensions | Unused | Reliable"
+}
+
 -- Zenoh TCP
 proto_zenoh_tcp.fields.len = ProtoField.uint16("zenoh.len", "Len", base.u16)
 
@@ -209,7 +220,7 @@ proto_zenoh.fields.hello_zenohid = ProtoField.bytes("zenoh.hello.zid", "Zenoh ID
 proto_zenoh.fields.keepalive_flags  = ProtoField.uint8("zenoh.keepalive.flags", "Flags", base.DEC, keepalive_hdr_flags, 0xE0)
 
 -- Frame Message Specific
-proto_zenoh.fields.frame_flags   = ProtoField.uint8("zenoh.frame.flags", "Flags", base.HEX)
+proto_zenoh.fields.frame_flags   = ProtoField.uint8("zenoh.frame.flags", "Flags", base.DEC, frame_hdr_flags, 0xE0)
 proto_zenoh.fields.frame_sn      = ProtoField.uint8("zenoh.frame.sn", "SN", base.u8)
 proto_zenoh.fields.frame_payload = ProtoField.uint8("zenoh.frame.payload", "Payload", base.u8)
 
@@ -263,7 +274,7 @@ SESSION_MSGID = {
   KEEP_ALIVE = 0x05,
   SYNC       = 0x06,
   ACK_NACK   = 0x07,
-  FRAME      = 0x0a
+  FRAME      = 0x08
 }
 SESSION_MSGID = protect(SESSION_MSGID)
 
@@ -518,18 +529,6 @@ function get_acknack_flag_description(flag)
   if flag == 0x04 then f_description     = "Unused" -- X
   elseif flag == 0x02 then f_description = "Unused" -- X
   elseif flag == 0x01 then f_description = "Mask"   -- M
-  end
-
-  return f_description
-end
-
--- Frame flags
-function get_frame_flag_description(flag)
-  local f_description = "Unknown"
-
-  if flag == 0x04 then f_description     = "End"      -- E
-  elseif flag == 0x02 then f_description = "Fragment" -- F
-  elseif flag == 0x01 then f_description = "Reliable" -- R
   end
 
   return f_description
@@ -1116,6 +1115,25 @@ function parse_timestamp(tree, buf)
   return i
 end
 
+function parse_zextensions(tree, buf)
+  local i = 0
+
+  -- TODO: Currenly this is just skipping the extensions
+  local has_next = false
+  repeat
+    local val, len = get_uint8(buf(i, -1))
+    if bit.band(val, 0x80) == 0x80 then
+      has_next = true
+    end
+
+    local val, len = get_zint(buf(i, -1))
+    i = i + len
+    i = i + val
+  until has_next == false
+
+  return i
+end
+
 function parse_pull(tree, buf)
   local i = 0
 
@@ -1417,33 +1435,15 @@ function parse_frame(tree, buf, f_size)
   tree:add(proto_zenoh.fields.frame_sn, buf(i, len), val)
   i = i + len
 
-  if bit.band(h_flags, 0x02) == 0x02 then
-    local is_first_fragment = true
-    for _, v in pairs(pending_fragments) do
-      if v == val  then
-        is_first_fragment = false
-        break
-      end
-    end
-
-    if is_first_fragment == true then
-      len = decode_message(tree, buf(i, -1))
-      i = i + len
-    else
-      tree:add(buf(i, -1), "Fragmented message (continuation): ", buf(i, -1))
-      i = buf:len()
-    end
-
-    if bit.band(h_flags, 0x04) ~= 0x04 then
-      table.insert(pending_fragments, val + 1)
-    end
-
-  else
-    repeat
-      len = decode_message(tree, buf(i, -1))
-      i = i + len
-    until i == f_size + 1
+  if bit.band(h_flags, 0x04) == 0x04 then
+    len = parse_zextensions(tree, buf(i, -1))
+    i = i + len
   end
+
+  repeat
+    len = decode_message(tree, buf(i, -1))
+    i = i + len
+  until i == f_size + 1
 
   return i
 end
@@ -1558,7 +1558,9 @@ function parse_header_flags(tree, buf, msgid)
       i = i + len
       return
     elseif msgid == SESSION_MSGID.FRAME then
-      flag = get_frame_flag_description(bit.band(h_flags, v))
+      tree:add(proto_zenoh.fields.frame_flags, buf(i, len), val)
+      i = i + len
+      return
     elseif msgid == DECORATORS_MSGID.ATTACHMENT then
       flag = get_attachment_flag_description(bit.band(h_flags, v))
     elseif msgid == DECORATORS_MSGID.ROUTING_CONTEXT then
@@ -1588,8 +1590,6 @@ function parse_header_flags(tree, buf, msgid)
     tree:add(proto_zenoh.fields.sync_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == SESSION_MSGID.ACK_NACK then
     tree:add(proto_zenoh.fields.acknack_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
-  elseif msgid == SESSION_MSGID.FRAME then
-    tree:add(proto_zenoh.fields.frame_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == DECORATORS_MSGID.ATTACHMENT then
     tree:add(proto_zenoh.fields.attachment_flags, buf(0, 1), h_flags):append_text(" (" .. f_str:sub(0, -3) .. ")")
   elseif msgid == DECORATORS_MSGID.ROUTING_CONTEXT then
