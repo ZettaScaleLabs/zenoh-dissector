@@ -1273,6 +1273,11 @@ function parse_init(tree, buf)
     i = i + len
   end
 
+  if bit.band(h_flags, 0x04) == 0x04 then
+    len = parse_zextensions(tree, buf(i, -1))
+    i = i + len
+  end
+
   return i
 end
 
@@ -1297,6 +1302,11 @@ function parse_open(tree, buf)
     i = i + len
   end
 
+  if bit.band(h_flags, 0x04) == 0x04 then
+    len = parse_zextensions(tree, buf(i, -1))
+    i = i + len
+  end
+
   return i
 end
 
@@ -1306,6 +1316,11 @@ function parse_close(tree, buf)
   val, len = get_zint(buf(i, -1))
   tree:add(proto_zenoh.fields.close_reason, buf(i, len), val)
   i = i + len
+
+  if bit.band(h_flags, 0x04) == 0x04 then
+    len = parse_zextensions(tree, buf(i, -1))
+    i = i + len
+  end
 
   return i
 end
@@ -1373,6 +1388,11 @@ function parse_join(tree, buf)
   tree:add(proto_zenoh.fields.join_snreliable, buf(i, len), val)
   i = i + len
 
+  if bit.band(h_flags, 0x04) == 0x04 then
+    len = parse_zextensions(tree, buf(i, -1))
+    i = i + len
+  end
+
   return i
 end
 
@@ -1390,6 +1410,11 @@ function parse_scout(tree, buf)
   if bit.band(h_flags, 0x01) == 0x01 then
     local val, len = get_zbytes(buf(i, -1))
     tree:add(proto_zenoh.fields.scout_zenohid, val)
+    i = i + len
+  end
+
+  if bit.band(h_flags, 0x04) == 0x04 then
+    len = parse_zextensions(tree, buf(i, -1))
     i = i + len
   end
 
@@ -1417,13 +1442,23 @@ function parse_hello(tree, buf)
     i = i + len
   end
 
+  if bit.band(h_flags, 0x04) == 0x04 then
+    len = parse_zextensions(tree, buf(i, -1))
+    i = i + len
+  end
+
   return i
 end
 
 function parse_keepalive(tree, buf)
   local i = 0
 
-  -- Nothing to decode
+  -- Nothing to decode in body
+
+  if bit.band(h_flags, 0x04) == 0x04 then
+    len = parse_zextensions(tree, buf(i, -1))
+    i = i + len
+  end
 
   return i
 end
