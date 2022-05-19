@@ -130,7 +130,7 @@ proto_zenoh.fields.routingcontext_tid   = ProtoField.uint8("zenoh.routingcontext
 -- Reply Context Decorator Specific
 proto_zenoh.fields.replycontext_flags       = ProtoField.uint8("zenoh.replycontext.flags", "Flags", base.HEX)
 proto_zenoh.fields.replycontext_qid         = ProtoField.uint8("zenoh.replycontext.qid", "QID", base.u8)
-proto_zenoh.fields.replycontext_replierkind = ProtoField.uint8("zenoh.replycontext.replier_kind", "Source Kind", base.u8)
+proto_zenoh.fields.replycontext_replierkind = ProtoField.uint8("zenoh.replycontext.replier_kind", "Replier Kind", base.u8)
 proto_zenoh.fields.replycontext_replierid   = ProtoField.bytes("zenoh.replycontext.replier_id", "Replier ID", base.NONE)
 
 
@@ -793,7 +793,7 @@ function parse_declare_queryable(tree, buf)
   tree:add(buf(i, len), "Kind: ", val)
   i = i + len
 
-  if bit.band(h_flags, 0x02) == 0x02 then
+  if bit.band(d_flags, 0x02) == 0x02 then
     local val, len = parse_zint(buf(i, -1))
     tree:add(buf(i, len), "Complete: ", val)
     i = i + len
@@ -1033,16 +1033,22 @@ end
 function parse_datainfo(tree, buf)
   local i = 0
 
-  local d_options, len = parse_data_options(tree, buf)
+  local d_options, len = parse_zint(buf(i, -1))
   i = i + len
 
   if bit.band(d_options, 0x01) == 0x01 then
+    val, len = parse_zint(buf(i, -1))
+    tree:add(buf(i, len), "Shared Memory: ", val)
+    i = i + len
+  end
+
+  if bit.band(d_options, 0x02) == 0x02 then
     val, len = parse_zint(buf(i, -1))
     tree:add(buf(i, len), "Kind: ", val)
     i = i + len
   end
 
-  if bit.band(d_options, 0x02) == 0x02 then
+  if bit.band(d_options, 0x04) == 0x04 then
     val, len = parse_zint(buf(i, -1))
     tree:add(buf(i, len), "Encoding: ", val)
     i = i + len
@@ -1052,7 +1058,7 @@ function parse_datainfo(tree, buf)
     i = i + len
   end
 
-  if bit.band(d_options, 0x04) == 0x04 then
+  if bit.band(d_options, 0x08) == 0x08 then
     len = parse_timestamp(tree, buf(i, -1))
     i = i + len
   end
@@ -1542,11 +1548,9 @@ function parse_reply_context(tree, buf)
     local val, len = parse_zint(buf(i, -1))
     tree:add(proto_zenoh.fields.replycontext_replierkind, buf(i, len), val)
     i = i + len
-  end
 
-  if bit.band(h_flags, 0x01) == 0x00 then
     local val, len = parse_zbytes(buf(i, -1))
-    tree:add(proto_zenoh.fields.replycontext_replierid, buf(i, len), val)
+    tree:add(proto_zenoh.fields.replycontext_replierid, val)
     i = i + len
   end
 
