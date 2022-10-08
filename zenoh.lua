@@ -1644,91 +1644,112 @@ function parse_msgid(tree, buf)
   local msgid = bit.band(buf(i, 1):uint(), 0x1F)
 
   if msgid == ZENOH_MSGID.DECLARE then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Declare)")
-    return ZENOH_MSGID.DECLARE
+    local subtree = tree:add("DECLARE (Zenoh)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, ZENOH_MSGID.DECLARE
   elseif msgid == ZENOH_MSGID.DATA then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Data)")
-    return ZENOH_MSGID.DATA
+    local subtree = tree:add("DATA (Zenoh)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, ZENOH_MSGID.DATA
   elseif msgid == ZENOH_MSGID.QUERY then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Query)")
-    return ZENOH_MSGID.QUERY
+    local subtree = tree:add("QUERY (Zenoh)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, ZENOH_MSGID.QUERY
   elseif msgid == ZENOH_MSGID.PULL then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Pull)")
-    return ZENOH_MSGID.PULL
+    local subtree = tree:add("PULL (Zenoh)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, ZENOH_MSGID.PULL
   elseif msgid == ZENOH_MSGID.UNIT then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Unit)")
-    return ZENOH_MSGID.UNIT
+    local subtree = tree:add("UNIT (Zenoh)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, ZENOH_MSGID.UNIT
   elseif msgid == ZENOH_MSGID.LINK_STATE_LIST then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(LinkStateList)")
-    return ZENOH_MSGID.LINK_STATE_LIST
+    local subtree = tree:add("LINK STATE LIST (Zenoh)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, ZENOH_MSGID.LINK_STATE_LIST
   elseif msgid == SESSION_MSGID.SCOUT then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Scout)")
-    return SESSION_MSGID.SCOUT
+    local subtree = tree:add("SCOUT (Zenoh Scouting)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.SCOUT
   elseif msgid == SESSION_MSGID.HELLO then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Hello)")
-    return SESSION_MSGID.HELLO
+    local subtree = tree:add("HELLO (Zenoh Scouting)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.HELLO
   elseif msgid == SESSION_MSGID.INIT then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Init)")
-    return SESSION_MSGID.INIT
+    local subtree = tree:add("INIT (Zenoh Transport)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.INIT
   elseif msgid == SESSION_MSGID.OPEN then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Open)")
-    return SESSION_MSGID.OPEN
+    local subtree = tree:add("OPEN (Zenoh Transport)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.OPEN
   elseif msgid == SESSION_MSGID.CLOSE then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Close)")
-    return SESSION_MSGID.CLOSE
+    local subtree = tree:add("CLOSE (Zenoh Transport)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.CLOSE
   elseif msgid == SESSION_MSGID.SYNC then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Sync)")
-    return SESSION_MSGID.SYNC
+    local subtree = tree:add("SYNC (Zenoh Transport)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.SYNC
   elseif msgid == SESSION_MSGID.ACK_NACK then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(ACK-NACK)")
-    return SESSION_MSGID.ACK_NACK
+    local subtree = tree:add("ACK-NACK (Zenoh Transport)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.ACK_NACK
   elseif msgid == SESSION_MSGID.KEEP_ALIVE then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Keep Alive)")
-    return SESSION_MSGID.KEEP_ALIVE
+    local subtree = tree:add("KEEP ALIVE (Zenoh Transport)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.KEEP_ALIVE
   elseif msgid == SESSION_MSGID.PING_PONG then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Ping Pong)")
-    return SESSION_MSGID.PING_PONG
+    local subtree = tree:add("PING PONG (Zenoh Transport)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.PING_PONG
   elseif msgid == SESSION_MSGID.FRAME then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Frame)")
-    return SESSION_MSGID.FRAME
+    local subtree = tree:add("FRAME (Zenoh Transport)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.FRAME
   elseif msgid == DECORATORS_MSGID.PRIORITY then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Priority)")
-    return DECORATORS_MSGID.PRIORITY
+    local subtree = tree:add("PRIORITY (Decorator)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, DECORATORS_MSGID.PRIORITY
   elseif msgid == DECORATORS_MSGID.ROUTING_CONTEXT then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Routing Context)")
-    return DECORATORS_MSGID.ROUTING_CONTEXT
+    local subtree = tree:add("ROUTING CONTEXT (Decorator)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, DECORATORS_MSGID.ROUTING_CONTEXT
   elseif msgid == DECORATORS_MSGID.REPLY_CONTEXT then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Reply Context)")
-    return DECORATORS_MSGID.REPLY_CONTEXT
+    local subtree = tree:add("REPLY CONTEXT (Decorator)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, DECORATORS_MSGID.REPLY_CONTEXT
   elseif msgid == DECORATORS_MSGID.ATTACHMENT then
-    tree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8, "(Attachment)")
-    return DECORATORS_MSGID.ATTACHMENT
+    local subtree = tree:add("ATTACHMENT (Decorator)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, DECORATORS_MSGID.ATTACHMENT
   end
 
-  return NULL
+  -- If you get here, then you got an invalid message ID
+  local subtree = tree:add("Error: Unknown message ID...dissector might fail decoding this message.")
+  return subtree, NULL
 end
 
 function parse_header(tree, buf)
   local i = 0
 
-  local msgid = parse_msgid(tree, buf(i, 1))
+  local h_subtree, msgid = parse_msgid(tree, buf(i, 1))
   if msgid == DECORATORS_MSGID.ATTACHMENT then
-    parse_header_enc(tree, buf(i, 1))
+    parse_header_enc(h_subtree, buf(i, 1))
   elseif msgid == DECORATORS_MSGID.PRIORITY then
-    parse_header_id(tree, buf(i, 1))
+    parse_header_id(h_subtree, buf(i, 1))
   else
-    parse_header_flags(tree, buf(i, 1), msgid)
+    parse_header_flags(h_subtree, buf(i, 1), msgid)
   end
   i = i + 1
 
-  return msgid, i
+  return h_subtree, msgid, i
 end
 
 function decode_message(tree, buf)
   local i = 0
 
-  local h_subtree = tree:add(proto_zenoh, buf(i, 1), "Header")
-  local msgid, len = parse_header(h_subtree, buf(i, 1))
+  local h_subtree, msgid, len = parse_header(tree, buf(i, 1))
   i = i + len
 
   -- NO PAYLOAD
@@ -1741,7 +1762,7 @@ function decode_message(tree, buf)
   end
 
   -- PAYLOAD
-  local p_subtree = tree:add(proto_zenoh, buf(i, -1), "Payload")
+  local p_subtree = h_subtree:add(proto_zenoh, buf(i, -1), "Payload")
 
   if msgid == ZENOH_MSGID.DECLARE then
     len = parse_declare(p_subtree, buf(i, -1))
