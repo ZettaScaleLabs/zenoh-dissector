@@ -562,7 +562,7 @@ end
 
 
 ------ DISSECTOR HELPERS ------
-function parse_zint(buf)
+function parse_zint(buf, bsize)
   local i = 0
   local val = 0
 
@@ -575,39 +575,39 @@ function parse_zint(buf)
   return val, i
 end
 
-function parse_zbytes(buf)
+function parse_zbytes(buf, bsize)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   i = i + len
 
-  if val > buf:len() - i then
+  if val > bsize - i then
     -- until the end of the buffer
-    return buf(i, -1), buf:len(), val - buf:len()
+    return buf(i, -1), bsize, val - bsize
   end
 
   return buf(i, val), i + val
 end
 
-function parse_zstring(buf)
+function parse_zstring(buf, bsize)
   local i = 0
 
-  local b_val, len = parse_zbytes(buf(i, -1))
+  local b_val, len = parse_zbytes(buf(i, -1), bsize - i)
   i = i + len
 
   return b_val:string(), i
 end
 
-function parse_reskey(tree, buf, is_k)
+function parse_reskey(tree, buf, bsize, is_k)
   local i = 0
 
   local subtree = tree:add("ResKey")
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   subtree:add(buf(i, len), "Resource ID: ", val)
   i = i + len
 
   if is_k == true then
-    val, len = parse_zstring(buf(i, -1))
+    val, len = parse_zstring(buf(i, -1), bsize - i)
     subtree:add(buf(i, len), "Suffix: ", val)
     i = i + len
   end
@@ -615,11 +615,11 @@ function parse_reskey(tree, buf, is_k)
   return i
 end
 
-function parse_payload(tree, buf)
+function parse_payload(tree, buf, bsize)
   local i = 0
 
-  local pl_val, pl_len = parse_zint(buf(i, -1))
-  local p_val, p_len = parse_zbytes(buf(i, -1))
+  local pl_val, pl_len = parse_zint(buf(i, -1), bsize - i)
+  local p_val, p_len = parse_zbytes(buf(i, -1), bsize - i)
   local subtree = tree:add(buf(i, p_len), "Payload")
   subtree:add(buf(i, pl_len), "Length: ", pl_val)
   subtree:add(buf(i + pl_len, p_len - pl_len), "Payload: ", p_val:bytes():tohex())
@@ -628,10 +628,10 @@ function parse_payload(tree, buf)
   return i
 end
 
-function parse_declare(tree, buf)
+function parse_declare(tree, buf, bsize)
   local i = 0
 
-  local a_size, len = parse_zint(buf(i, -1))
+  local a_size, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.declare_num_of_declaration, buf(i, len), a_size)
   i = i + len
 
@@ -640,42 +640,42 @@ function parse_declare(tree, buf)
 
     if bit.band(did, 0X1F) == DECLARATION_ID.RESOURCE then
       local a_subtree = tree:add(buf(i, 1), "Declaration [" .. a_size .. "] = Resource Declaration")
-      len = parse_declare_resource(a_subtree, buf(i, -1))
+      len = parse_declare_resource(a_subtree, buf(i, -1), bsize - i)
       i = i + len
 
     elseif bit.band(did, 0x1F) == DECLARATION_ID.PUBLISHER then
       local a_subtree = tree:add(buf(i, 1),"Declaration [" .. a_size .. "] = Publisher Declaration")
-      len = parse_declare_publisher(a_subtree, buf(i, -1))
+      len = parse_declare_publisher(a_subtree, buf(i, -1), bsize - i)
       i = i + len
 
     elseif bit.band(did, 0x1F) == DECLARATION_ID.SUBSCRIBER then
       local a_subtree = tree:add(buf(i, 1),"Declaration [" .. a_size .. "] = Subscriber Declaration")
-      len = parse_declare_subscriber(a_subtree, buf(i, -1))
+      len = parse_declare_subscriber(a_subtree, buf(i, -1), bsize - i)
       i = i + len
 
     elseif bit.band(did, 0x1F) == DECLARATION_ID.QUERYABLE then
       local a_subtree = tree:add(buf(i, 1),"Declaration [" .. a_size .. "] = Queryable Declaration")
-      len = parse_declare_queryable(a_subtree, buf(i, -1))
+      len = parse_declare_queryable(a_subtree, buf(i, -1), bsize - i)
       i = i + len
 
     elseif bit.band(did, 0x1F) == DECLARATION_ID.FORGET_RESOURCE then
       local a_subtree = tree:add(buf(i, 1), "Declaration [" .. a_size .. "] = Forget Resource")
-      len = parse_forget_resource(a_subtree, buf(i, -1))
+      len = parse_forget_resource(a_subtree, buf(i, -1), bsize - i)
       i = i + len
 
     elseif bit.band(did, 0x1F) == DECLARATION_ID.FORGET_PUBLISHER then
       local a_subtree = tree:add(buf(i, 1), "Declaration [" .. a_size .. "] = Forget Publisher")
-      len = parse_forget_publisher(a_subtree, buf(i, -1))
+      len = parse_forget_publisher(a_subtree, buf(i, -1), bsize - i)
       i = i + len
 
     elseif bit.band(did, 0x1F) == DECLARATION_ID.FORGET_SUBSCRIBER then
       local a_subtree = tree:add(buf(i, 1), "Declaration [" .. a_size .. "] = Forget Subscriber")
-      len = parse_forget_subscriber(a_subtree, buf(i, -1))
+      len = parse_forget_subscriber(a_subtree, buf(i, -1), bsize - i)
       i = i + len
 
     elseif bit.band(did, 0x1F) == DECLARATION_ID.FORGET_QUERYABLE then
       local a_subtree = tree:add(buf(i, 1), "Declaration [" .. a_size .. "] = Forget Queryable")
-      len = parse_forget_queryable(a_subtree, buf(i, -1))
+      len = parse_forget_queryable(a_subtree, buf(i, -1), bsize - i)
       i = i + len
 
     end
@@ -719,41 +719,41 @@ function parse_declare_flags(tree, buf, did)
   -- TODO: add bitwise flag substree
 end
 
-function parse_declare_resource(tree, buf)
+function parse_declare_resource(tree, buf, bsize)
   local i = 0
 
   parse_declare_flags(tree, buf(i, 1), DECLARATION_ID.RESOURCE)
   i = i + 1
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(buf(i, len), "Resource ID: ", val)
   i = i + len
 
-  len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
+  len = parse_reskey(tree, buf(i, -1), bsize, bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
   return i
 end
 
-function parse_declare_publisher(tree, buf)
+function parse_declare_publisher(tree, buf, bsize)
   local i = 0
 
   parse_declare_flags(tree, buf(i, 1), DECLARATION_ID.PUBLISHER)
   i = i + 1
 
-  local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
+  local len = parse_reskey(tree, buf(i, -1), bsize, bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
   return i
 end
 
-function parse_declare_subscriber(tree, buf)
+function parse_declare_subscriber(tree, buf, bsize)
   local i = 0
 
   parse_declare_flags(tree, buf(i, 1), DECLARATION_ID.SUBSCRIBER)
   i = i + 1
 
-  local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
+  local len = parse_reskey(tree, buf(i, -1), bsize, bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
   if bit.band(h_flags, 0x02) == 0x02 then
@@ -763,15 +763,15 @@ function parse_declare_subscriber(tree, buf)
     i = i + 1
 
     if is_p == true then
-      local val, len = parse_zint(buf(i, -1))
+      local val, len = parse_zint(buf(i, -1), bsize - i)
       tree:add(buf(i, len), "Period Origin: ", val)
       i = i + len
 
-      val, len = parse_zint(buf(i, -1))
+      val, len = parse_zint(buf(i, -1), bsize - i)
       tree:add(buf(i, len), "Period Period: ", val)
       i = i + len
 
-      val, len = parse_zint(buf(i, -1))
+      val, len = parse_zint(buf(i, -1), bsize - i)
       tree:add(buf(i, len), "Period Duration: ", val)
       i = i + len
     end
@@ -780,21 +780,21 @@ function parse_declare_subscriber(tree, buf)
   return i
 end
 
-function parse_declare_queryable(tree, buf)
+function parse_declare_queryable(tree, buf, bsize)
   local i = 0
 
   parse_declare_flags(tree, buf(i, 1), DECLARATION_ID.QUERYABLE)
   i = i + 1
 
-  local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
+  local len = parse_reskey(tree, buf(i, -1), bsize, bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
   if bit.band(d_flags, 0x02) == 0x02 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(buf(i, len), "Complete: ", val)
     i = i + len
 
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(buf(i, len), "Distance: ", val)
     i = i + len
   end
@@ -802,91 +802,91 @@ function parse_declare_queryable(tree, buf)
   return i
 end
 
-function parse_forget_resource(tree, buf)
+function parse_forget_resource(tree, buf, bsize)
   local i = 0
 
   parse_declare_flags(tree, buf(i, 1), DECLARATION_ID.FORGET_RESOURCE)
   i = i + 1
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(buf(i, len), "Resource ID: ", val)
   i = i + len
 
   return i
 end
 
-function parse_forget_publisher(tree, buf)
+function parse_forget_publisher(tree, buf, bsize)
   local i = 0
 
   parse_declare_flags(tree, buf(i, 1), DECLARATION_ID.FORGET_PUBLISHER)
   i = i + 1
 
-  local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
+  local len = parse_reskey(tree, buf(i, -1), bsize, bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
   return i
 end
 
-function parse_forget_subscriber(tree, buf)
+function parse_forget_subscriber(tree, buf, bsize)
   local i = 0
 
   parse_declare_flags(tree, buf(i, 1), DECLARATION_ID.FORGET_SUBSCRIBER)
   i = i + 1
 
-  local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
+  local len = parse_reskey(tree, buf(i, -1), bsize, bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
   return i
 end
 
-function parse_forget_queryable(tree, buf)
+function parse_forget_queryable(tree, buf, bsize)
   local i = 0
 
   parse_declare_flags(tree, buf(i, 1), DECLARATION_ID.FORGET_QUERYABLE)
   i = i + 1
 
-  local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
+  local len = parse_reskey(tree, buf(i, -1), bsize, bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
   return i
 end
 
-function parse_data(tree, buf)
+function parse_data(tree, buf, bsize)
   local i = 0
 
-  local len = parse_reskey(tree, buf(i, -1), bit.band(h_flags, 0x04) == 0x04)
+  local len = parse_reskey(tree, buf(i, -1), bsize, bit.band(h_flags, 0x04) == 0x04)
   i = i + len
 
   if bit.band(h_flags, 0x02) == 0x02 then
-    len = parse_datainfo(tree, buf(i, -1))
+    len = parse_datainfo(tree, buf(i, -1), bsize - i)
     i = i + len
   end
 
-  local len = parse_payload(tree, buf(i, -1))
+  local len = parse_payload(tree, buf(i, -1), bsize - i)
   i = i + len
 
   return i
 end
 
-function parse_link(tree, buf)
+function parse_link(tree, buf, bsize)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(buf(i, len), "Link: ", val)
   i = i + len
 
   return i
 end
 
-function parse_links(tree, buf)
+function parse_links(tree, buf, bsize)
   local i = 0
 
-  local a_size, len = parse_zint(buf(i, -1))
+  local a_size, len = parse_zint(buf(i, -1), bsize - i)
   subtree = tree:add(buf(i, len), "Links Size Array: ", a_size)
   i = i + len
 
   while a_size > 0 do
-    len = parse_link(subtree, buf(i, -1))
+    len = parse_link(subtree, buf(i, -1), bsize - i)
     i = i + len
 
     a_size = a_size - 1
@@ -895,25 +895,25 @@ function parse_links(tree, buf)
   return i
 end
 
-function parse_locator(tree, buf)
+function parse_locator(tree, buf, bsize)
   local i = 0
 
-  val, len = parse_zstring(buf(i, -1))
+  val, len = parse_zstring(buf(i, -1), bsize - i)
   tree:add(buf(i, len), "Locator: ", val)
   i = i + len
 
   return i
 end
 
-function parse_locators(tree, buf)
+function parse_locators(tree, buf, bsize)
   local i = 0
 
-  local a_size, len = parse_zint(buf(i, -1))
+  local a_size, len = parse_zint(buf(i, -1), bsize - i)
   subtree = tree:add(buf(i, len), "Locators Size Array: ", a_size)
   i = i + len
 
   while a_size > 0 do
-    len = parse_locator(subtree, buf(i, -1))
+    len = parse_locator(subtree, buf(i, -1), bsize - i)
     i = i + len
 
     a_size = a_size - 1
@@ -922,7 +922,7 @@ function parse_locators(tree, buf)
   return i
 end
 
-function parse_link_state_options(tree, buf)
+function parse_link_state_options(tree, buf, bsize)
   local i = 0
 
   local f_bitwise = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01}
@@ -945,53 +945,53 @@ function parse_link_state_options(tree, buf)
 end
 
 
-function parse_link_state(tree, buf)
+function parse_link_state(tree, buf, bsize)
   local i = 0
 
-  local o_flags, len = parse_link_state_options(tree, buf(i, -1))
+  local o_flags, len = parse_link_state_options(tree, buf(i, -1), bsize - i)
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(buf(i, len), "PS ID: ", val)
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
-  tree:add(buf(i, len), "SN: ", val)
+  local val, len = parse_zint(buf(i, -1), bsize - i)
+  tree:add(buf(i, len), "Sequence Number: ", val)
   i = i + len
 
   if bit.band(o_flags, 0x01) == 0x01 then
-    local val, len = parse_zbytes(buf(i, -1))
+    local val, len = parse_zbytes(buf(i, -1), bsize - i)
     tree:add(buf(i, len), "Peer ID: ", val:bytes():tohex())
     i = i + len
   end
 
   if bit.band(o_flags, 0x02) == 0x02 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(buf(i, len), "WhatAmI: ", val)
     i = i + len
   end
 
   if bit.band(o_flags, 0x04) == 0x04 then
-    local len = parse_locators(tree, buf(i, -1))
+    local len = parse_locators(tree, buf(i, -1), bsize - i)
     i = i + len
   end
 
-  len = parse_links(tree, buf(i, -1))
+  len = parse_links(tree, buf(i, -1), bsize - i)
   i = i + len
 
   return i
 end
 
-function parse_link_state_list(tree, buf)
+function parse_link_state_list(tree, buf, bsize)
   local i = 0
 
-  local a_size, len = parse_zint(buf(i, -1))
+  local a_size, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.linkstatelist_size, buf(i, len), a_size)
   i = i + len
 
   while a_size > 0 do
     local a_subtree = tree:add(buf(i, 1), "Link State [" .. a_size .. "]")
-    len = parse_link_state(a_subtree, buf(i, -1))
+    len = parse_link_state(a_subtree, buf(i, -1), bsize - i)
     i = i + len
 
     a_size = a_size - 1
@@ -1000,11 +1000,11 @@ function parse_link_state_list(tree, buf)
   return i
 end
 
-function parse_data_flags(tree, buf)
+function parse_data_flags(tree, buf, bsize)
   local i = 0
 
   local f_bitwise = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01}
-  local flags, len = parse_zint(buf(i, -1))
+  local flags, len = parse_zint(buf(i, -1), bsize - i)
   i = i + len
 
   local f_str = ""
@@ -1022,94 +1022,94 @@ function parse_data_flags(tree, buf)
   return flags, i
 end
 
-function parse_datainfo(tree, buf)
+function parse_datainfo(tree, buf, bsize)
   local i = 0
 
-  local d_options, len = parse_zint(buf(i, -1))
+  local d_options, len = parse_zint(buf(i, -1), bsize - i)
   i = i + len
 
   if bit.band(d_options, 0x01) == 0x01 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(buf(i, len), "Shared Memory: ", val)
     i = i + len
   end
 
   if bit.band(d_options, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(buf(i, len), "Kind: ", val)
     i = i + len
   end
 
   if bit.band(d_options, 0x04) == 0x04 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(buf(i, len), "Encoding: ", val)
     i = i + len
 
-    val, len = parse_zstring(buf(i, -1))
+    val, len = parse_zstring(buf(i, -1), bsize - i)
     tree:add(buf(i, len), "Encoding Suffix: ", val)
     i = i + len
   end
 
   if bit.band(d_options, 0x08) == 0x08 then
-    len = parse_timestamp(tree, buf(i, -1))
+    len = parse_timestamp(tree, buf(i, -1), bsize - i)
     i = i + len
   end
 
   if bit.band(d_options, 0x80) == 0x80 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = parse_zbytes(buf(i, -1), bsize - i)
     tree:add(buf(i, len), "Source ID: ", val:bytes():tohex())
     i = i + len
   end
 
   if bit.band(d_options, 0x100) == 0x100 then
-    val, len = parse_zint(buf(i, -1))
-    tree:add(buf(i, len), "Source SN: ", val)
+    val, len = parse_zint(buf(i, -1), bsize - i)
+    tree:add(buf(i, len), "Source Sequence Number: ", val)
     i = i + len
   end
 
   if bit.band(d_options, 0x200) == 0x200 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = parse_zbytes(buf(i, -1), bsize - i)
     tree:add(buf(i, len), "First Router ID: ", val:bytes():tohex())
     i = i + len
   end
 
   if bit.band(d_options, 0x400) == 0x400 then
-    val, len = parse_zint(buf(i, -1))
-    tree:add(buf(i, len), "First Router SN: ", val)
+    val, len = parse_zint(buf(i, -1), bsize - i)
+    tree:add(buf(i, len), "First Router Sequence Number: ", val)
     i = i + len
   end
 
   return i
 end
 
-function parse_timestamp(tree, buf)
+function parse_timestamp(tree, buf, bsize)
   local i = 0
 
   local subtree = tree:add("Timestamp")
 
-  val, len = parse_zint(buf(i, -1))
+  val, len = parse_zint(buf(i, -1), bsize - i)
   subtree:add(buf(i, len), "Time: ", val)
   i = i + len
 
-  val, len = parse_zbytes(buf(i, -1))
+  val, len = parse_zbytes(buf(i, -1), bsize - i)
   subtree:add(buf(i, len), "ID: ", val:bytes():tohex())
   i = i + len
 
   return i
 end
 
-function parse_pull(tree, buf)
+function parse_pull(tree, buf, bsize)
   local i = 0
 
-  local len = parse_reskey(tree, buf(i, -1), bit.band(h_flags, 0x04) == 0x04)
+  local len = parse_reskey(tree, buf(i, -1), bsize, bit.band(h_flags, 0x04) == 0x04)
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.pull_pullid, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.pull_maxsamples, buf(i, len), val)
     i = i + len
   end
@@ -1117,7 +1117,7 @@ function parse_pull(tree, buf)
   return i
 end
 
-function parse_unit(tree, buf)
+function parse_unit(tree, buf, bsize)
   local i = 0
 
   -- Currently, UNIT message does not have payload
@@ -1125,32 +1125,32 @@ function parse_unit(tree, buf)
   return i
 end
 
-function parse_query(tree, buf)
+function parse_query(tree, buf, bsize)
   local i = 0
 
-  local len = parse_reskey(tree, buf(i, -1), bit.band(h_flags, 0x04) == 0x04)
+  local len = parse_reskey(tree, buf(i, -1), bsize, bit.band(h_flags, 0x04) == 0x04)
   i = i + len
 
-  local val, len = parse_zstring(buf(i, -1))
+  local val, len = parse_zstring(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.query_predicate, buf(i, len), val)
   i = i + len
 
-  val, len = parse_zint(buf(i, -1))
+  val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.query_qid, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    len = parse_query_target(tree, buf(i, -1))
+    len = parse_query_target(tree, buf(i, -1), bsize - i)
     i = i + len
   end
 
-  len = parse_query_consolidation(tree, buf(i, -1))
+  len = parse_query_consolidation(tree, buf(i, -1), bsize - i)
   i = i + len
 
   return i
 end
 
-function parse_query_target(tree, buf)
+function parse_query_target(tree, buf, bsize)
   local i = 0
 
   local val = buf(i, 1)
@@ -1166,7 +1166,7 @@ function parse_query_target(tree, buf)
   return i
 end
 
-function parse_query_consolidation(tree, buf)
+function parse_query_consolidation(tree, buf, bsize)
   local i = 0
 
   local val = buf(i, 1)
@@ -1182,14 +1182,14 @@ function parse_query_consolidation(tree, buf)
   return i
 end
 
-function parse_initial_sn_qos(tree, buf)
+function parse_initial_sn_qos(tree, buf, bsize)
   local i = 0
 
   local a_size = PRIORITY_NUM
   subtree = tree:add(buf(i, len), "Initial SN Array: ", a_size)
 
   while a_size > 0 do
-    len = parse_initial_sn_plain(subtree, buf(i, -1))
+    len = parse_initial_sn_plain(subtree, buf(i, -1), bsize - i)
     i = i + len
 
     a_size = a_size - 1
@@ -1198,26 +1198,26 @@ function parse_initial_sn_qos(tree, buf)
   return i
 end
 
-function parse_initial_sn_plain(tree, buf)
+function parse_initial_sn_plain(tree, buf, bsize)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
-  subtree = tree:add(buf(i, len), "Reliable: ", val)
+  local val, len = parse_zint(buf(i, -1), bsize - i)
+  subtree = tree:add(buf(i, len), "Sequence Number (Reliable): ", val)
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
-  subtree = tree:add(buf(i, len), "Best Effort: ", val)
+  local val, len = parse_zint(buf(i, -1), bsize - i)
+  subtree = tree:add(buf(i, len), "Sequence Number (Best Effort): ", val)
   i = i + len
 
   return i
 end
 
 -------------------------------------------------------------------------------
-function parse_init(tree, buf)
+function parse_init(tree, buf, bsize)
   local i = 0
 
   if bit.band(h_flags, 0x04) == 0x04 then
-    o_flags, len = parse_zint(buf(i, -1))
+    o_flags, len = parse_zint(buf(i, -1), bsize - i)
 
     local f_str = ""
     local f_bitwise = {0x800, 0x400, 0x200, 0x100, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01} -- FIXME: make it cleaner
@@ -1238,22 +1238,22 @@ function parse_init(tree, buf)
     i = i + 1
   end
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.init_whatami, buf(i, len), val)
   i = i + len
 
-  val, len = parse_zbytes(buf(i, -1))
+  val, len = parse_zbytes(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.init_peerid, val)
   i = i + len
 
   if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.init_snresolution, buf(i, len), val)
     i = i + len
   end
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = parse_zbytes(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.init_cookie, val)
     i = i + len
   end
@@ -1261,10 +1261,10 @@ function parse_init(tree, buf)
   return i
 end
 
-function parse_open(tree, buf)
+function parse_open(tree, buf, bsize)
   local i = 0
 
-  local val, len = parse_zint(buf, i)
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   if bit.band(h_flags, 0x02) == 0x02 then
     tree:add(proto_zenoh.fields.open_lease, buf(i, len), val):append_text(" seconds")
   else
@@ -1272,12 +1272,12 @@ function parse_open(tree, buf)
   end
   i = i + len
 
-  val, len = parse_zint(buf(i, -1))
+  val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.open_initialsn, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x00 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = parse_zbytes(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.open_cookie, val)
     i = i + len
   end
@@ -1285,31 +1285,31 @@ function parse_open(tree, buf)
   return i
 end
 
-function parse_close(tree, buf)
+function parse_close(tree, buf, bsize)
   local i = 0
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = parse_zbytes(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.close_peerid, val)
     i = i + len
   end
 
-  val, len = parse_zint(buf(i, -1))
+  val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.close_reason, buf(i, len), val)
   i = i + len
 
   return i
 end
 
-function parse_sync(tree, buf)
+function parse_sync(tree, buf, bsize)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.sync_sn, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x01 and bit.band(h_flags, 0x02) == 0x02 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.sync_count, buf(i, len), val)
     i = i + len
   end
@@ -1317,15 +1317,15 @@ function parse_sync(tree, buf)
   return i
 end
 
-function parse_acknack(tree, buf)
+function parse_acknack(tree, buf, bsize)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.acknack_sn, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.acknack_mask, buf(i, len), val)
     i = i + len
   end
@@ -1333,12 +1333,12 @@ function parse_acknack(tree, buf)
   return i
 end
 
-function parse_join(tree, buf)
+function parse_join(tree, buf, bsize)
   local i = 0
 
   local o_flags
   if bit.band(h_flags, 0x04) == 0x04 then
-    o_flags, len = parse_zint(buf(i, -1))
+    o_flags, len = parse_zint(buf(i, -1), bsize - i)
 
     local f_bitwise = {0x800, 0x400, 0x200, 0x100, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01} -- FIXME: make it cleaner
     local f_str = ""
@@ -1359,15 +1359,15 @@ function parse_join(tree, buf)
     i = i + 1
   end
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.join_whatami, buf(i, len), val)
   i = i + len
 
-  val, len = parse_zbytes(buf(i, -1))
+  val, len = parse_zbytes(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.join_peerid, val)
   i = i + len
 
-  local val, len = parse_zint(buf, i)
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   if bit.band(h_flags, 0x02) == 0x02 then
     tree:add(proto_zenoh.fields.join_lease, buf(i, len), val):append_text(" seconds")
   else
@@ -1376,27 +1376,27 @@ function parse_join(tree, buf)
   i = i + len
 
   if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.join_snresolution, buf(i, len), val)
     i = i + len
   end
 
   if bit.band(o_flags, 0x01) == 0x01 then
-    local len = parse_initial_sn_qos(tree, buf(i, -1))
+    local len = parse_initial_sn_qos(tree, buf(i, -1), bsize - i)
     i = i + len
   else
-    local len = parse_initial_sn_plain(tree, buf(i, -1))
+    local len = parse_initial_sn_plain(tree, buf(i, -1), bsize - i)
     i = i + len
   end
 
   return i
 end
 
-function parse_scout(tree, buf)
+function parse_scout(tree, buf, bsize)
   local i = 0
 
   if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1))
+    val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.scout_what, val)
     i = i + len
   end
@@ -1404,34 +1404,34 @@ function parse_scout(tree, buf)
   return i
 end
 
-function parse_hello(tree, buf)
+function parse_hello(tree, buf, bsize)
   local i = 0
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    local val, len = parse_zbytes(buf(i, -1))
+    local val, len = parse_zbytes(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.hello_peerid, val)
     i = i + len
   end
 
   if bit.band(h_flags, 0x02) == 0x02 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.hello_whatami, buf(i, len), val)
     i = i + len
   end
 
   if bit.band(h_flags, 0x04) == 0x04 then
-    local len = parse_locators(tree, buf(i, -1))
+    local len = parse_locators(tree, buf(i, -1), bsize - i)
     i = i + len
   end
 
   return i
 end
 
-function parse_keepalive(tree, buf)
+function parse_keepalive(tree, buf, bsize)
   local i = 0
 
   if bit.band(h_flags, 0x01) == 0x01 then
-    val, len = parse_zbytes(buf(i, -1))
+    val, len = parse_zbytes(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.keepalive_peerid, val)
     i = i + len
   end
@@ -1439,20 +1439,20 @@ function parse_keepalive(tree, buf)
   return i
 end
 
-function parse_pingpong(tree, buf)
+function parse_pingpong(tree, buf, bsize)
   local i = 0
 
-  local val, len = parse_zint(buf, i)
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.pingpong_hash, buf(i, len), val)
   i = i + len
 
   return i
 end
 
-function parse_frame(tree, buf, f_size)
+function parse_frame(tree, buf, bsize)
   local i = 0
 
-  local val, len = parse_zint(buf(i, -1))
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.frame_sn, buf(i, len), val)
   i = i + len
 
@@ -1466,10 +1466,10 @@ function parse_frame(tree, buf, f_size)
     end
 
     if is_first_fragment == true then
-      len = decode_message(tree, buf(i, -1))
+      len = decode_message(tree, buf(i, -1), bsize - i)
       i = i + len
     else
-      tree:add(buf(i, -1), "Fragmented message (continuation): ", buf(i, -1))
+      tree:add(buf(i, -1), "Fragmented message (continuation): ", buf(i, -1), bsize - i)
       i = buf:len()
     end
 
@@ -1479,37 +1479,37 @@ function parse_frame(tree, buf, f_size)
 
   else
     repeat
-      len = decode_message(tree, buf(i, -1))
+      len = decode_message(tree, buf(i, -1), bsize - i)
       i = i + len
-    until i == f_size + 1
+    until i == bsize
   end
 
   return i
 end
 
-function parse_routing_context(tree, buf)
+function parse_routing_context(tree, buf, bsize)
   local i = 0
 
-  local val, len = parse_zint(buf, i)
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.routingcontext_tid, buf(i, len), val)
   i = i + len
 
   return i
 end
 
-function parse_reply_context(tree, buf)
+function parse_reply_context(tree, buf, bsize)
   local i = 0
 
-  local val, len = parse_zint(buf, i)
+  local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.replycontext_qid, buf(i, len), val)
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x00 then
-    local val, len = parse_zint(buf(i, -1))
+    local val, len = parse_zint(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.replycontext_replierkind, buf(i, len), val)
     i = i + len
 
-    local val, len = parse_zbytes(buf(i, -1))
+    local val, len = parse_zbytes(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.replycontext_replierid, val)
     i = i + len
   end
@@ -1517,16 +1517,16 @@ function parse_reply_context(tree, buf)
   return i
 end
 
-function parse_attachment(tree, buf)
+function parse_attachment(tree, buf, bsize)
   local i = 0
 
-  local len = parse_payload(tree, buf(i, -1))
+  local len = parse_payload(tree, buf(i, -1), bsize - i)
   i = i + len
 
   return i
 end
 
-function parse_header_enc(tree, buf)
+function parse_header_enc(tree, buf, bsize)
   local enc = bit.rshift(buf(0,1):uint(), 5)
   local s_enc = ""
   if enc == 0x00 then
@@ -1536,7 +1536,7 @@ function parse_header_enc(tree, buf)
   tree:add(buf(0, 1), s_enc, buf(0, 1))
 end
 
-function parse_header_id(tree, buf)
+function parse_header_id(tree, buf, bsize)
   local id = bit.rshift(buf(0,1):uint(), 5)
 
   tree:add(buf(0, 1), "ID:", id, buf(0, 1))
@@ -1640,7 +1640,7 @@ function parse_header_flags(tree, buf, msgid)
   -- TODO: add bitwise flag substree
 end
 
-function parse_msgid(tree, buf)
+function parse_msgid(tree, buf, bsize)
   local msgid = bit.band(buf(i, 1):uint(), 0x1F)
 
   if msgid == ZENOH_MSGID.DECLARE then
@@ -1730,7 +1730,7 @@ function parse_msgid(tree, buf)
   return subtree, NULL
 end
 
-function parse_header(tree, buf)
+function parse_header(tree, buf, bsize)
   local i = 0
 
   local h_subtree, msgid = parse_msgid(tree, buf(i, 1))
@@ -1746,14 +1746,14 @@ function parse_header(tree, buf)
   return h_subtree, msgid, i
 end
 
-function decode_message(tree, buf)
+function decode_message(tree, buf, bsize)
   local i = 0
 
-  local h_subtree, msgid, len = parse_header(tree, buf(i, 1))
+  local h_subtree, msgid, len = parse_header(tree, buf(i, 1), bsize)
   i = i + len
 
   -- NO PAYLOAD
-  if i == buf:len() then
+  if i == bsize then
     return len
   end
 
@@ -1765,45 +1765,45 @@ function decode_message(tree, buf)
   local p_subtree = h_subtree:add(proto_zenoh, buf(i, -1), "Payload")
 
   if msgid == ZENOH_MSGID.DECLARE then
-    len = parse_declare(p_subtree, buf(i, -1))
+    len = parse_declare(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == ZENOH_MSGID.DATA then
-    len = parse_data(p_subtree, buf(i, -1))
+    len = parse_data(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == ZENOH_MSGID.QUERY then
-    len = parse_query(p_subtree, buf(i, -1))
+    len = parse_query(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == ZENOH_MSGID.PULL then
-    len = parse_pull(p_subtree, buf(i, -1))
+    len = parse_pull(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == ZENOH_MSGID.UNIT then
-    len = parse_unit(p_subtree, buf(i, -1))
+    len = parse_unit(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == ZENOH_MSGID.LINK_STATE_LIST then
-    len = parse_link_state_list(p_subtree, buf(i, -1))
+    len = parse_link_state_list(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.JOIN then
-    len = parse_join(p_subtree, buf(i, -1))
+    len = parse_join(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.SCOUT then
-    len = parse_scout(p_subtree, buf(i, -1))
+    len = parse_scout(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.HELLO then
-    len = parse_hello(p_subtree, buf(i, -1))
+    len = parse_hello(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.INIT then
-    len = parse_init(p_subtree, buf(i, -1))
+    len = parse_init(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.OPEN then
-    len = parse_open(p_subtree, buf(i, -1))
+    len = parse_open(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.CLOSE then
-    len = parse_close(p_subtree, buf(i, -1))
+    len = parse_close(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.SYNC then
-    len = parse_sync(p_subtree, buf(i, -1))
+    len = parse_sync(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.ACK_NACK then
-    len = parse_acknack(p_subtree, buf(i, -1))
+    len = parse_acknack(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.KEEP_ALIVE then
-    len = parse_keepalive(p_subtree, buf(i, -1))
+    len = parse_keepalive(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.PING_PONG then
-    len = parse_pingpong(p_subtree, buf(i, -1))
+    len = parse_pingpong(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == SESSION_MSGID.FRAME then
-    len = parse_frame(p_subtree, buf(i, -1), buf:len())
+    len = parse_frame(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == DECORATORS_MSGID.ROUTING_CONTEXT then
-    len = parse_routing_context(p_subtree, buf(i, -1), buf:len())
+    len = parse_routing_context(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == DECORATORS_MSGID.REPLY_CONTEXT then
-    len = parse_reply_context(p_subtree, buf(i, -1), buf:len())
+    len = parse_reply_context(p_subtree, buf(i, -1), bsize - i)
   elseif msgid == DECORATORS_MSGID.ATTACHMENT then
-    len = parse_attachment(p_subtree, buf(i, -1), buf:len())
+    len = parse_attachment(p_subtree, buf(i, -1), bsize - i)
   end
   i = i + len
 
@@ -1820,25 +1820,26 @@ function dissector(buf, pinfo, root, is_tcp)
 
   pinfo.cols.protocol = proto_zenoh.name
 
-    tree = root:add(proto_zenoh, buf())
+  tree = root:add(proto_zenoh, buf())
 
-    local f_size = buf():len()
+  while i < buf:len() do
+    local f_size = buf:len() - i
     if is_tcp == true then
       f_size = buf(i, 2):le_uint()
       tree:add_le(proto_zenoh_tcp.fields.len, buf(i, 2), f_size)
       i = i + 2
     end
 
-    if f_size > buf:len() - (is_tcp == true and 2 or 0) then
+    if f_size > buf:len() - i then
       pinfo.desegment_offset = 0
       pinfo.desegment_len = DESEGMENT_ONE_MORE_SEGMENT
       return
     end
 
-  while i < buf:len() do
-    len = decode_message(tree, buf(i, f_size - i))
+    len = decode_message(tree, buf(i, -1), f_size)
     i = i + len
   end
+
   return 0
 end
 
