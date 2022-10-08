@@ -789,10 +789,6 @@ function parse_declare_queryable(tree, buf)
   local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
   i = i + len
 
-  local val, len = parse_zint(buf(i, -1))
-  tree:add(buf(i, len), "Kind: ", val)
-  i = i + len
-
   if bit.band(d_flags, 0x02) == 0x02 then
     local val, len = parse_zint(buf(i, -1))
     tree:add(buf(i, len), "Complete: ", val)
@@ -850,10 +846,6 @@ function parse_forget_queryable(tree, buf)
   i = i + 1
 
   local len = parse_reskey(tree, buf(i, -1), bit.band(d_flags, 0x04) == 0x04)
-  i = i + len
-
-  local val, len = parse_zint(buf(i, -1))
-  tree:add(buf(i, len), "Kind: ", val)
   i = i + len
 
   return i
@@ -1161,32 +1153,14 @@ end
 function parse_query_target(tree, buf)
   local i = 0
 
-  local subtree = tree:add("Target")
-  subtree:add(buf(i, 1), "Kind: ", buf(i, 1))
-  i = i + 1
-
-  len = parse_target(subtree, buf(i, -1))
-  i = i + len
-
-  return i
-end
-
-function parse_target(tree, buf)
-  local i = 0
-
   local val = buf(i, 1)
   if val == 0 then
-    tree:add(buf(i, 1), "Tag: Best Matching (0)")
+    tree:add(buf(i, 1), "Query Target: Best Matching (0)")
   elseif val == 1 then
-    tree:add(buf(i, 1), "Tag: Complete (1)")
+    tree:add(buf(i, 1), "Query Target: All (1)")
   elseif val == 2 then
-    tree:add(buf(i, 1), "Tag: All (2)")
-  elseif val == 3 then
-    tree:add(buf(i, 1), "Tag: None (3)")
+    tree:add(buf(i, 1), "Query Target: All Complete (2)")
   end
-  i = i + 1
-
-  tree:add(buf(i, 1), "Complete: ", buf(i, 1))
   i = i + 1
 
   return i
@@ -1195,27 +1169,13 @@ end
 function parse_query_consolidation(tree, buf)
   local i = 0
 
-  local subtree = tree:add("Consolidation")
   local val = buf(i, 1)
-
-  -- FIXME: make this cleaner with a constants array
-  for k = 0,2,1 do
-    local field = ""
-    if k == 0 then
-      field = "First Routers: "
-    elseif k == 1 then
-      field = "Last Router: "
-    elseif k == 2 then
-      field = "Reception: "
-    end
-
-    if bit.band(bit.rshift(val:uint(), k * 2), 0x03) == 0x00 then
-      subtree:add(buf(i, 1), field .. "None (0)")
-    elseif bit.band(bit.rshift(val:uint(), k * 2), 0x03) == 0x01 then
-      subtree:add(buf(i, 1), field .. "Lazy (1)")
-    elseif bit.band(bit.rshift(val:uint(), k * 2), 0x03) == 0x02 then
-      subtree:add(buf(i, 1), field .. "Full (2)")
-    end
+  if val == 0 then
+    tree:add(buf(i, 1), "Consolidation: None (0)")
+  elseif val == 1 then
+    tree:add(buf(i, 1), "Consolidation: Monotonic (1)")
+  elseif val == 2 then
+    tree:add(buf(i, 1), "Consolidation: Latest (2)")
   end
   i = i + 1
 
