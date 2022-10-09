@@ -1336,7 +1336,7 @@ end
 function parse_join(tree, buf, bsize)
   local i = 0
 
-  local o_flags
+  local o_flags = 0
   if bit.band(h_flags, 0x04) == 0x04 then
     o_flags, len = parse_zint(buf(i, -1), bsize - i)
 
@@ -1353,11 +1353,9 @@ function parse_join(tree, buf, bsize)
     i = i + len
   end
 
-  if bit.band(h_flags, 0x01) == 0x00 then
-    tree:add(proto_zenoh.fields.join_vmaj, buf(i, 1), bit.rshift(buf(i, 1):uint(), 4))
-    tree:add(proto_zenoh.fields.join_vmin, buf(i, 1), bit.band(buf(i, 1):uint(), 0xff))
-    i = i + 1
-  end
+  tree:add(proto_zenoh.fields.join_vmaj, buf(i, 1), bit.rshift(buf(i, 1):uint(), 4))
+  tree:add(proto_zenoh.fields.join_vmin, buf(i, 1), bit.band(buf(i, 1):uint(), 0xff))
+  i = i + 1
 
   local val, len = parse_zint(buf(i, -1), bsize - i)
   tree:add(proto_zenoh.fields.join_whatami, buf(i, len), val)
@@ -1675,6 +1673,10 @@ function parse_msgid(tree, buf, bsize)
     local subtree = tree:add("HELLO (Zenoh Scouting)")
     subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
     return subtree, SESSION_MSGID.HELLO
+  elseif msgid == SESSION_MSGID.JOIN then
+    local subtree = tree:add("JOIN (Zenoh Transport)")
+    subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
+    return subtree, SESSION_MSGID.JOIN
   elseif msgid == SESSION_MSGID.INIT then
     local subtree = tree:add("INIT (Zenoh Transport)")
     subtree:add(proto_zenoh.fields.header_msgid, buf(i, 1), msgid, base.u8)
