@@ -61,13 +61,13 @@ proto_zenoh.fields.init_vmaj         = ProtoField.uint8("zenoh.init.v_maj", "VMa
 proto_zenoh.fields.init_vmin         = ProtoField.uint8("zenoh.init.v_min", "VMin", base.u8)
 proto_zenoh.fields.init_whatami      = ProtoField.uint8("zenoh.init.whatami", "WhatAmI", base.u8)
 proto_zenoh.fields.init_peerid       = ProtoField.bytes("zenoh.init.peer_id", "Peer ID", base.NONE)
-proto_zenoh.fields.init_snresolution = ProtoField.uint8("zenoh.init.sn_resolution", "SN Resolution", base.u8)
+proto_zenoh.fields.init_snresolution = ProtoField.uint8("zenoh.init.sn_resolution", "Sequence Number Resolution", base.u8)
 proto_zenoh.fields.init_cookie       = ProtoField.bytes("zenoh.init.cookie", "Cookie", base.NONE)
 
 -- Open Message Specific
 proto_zenoh.fields.open_flags     = ProtoField.uint8("zenoh.open.flags", "Flags", base.HEX)
 proto_zenoh.fields.open_lease     = ProtoField.uint8("zenoh.open.lease", "Lease Period", base.u8)
-proto_zenoh.fields.open_initialsn = ProtoField.uint8("zenoh.open.initial_sn", "Initial SN", base.u8)
+proto_zenoh.fields.open_initialsn = ProtoField.uint8("zenoh.open.initial_sn", "Initial Sequence Number", base.u8)
 proto_zenoh.fields.open_cookie    = ProtoField.bytes("zenoh.open.cookie", "Cookie", base.NONE)
 
 -- Close Message Specific
@@ -77,12 +77,12 @@ proto_zenoh.fields.close_reason = ProtoField.uint8("zenoh.close.reason", "Reason
 
 -- Sync Message Specific
 proto_zenoh.fields.sync_flags = ProtoField.uint8("zenoh.sync.flags", "Flags", base.HEX)
-proto_zenoh.fields.sync_sn    = ProtoField.uint8("zenoh.sync.sn", "SN", base.u8)
+proto_zenoh.fields.sync_sn    = ProtoField.uint8("zenoh.sync.sn", "Sequence Number", base.u8)
 proto_zenoh.fields.sync_count = ProtoField.uint8("zenoh.sync.count", "Count", base.u8)
 
 -- AckNack Message Specific
 proto_zenoh.fields.acknack_flags = ProtoField.uint8("zenoh.acknack.flags", "Flags", base.HEX)
-proto_zenoh.fields.acknack_sn    = ProtoField.uint8("zenoh.acknack.sn", "SN", base.u8)
+proto_zenoh.fields.acknack_sn    = ProtoField.uint8("zenoh.acknack.sn", "Sequence Number", base.u8)
 proto_zenoh.fields.acknack_mask  = ProtoField.uint8("zenoh.acknack.mask", "Mask", base.u8)
 
 -- Join Message Specific
@@ -93,7 +93,7 @@ proto_zenoh.fields.join_vmin         = ProtoField.uint8("zenoh.join.v_min", "VMi
 proto_zenoh.fields.join_whatami      = ProtoField.uint8("zenoh.join.whatami", "WhatAmI", base.u8)
 proto_zenoh.fields.join_peerid       = ProtoField.bytes("zenoh.join.peer_id", "Peer ID", base.NONE)
 proto_zenoh.fields.join_lease        = ProtoField.bytes("zenoh.join.lease", "Lease", base.u8)
-proto_zenoh.fields.join_snresolution = ProtoField.uint8("zenoh.join.sn_resolution", "SN Resolution", base.u8)
+proto_zenoh.fields.join_snresolution = ProtoField.uint8("zenoh.join.sn_resolution", "Sequence Number Resolution", base.u8)
 
 -- Scout Message Specific
 proto_zenoh.fields.scout_flags = ProtoField.uint8("zenoh.scout.flags", "Flags", base.HEX)
@@ -114,7 +114,7 @@ proto_zenoh.fields.pingpong_hash  = ProtoField.bytes("zenoh.pingpong.hash", "Has
 
 -- Frame Message Specific
 proto_zenoh.fields.frame_flags   = ProtoField.uint8("zenoh.frame.flags", "Flags", base.HEX)
-proto_zenoh.fields.frame_sn      = ProtoField.uint8("zenoh.frame.sn", "SN", base.u8)
+proto_zenoh.fields.frame_sn      = ProtoField.uint8("zenoh.frame.sn", "Sequence Number", base.u8)
 proto_zenoh.fields.frame_payload = ProtoField.uint8("zenoh.frame.payload", "Payload", base.u8)
 
 -- Priority Decorator Specific
@@ -329,9 +329,9 @@ function get_data_options_flag_description(flag)
   elseif flag == bit.lshift(0x01, 1) then f_description = "Payload encoding"
   elseif flag == bit.lshift(0x01, 2) then f_description = "Payload timestamp"
   elseif flag == bit.lshift(0x01, 7) then f_description = "Payload source ID"
-  elseif flag == bit.lshift(0x01, 8) then f_description = "Payload source SN"
+  elseif flag == bit.lshift(0x01, 8) then f_description = "Payload source Sequence Number"
   elseif flag == bit.lshift(0x01, 9) then f_description = "First router ID"
-  elseif flag == bit.lshift(0x01, 10) then f_description = "First router SN"
+  elseif flag == bit.lshift(0x01, 10) then f_description = "First router Sequence Number"
   elseif flag > bit.lshift(0x01, 63) then f_description = "Unknown"
   else f_description = "Reserved"
   end
@@ -409,7 +409,7 @@ function get_init_flag_description(flag)
   local f_description = "Unknown"
 
   if flag == 0x04 then f_description     = "Options"       -- O
-  elseif flag == 0x02 then f_description = "SN Resolution" -- S
+  elseif flag == 0x02 then f_description = "Sequence Number Resolution" -- S
   elseif flag == 0x01 then f_description = "Ack"           -- A
   end
 
@@ -469,7 +469,7 @@ function get_join_flag_description(flag)
   local f_description = "Unknown"
 
   if flag == 0x04 then f_description     = "Options"       -- O
-  elseif flag == 0x02 then f_description = "SN Resolution" -- S
+  elseif flag == 0x02 then f_description = "Sequence Number Resolution" -- S
   elseif flag == 0x01 then f_description = "TimeRes"       -- U
   end
 
@@ -1186,7 +1186,7 @@ function parse_initial_sn_qos(tree, buf, bsize)
   local i = 0
 
   local a_size = PRIORITY_NUM
-  subtree = tree:add(buf(i, len), "Initial SN Array: ", a_size)
+  subtree = tree:add(buf(i, len), "Initial Sequence Number Array: ", a_size)
 
   while a_size > 0 do
     len = parse_initial_sn_plain(subtree, buf(i, -1), bsize - i)
