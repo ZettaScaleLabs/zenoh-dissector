@@ -1216,6 +1216,7 @@ end
 function parse_init(tree, buf, bsize)
   local i = 0
 
+  local o_flags = 0
   if bit.band(h_flags, 0x04) == 0x04 then
     o_flags, len = parse_zint(buf(i, -1), bsize - i)
 
