@@ -1860,8 +1860,10 @@ end
 do
     local tcp_port_table = DissectorTable.get("tcp.port")
     tcp_port_table:add(7447, proto_zenoh_tcp)
+    tcp_port_table:add(7446, proto_zenoh_tcp)
 
     local udp_port_table = DissectorTable.get("udp.port")
     udp_port_table:add(7447, proto_zenoh_udp)
+    udp_port_table:add(7446, proto_zenoh_udp)
 end
 
