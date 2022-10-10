@@ -1832,6 +1832,7 @@ function dissector(buf, pinfo, root, is_tcp)
       tree:add_le(proto_zenoh_tcp.fields.len, buf(i, 2), f_size)
       i = i + 2
     end
+    local i_buf = i
 
     if f_size > buf:len() - i then
       pinfo.desegment_offset = 0
@@ -1839,8 +1840,11 @@ function dissector(buf, pinfo, root, is_tcp)
       return
     end
 
-    len = decode_message(tree, buf(i, -1), f_size)
-    i = i + len
+    repeat
+      len = decode_message(tree, buf(i, -1), f_size)
+      i = i + len
+      f_size = f_size - len
+    until (f_size == 0)
   end
 
   return 0
