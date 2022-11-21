@@ -130,7 +130,6 @@ proto_zenoh.fields.routingcontext_tid   = ProtoField.uint8("zenoh.routingcontext
 -- Reply Context Decorator Specific
 proto_zenoh.fields.replycontext_flags       = ProtoField.uint8("zenoh.replycontext.flags", "Flags", base.HEX)
 proto_zenoh.fields.replycontext_qid         = ProtoField.uint8("zenoh.replycontext.qid", "QID", base.u8)
-proto_zenoh.fields.replycontext_replierkind = ProtoField.uint8("zenoh.replycontext.replier_kind", "Replier Kind", base.u8)
 proto_zenoh.fields.replycontext_replierid   = ProtoField.bytes("zenoh.replycontext.replier_id", "Replier ID", base.NONE)
 
 
@@ -1504,10 +1503,6 @@ function parse_reply_context(tree, buf, bsize)
   i = i + len
 
   if bit.band(h_flags, 0x01) == 0x00 then
-    local val, len = parse_zint(buf(i, -1), bsize - i)
-    tree:add(proto_zenoh.fields.replycontext_replierkind, buf(i, len), val)
-    i = i + len
-
     local val, len = parse_zbytes(buf(i, -1), bsize - i)
     tree:add(proto_zenoh.fields.replycontext_replierid, val)
     i = i + len
