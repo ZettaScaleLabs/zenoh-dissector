@@ -1,4 +1,5 @@
 -- Zenoh Protocol Dissector for Wireshark
+-- Copyright (c) 2022 ZettaScaleLabs
 -- Copyright (c) 2021 Carlos Guimarães
 --
 -- This program is free software: you can redistribute it and/or modify
