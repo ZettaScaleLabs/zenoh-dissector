@@ -97,8 +97,10 @@ proto_zenoh.fields.join_lease        = ProtoField.bytes("zenoh.join.lease", "Lea
 proto_zenoh.fields.join_snresolution = ProtoField.uint8("zenoh.join.sn_resolution", "Sequence Number Resolution", base.u8)
 
 -- Scout Message Specific
-proto_zenoh.fields.scout_flags = ProtoField.uint8("zenoh.scout.flags", "Flags", base.HEX)
-proto_zenoh.fields.scout_what  = ProtoField.uint8("zenoh.scout.what", "What", base.u8)
+proto_zenoh.fields.scout_flags   = ProtoField.uint8("zenoh.scout.flags", "Flags", base.HEX)
+proto_zenoh.fields.scout_version = ProtoField.uint8("zenoh.scout.version", "Version", base.u8)
+proto_zenoh.fields.scout_what    = ProtoField.uint8("zenoh.scout.what", "What", base.u8)
+proto_zenoh.fields.scout_peerid  = ProtoField.bytes("zenoh.scout.peer_id", "Peer ID", base.NONE)
 
 -- Hello Message Specific
 proto_zenoh.fields.hello_flags   = ProtoField.uint8("zenoh.hello.flags", "Flags", base.HEX)
@@ -480,9 +482,9 @@ end
 function get_scout_flag_description(flag)
   local f_description = "Unknown"
 
-  if flag == 0x04 then f_description     = "Unused"  -- X
-  elseif flag == 0x02 then f_description = "WhatAmI" -- W
-  elseif flag == 0x01 then f_description = "PeerID"  -- I
+  if flag == 0x04 then f_description     = "Extensions"  -- Z
+  elseif flag == 0x02 then f_description = "Unused"      -- X
+  elseif flag == 0x01 then f_description = "Unused"      -- X
   end
 
   return f_description
@@ -575,18 +577,24 @@ function parse_zint(buf, bsize)
   return val, i
 end
 
+function parse_zbytes_val(buf, bsize, zid_len)
+  local i = 0
+
+  if zid_len > bsize - i then
+    -- until the end of the buffer
+    return buf(i, -1), bsize, zid_len - bsize
+  end
+
+  return buf(i, zid_len), i + zid_len
+end
+
 function parse_zbytes(buf, bsize)
   local i = 0
 
   local val, len = parse_zint(buf(i, -1), bsize - i)
   i = i + len
 
-  if val > bsize - i then
-    -- until the end of the buffer
-    return buf(i, -1), bsize, val - bsize
-  end
-
-  return buf(i, val), i + val
+  return parse_zbytes_val(buf(i, -1), bsize - i, val)
 end
 
 function parse_zstring(buf, bsize)
@@ -1394,9 +1402,17 @@ end
 function parse_scout(tree, buf, bsize)
   local i = 0
 
-  if bit.band(h_flags, 0x02) == 0x02 then
-    val, len = parse_zint(buf(i, -1), bsize - i)
-    tree:add(proto_zenoh.fields.scout_what, val)
+  tree:add(proto_zenoh.fields.scout_version, buf(i, 1), buf(i, 1):uint())
+  i = i + 1
+
+  local cbyte = buf(i, 1):uint()
+  tree:add(proto_zenoh.fields.scout_what, buf(i, 1), bit.band(cbyte, 0x07))
+  local zid_len = bit.rshift(bit.band(cbyte, 0xF0), 4) + 1
+  i = i + 1
+
+  if bit.band(cbyte, 0x80) == 0x80 then
+    val, len = parse_zbytes_val(buf(i, -1), bsize - i, zid_len)
+    tree:add(proto_zenoh.fields.scout_peerid, val)
     i = i + len
   end
 
