@@ -104,8 +104,9 @@ proto_zenoh.fields.scout_peerid  = ProtoField.bytes("zenoh.scout.peer_id", "Peer
 
 -- Hello Message Specific
 proto_zenoh.fields.hello_flags   = ProtoField.uint8("zenoh.hello.flags", "Flags", base.HEX)
-proto_zenoh.fields.hello_peerid  = ProtoField.bytes("zenoh.hello.peerid", "Peer ID", base.NONE)
+proto_zenoh.fields.hello_version = ProtoField.uint8("zenoh.hello.version", "Version", base.u8)
 proto_zenoh.fields.hello_whatami = ProtoField.uint8("zenoh.hello.whatami", "WhatAmI", base.u8)
+proto_zenoh.fields.hello_peerid  = ProtoField.bytes("zenoh.hello.peerid", "Peer ID", base.NONE)
 
 -- Keep Alive Message Specific
 proto_zenoh.fields.keepalive_flags  = ProtoField.uint8("zenoh.keepalive.flags", "Flags", base.HEX)
@@ -494,9 +495,9 @@ end
 function get_hello_flag_description(flag)
   local f_description = "Unknown"
 
-  if flag == 0x04 then f_description     = "Locators" -- L
-  elseif flag == 0x02 then f_description = "WhatAmI"  -- W
-  elseif flag == 0x01 then f_description = "PeerID"   -- I
+  if flag == 0x04 then f_description     = "Extensions" -- Z
+  elseif flag == 0x02 then f_description = "Unused"     -- X
+  elseif flag == 0x01 then f_description = "Locators"   -- L
   end
 
   return f_description
@@ -1422,19 +1423,21 @@ end
 function parse_hello(tree, buf, bsize)
   local i = 0
 
-  if bit.band(h_flags, 0x01) == 0x01 then
-    local val, len = parse_zbytes(buf(i, -1), bsize - i)
+  tree:add(proto_zenoh.fields.hello_version, buf(i, 1), buf(i, 1):uint())
+  i = i + 1
+
+  local cbyte = buf(i, 1):uint()
+  tree:add(proto_zenoh.fields.hello_whatami, buf(i, 1), bit.band(cbyte, 0x03))
+  local zid_len = bit.rshift(bit.band(cbyte, 0xF0), 4) + 1
+  i = i + 1
+
+  if bit.band(cbyte, 0x80) == 0x80 then
+    val, len = parse_zbytes_val(buf(i, -1), bsize - i, zid_len)
     tree:add(proto_zenoh.fields.hello_peerid, val)
     i = i + len
   end
 
-  if bit.band(h_flags, 0x02) == 0x02 then
-    local val, len = parse_zint(buf(i, -1), bsize - i)
-    tree:add(proto_zenoh.fields.hello_whatami, buf(i, len), val)
-    i = i + len
-  end
-
-  if bit.band(h_flags, 0x04) == 0x04 then
+  if bit.band(h_flags, 0x01) == 0x01 then
     local len = parse_locators(tree, buf(i, -1), bsize - i)
     i = i + len
   end
