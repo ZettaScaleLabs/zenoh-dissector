@@ -396,9 +396,9 @@ end
 function get_query_flag_description(flag)
   local f_description = "Unknown"
 
-  if flag == 0x04 then f_description     = "ResourceKey" -- K
-  elseif flag == 0x02 then f_description = "Unused"      -- X
-  elseif flag == 0x01 then f_description = "QueryTarget" -- T
+  if flag == 0x04 then f_description     = "ResourceKey"  -- K
+  elseif flag == 0x02 then f_description = "QueryPayload" -- B
+  elseif flag == 0x01 then f_description = "QueryTarget"  -- T
   end
 
   return f_description
@@ -862,7 +862,7 @@ function parse_data(tree, buf, bsize)
     i = i + len
   end
 
-  local len = parse_payload(tree, buf(i, -1), bsize - i)
+  len = parse_payload(tree, buf(i, -1), bsize - i)
   i = i + len
 
   return i
@@ -1146,6 +1146,15 @@ function parse_query(tree, buf, bsize)
 
   len = parse_query_consolidation(tree, buf(i, -1), bsize - i)
   i = i + len
+
+  if bit.band(h_flags, 0x02) == 0x02 then
+    subtree = tree:add(buf(i, -1), "Query Payload")
+    len = parse_datainfo(subtree, buf(i, -1), bsize - i)
+    i = i + len
+    len = parse_payload(subtree, buf(i, -1), bsize - i)
+    i = i + len
+  end
+
 
   return i
 end
