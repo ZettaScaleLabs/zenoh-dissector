@@ -47,7 +47,8 @@
 
 ## Usage
 
-To use this, copy zenoh.lua to ~/.local/lib/wireshark/plugins.
+To use this, copy zenoh.lua to `~/.local/lib/wireshark/plugins` (linux)
+or `~/.config/wireshark/plugins/` (macos).
 Then when you run Wireshark it will understand TCP/UDP communications
 on port 7447 as Zenoh messages, and will know how to interpret them. 
 
