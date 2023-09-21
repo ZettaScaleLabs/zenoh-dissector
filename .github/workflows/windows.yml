@@ -1,0 +1,76 @@
+#
+# Copyright (c) 2023 ZettaScale Technology
+#
+# This program and the accompanying materials are made available under the
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+# which is available at https://www.apache.org/licenses/LICENSE-2.0.
+#
+# SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+#
+# Contributors:
+#   ZettaScale Zenoh Team, <zenoh@zettascale.tech>
+#
+name: CI (Windows)
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  schedule:
+    - cron: "0 6 * * 1-5"
+
+jobs:
+  check:
+    name: Run checks on windows-latest
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+    env:
+      PLATFORM: x64
+      WIRESHARK_BASE_DIR: C:\Development
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        run: |
+          rustup show
+          rustup component add rustfmt clippy
+
+      - name: Code format check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
+        env:
+          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+      - name: Install dependencies
+        run: |
+          choco install -y --force --no-progress wireshark
+
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets -- -D warnings
+        env:
+          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+        env:
+          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+      - name: Place the plugin
+        run: |
+          cp .\target\release\zenoh_dissector.dll 'C:\Program Files\Wireshark\plugins\4.0\epan\'
+
+      - name: Test the sample data
+        run: |
+          & 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap

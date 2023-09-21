@@ -1,0 +1,82 @@
+#
+# Copyright (c) 2023 ZettaScale Technology
+#
+# This program and the accompanying materials are made available under the
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+# which is available at https://www.apache.org/licenses/LICENSE-2.0.
+#
+# SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+#
+# Contributors:
+#   ZettaScale Zenoh Team, <zenoh@zettascale.tech>
+#
+name: CI (Ubuntu)
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  schedule:
+    - cron: "0 6 * * 1-5"
+
+jobs:
+  check:
+    name: Run checks on ubuntu-latest
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        run: |
+          rustup show
+          rustup component add rustfmt clippy
+
+      - name: Code format check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
+        env:
+          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+      - name: Install dependencies
+        run: |
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:wireshark-dev/stable
+          sudo apt install -y wireshark-dev
+          sudo apt install -y --allow-change-held-packages wireshark
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets -- -D warnings
+        env:
+          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+        env:
+          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+      - name: Place the plugin
+        run: |
+          mkdir -p ~/.local/lib/wireshark/plugins/4.0/epan
+          cp ./target/release/libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.0/epan/libzenoh_dissector.so
+
+      - name: Test the sample data
+        run: |
+          sudo apt install -y --allow-change-held-packages tshark
+          [ $(tshark -r assets/sample-data.pcap | grep Zenoh | wc -l) -eq 7 ] || return 1
+        env:
+          DEBIAN_FRONTEND: noninteractive
