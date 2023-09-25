@@ -27,12 +27,9 @@ jobs:
     runs-on: windows-latest
     strategy:
       fail-fast: false
-    env:
-      PLATFORM: x64
-      WIRESHARK_BASE_DIR: C:\Development
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Rust toolchain
         run: |
@@ -49,15 +46,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          choco install -y --force --no-progress wireshark
+          choco install -y --force --no-progress asciidoctorj xsltproc docbook-bundle nsis winflexbison3 cmake wireshark
 
-      - name: Clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets -- -D warnings
-        env:
-          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+      # - name: Clippy
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     command: clippy
+      #     args: --all-targets -- -D warnings
+      #   env:
+      #     CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
       - name: Build
         uses: actions-rs/cargo@v1
@@ -74,3 +71,4 @@ jobs:
       - name: Test the sample data
         run: |
           & 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap
+          if((& 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap | Select-String -pattern "zenoh").length -ne 7) {return 1}

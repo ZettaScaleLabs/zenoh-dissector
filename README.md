@@ -38,7 +38,7 @@ We need to install Wireshark with its library. Please follow the steps below acc
 
     Install Wireshark with [Chocolatey](https://docs.chocolatey.org/en-us/choco/setup#install-with-powershell.exe).
     ```bash
-    choco install -y --force --no-progress wireshark
+    choco install -y --force --no-progress asciidoctorj xsltproc docbook-bundle nsis winflexbison3 cmake wireshark
     ```
 
 ### Build the plugin
