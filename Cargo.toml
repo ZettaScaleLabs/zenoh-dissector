@@ -12,6 +12,8 @@ zenoh-codec = {git="https://github.com/eclipse-zenoh/zenoh"}
 zenoh-buffers = {git="https://github.com/eclipse-zenoh/zenoh"}
 anyhow = "1.0.75"
 convert_case = "0.6.0"
+env_logger = "0.10.0"
+log = "0.4.20"
 
 
 [lib]
