@@ -1,0 +1,74 @@
+#
+# Copyright (c) 2023 ZettaScale Technology
+#
+# This program and the accompanying materials are made available under the
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+# which is available at https://www.apache.org/licenses/LICENSE-2.0.
+#
+# SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+#
+# Contributors:
+#   ZettaScale Zenoh Team, <zenoh@zettascale.tech>
+#
+name: Release
+
+on:
+  release:
+    types: [published]
+  schedule:
+    - cron: "0 0 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  builds:
+    name: Build for ${{ matrix.job.target }} on ${{ matrix.job.os }}
+    runs-on: [ self-hosted, "${{ matrix.job.os }}" ]
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { target: x86_64-unknown-linux-gnu, arch: amd64, os: ubuntu-20.04 }
+          - { target: aarch64-apple-darwin, arch: darwin, os: macos }
+          - { target: x86_64-pc-windows-msvc, arch: win64, os: windows-10 }
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Packaging
+        id: package
+        shell: bash
+        run: |
+          TARGET=${{ matrix.job.target }}
+          PKG_VER=v$(cargo pkgid | cut -d "#" -f2)
+          PKG_NAME="${GITHUB_WORKSPACE}/zenoh-dissector-${PKG_VER}-${TARGET}.zip"
+          echo "Packaging ${PKG_NAME}:"
+          case ${TARGET} in
+            *linux*)
+              zip -j ${PKG_NAME} target/release/libzenoh_dissector.so
+              ;;
+            *apple*)
+              zip -j ${PKG_NAME} target/release/libzenoh_dissector.dylib
+              ;;
+            *windows*)
+              zip -j ${PKG_NAME} target/release/zenoh_dissector.dll
+              ;;
+          esac
+          echo "PKG_NAME=${PKG_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          prerelease: true
+          files: ${{ steps.package.outputs.PLUGIN_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
