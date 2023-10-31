@@ -6,14 +6,22 @@ macro_rules! impl_for_enum {
             )*
         }
     ) => {
-        impl GenerateHFMap for $enum_name {
+        impl Registration for $enum_name {
             fn generate_hf_map(prefix: &str) -> HeaderFieldMap {
                 let mut hf_map = HeaderFieldMap::new()
-                    .add(prefix, "", stringify!{$enum_name}, FieldKind::Branch);
+                    .add(prefix.to_string(), stringify!{$enum_name}, FieldKind::Branch);
                 $(
                     hf_map.extend(<$variant_ty>::generate_hf_map(&format!("{prefix}.{}", stringify!{$variant_name}.to_case(Case::Snake))));
                 )*
                 hf_map
+            }
+
+            fn generate_subtree_names(prefix: &str) -> Vec<String> {
+                let mut names = vec![];
+                $(
+                    names.extend(<$variant_ty>::generate_subtree_names(&format!("{prefix}.{}", stringify!{$variant_name}.to_case(Case::Snake))));
+                )*
+                names
             }
         }
 
@@ -68,21 +76,34 @@ macro_rules! impl_for_struct {
             )*
         }
     ) => {
-        impl GenerateHFMap for $struct_name {
+        impl Registration for $struct_name {
             #![allow(unused)]
             fn generate_hf_map(prefix: &str) -> HeaderFieldMap {
                 let mut hf_map = HeaderFieldMap::new()
                 $(
-                    .add(prefix, stringify!{$field_name}, &stringify!{$field_name}.to_case(Case::Title), FieldKind::Text)
+                    .add(
+                        format!("{}.{}", prefix, stringify!{$field_name}),
+                        &stringify!{$field_name}.to_case(Case::Title),
+                        FieldKind::Text
+                    )
                 )*
                 $(
-                    .add(prefix, stringify!{$vec_name}, stringify!{$vec_ty}, FieldKind::Branch)
+                    .add(
+                        format!("{}.{}", prefix, stringify!{$vec_name}),
+                        stringify!{$vec_ty},
+                        FieldKind::Branch
+                    )
                 )*
                 $(
-                    .add(prefix, stringify!{$enum_name}, stringify!{$enum_ty}, FieldKind::Text)
+                    .add(
+                        format!("{}.{}", prefix, stringify!{$enum_name}),
+                        stringify!{$enum_ty},
+                        FieldKind::Text
+                    )
                 )*
                 ;
 
+                // recursive
                 $(
                     hf_map.extend(<$vec_ty>::generate_hf_map(&format!("{prefix}.{}", stringify!{$vec_name})));
                 )*
@@ -92,6 +113,19 @@ macro_rules! impl_for_struct {
                 )*
 
                 hf_map
+            }
+
+            fn generate_subtree_names(prefix: &str) -> Vec<String> {
+                let mut names = vec![];
+                // recursive
+                $(
+                    names.extend(<$vec_ty>::generate_subtree_names(&format!("{prefix}.{}", stringify!{$vec_name})));
+                )*
+                $(
+                    names.push(format!("{prefix}.{}", stringify!{$expand_name}));
+                    names.extend(<$expand_ty>::generate_subtree_names(&format!("{prefix}.{}", stringify!{$expand_name})));
+                )*
+                names
             }
         }
 

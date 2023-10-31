@@ -21,10 +21,15 @@ on:
   schedule:
     - cron: "0 6 * * 1-5"
 
+env:
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+  WIRESHARK_LIB_DIR: ${{ github.workspace }}
+
+
 jobs:
   check:
-    name: Run checks on macOS-latest
-    runs-on: macOS-latest
+    name: Run checks on self-hosted macOS
+    runs-on: [ self-hosted, macOS ]
     strategy:
       fail-fast: false
     steps:
@@ -40,34 +45,28 @@ jobs:
         with:
           command: fmt
           args: -- --check
-        env:
-          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
       - name: Install Wireshark
         run: |
-          brew install --cask wireshark
-          cd /Applications/Wireshark.app/Contents/Frameworks
-          [ -f libwireshark.dylib ] || ln -s $(find libwireshark.*.dylib | tail -n 1) libwireshark.dylib
+          [ -d /Applications/Wireshark.app/Contents/Frameworks ] || brew install --cask wireshark
+          ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
 
       - name: Clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-targets -- -D warnings
-        env:
-          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release
-        env:
-          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
       - name: Place the plugin
-        run:
-          cp ./target/release/libzenoh_dissector.dylib /Applications/Wireshark.app/Contents/PlugIns/wireshark/4-0/epan/libzenoh_dissector.so
+        run: |
+          mkdir -p ~/.local/lib/wireshark/plugins/4-0/epan
+          cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/4-0/epan/libzenoh_dissector.so
 
       - name: Test the sample data
         run: |

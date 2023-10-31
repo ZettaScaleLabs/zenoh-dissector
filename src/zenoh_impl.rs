@@ -9,15 +9,21 @@ pub struct ZenohProtocol;
 
 mod impl_for_zenoh_protocol {
     use super::ZenohProtocol;
-    use crate::header_field::{FieldKind, GenerateHFMap, HeaderFieldMap};
+    use crate::header_field::{FieldKind, HeaderFieldMap, Registration};
     use zenoh_protocol::transport::TransportMessage;
 
-    impl GenerateHFMap for ZenohProtocol {
+    impl Registration for ZenohProtocol {
         fn generate_hf_map(prefix: &str) -> HeaderFieldMap {
             let mut hf_map =
-                HeaderFieldMap::new().add(prefix, "", "ZenohProtocol", FieldKind::Branch);
+                HeaderFieldMap::new().add(prefix.to_string(), "ZenohProtocol", FieldKind::Branch);
             hf_map.extend(TransportMessage::generate_hf_map(prefix));
             hf_map
+        }
+
+        fn generate_subtree_names(prefix: &str) -> Vec<String> {
+            let mut names = vec![prefix.to_string()];
+            names.extend(TransportMessage::generate_subtree_names(prefix));
+            names
         }
     }
 }

@@ -32,15 +32,10 @@ impl IntoIterator for HeaderFieldMap {
 
 impl HeaderFieldMap {
     pub fn new() -> Self {
-        HeaderFieldMap(HashMap::<String, HeaderField>::new())
+        HeaderFieldMap(Hfm::new())
     }
 
-    pub fn add(mut self, prefix: &str, name: &str, display_name: &str, kind: FieldKind) -> Self {
-        let key = if name.is_empty() {
-            prefix.to_string()
-        } else {
-            format!("{prefix}.{name}")
-        };
+    pub fn add(mut self, key: String, display_name: &str, kind: FieldKind) -> Self {
         self.0.insert(
             key,
             HeaderField {
@@ -60,6 +55,7 @@ pub enum FieldKind {
     // Bytes,
 }
 
-pub trait GenerateHFMap {
+pub trait Registration {
     fn generate_hf_map(prefix: &str) -> HeaderFieldMap;
+    fn generate_subtree_names(prefix: &str) -> Vec<String>;
 }
