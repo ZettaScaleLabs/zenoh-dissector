@@ -1,4 +1,4 @@
-![zenoh dissector banner](./assets/zenoh-wireshark.png)
+![zenoh dissector banner](./assets/zenoh-dissector.svg)
 # Zenoh Dissector in Rust!
 
 [Zenoh](http://zenoh.io/) protocol dissector for Wireshark.
