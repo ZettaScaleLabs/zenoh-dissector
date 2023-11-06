@@ -8,6 +8,8 @@
 
 ## Installation
 
+We recommend directly download and install the [released plugin](https://github.com/ZettaScaleLabs/zenoh-dissector/releases).
+Or you can follow the following instructions to build your own plugin.
 
 ### Install dependencies
 

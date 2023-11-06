@@ -7,9 +7,9 @@ edition = "2021"
 
 [dependencies]
 epan-sys = {git="https://github.com/yuanyuyuan/wsdf", branch="PR/replace-git-submodule"}
-zenoh-protocol = {git="https://github.com/eclipse-zenoh/zenoh"}
-zenoh-codec = {git="https://github.com/eclipse-zenoh/zenoh"}
-zenoh-buffers = {git="https://github.com/eclipse-zenoh/zenoh"}
+zenoh-protocol = "0.10.0-rc"
+zenoh-codec = "0.10.0-rc"
+zenoh-buffers = "0.10.0-rc"
 anyhow = "1.0.75"
 convert_case = "0.6.0"
 env_logger = "0.10.0"

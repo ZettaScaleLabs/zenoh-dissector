@@ -11,13 +11,15 @@
 # Contributors:
 #   ZettaScale Zenoh Team, <zenoh@zettascale.tech>
 #
+
 name: Release
 
 on:
-  release:
-    types: [published]
   schedule:
     - cron: "0 0 * * 1-5"
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
 
 jobs:
@@ -36,39 +38,93 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Setup the Wireshark library
+        id: wireshark_lib
+        shell: bash
+        run: |
+          case ${{ matrix.job.target }} in
+            *linux*)
+              echo "WIRESHARK_LIB_DIR=" >> $GITHUB_OUTPUT
+              ;;
+            *apple*)
+              ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
+              echo "WIRESHARK_LIB_DIR=${{ github.workspace }}" >> $GITHUB_OUTPUT
+              ;;
+            *windows*)
+              echo "WIRESHARK_LIB_DIR=C:\\Development\wireshark\lib" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release
+        env:
+          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+          WIRESHARK_LIB_DIR: ${{ steps.wireshark_lib.outputs.WIRESHARK_LIB_DIR }}
 
       - name: Packaging
         id: package
         shell: bash
         run: |
-          TARGET=${{ matrix.job.target }}
-          PKG_VER=v$(cargo pkgid | cut -d "#" -f2)
-          PKG_NAME="${GITHUB_WORKSPACE}/zenoh-dissector-${PKG_VER}-${TARGET}.zip"
+          PKG_NAME="${GITHUB_WORKSPACE}/${{ matrix.job.target }}.zip"
           echo "Packaging ${PKG_NAME}:"
-          case ${TARGET} in
+          case ${{ matrix.job.target }} in
             *linux*)
               zip -j ${PKG_NAME} target/release/libzenoh_dissector.so
               ;;
             *apple*)
-              zip -j ${PKG_NAME} target/release/libzenoh_dissector.dylib
+              mv target/release/libzenoh_dissector.dylib target/release/libzenoh_dissector.so
+              zip -j ${PKG_NAME} target/release/libzenoh_dissector.so
               ;;
             *windows*)
+              PKG_NAME="${PKG_NAME//\\//}"
               zip -j ${PKG_NAME} target/release/zenoh_dissector.dll
               ;;
           esac
-          echo "PKG_NAME=${PKG_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.job.target }}
+          path: ${{ matrix.job.target }}.zip
+          if-no-files-found: error
+
+  publish:
+    name: Release publication
+    needs: builds
+    runs-on: [ self-hosted, ubuntu-20.04 ]
+    steps:
+      - name: Download the artifacts of previous builds
+        uses: actions/download-artifact@v3
+        with:
+          path: ARTIFACTS
+
+      - name: Generate the release note
+        run: |
+          echo "Compute sha256sum"
+          mkdir zip_files
+          cp ARTIFACTS/*/*.zip zip_files
+          cd zip_files
+          export SHA256SUM=$(sha256sum *.zip)
+          echo -e "$SHA256SUM"
+          cd -
+
+          echo "Record zenoh version"
+          export PKG_VER=$(cargo pkgid | cut -d "#" -f2)
+          command -v jq &> /dev/null || sudo apt install jq -y
+          export ZENOH_VER=$(cargo metadata | jq -r '.packages[] | select(.name == "zenoh-protocol") | .version')
+          envsubst < ${GITHUB_WORKSPACE}/.github/workflows/release-note.md > release-note.md
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           draft: true
           prerelease: true
-          files: ${{ steps.package.outputs.PLUGIN_NAME }}
+          files: ARTIFACTS/*/*.zip
+          generate_release_notes: true
+          body_path: release-note.md
+          append_body: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
