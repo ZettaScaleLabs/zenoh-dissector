@@ -175,8 +175,7 @@ unsafe extern "C" fn dissect_main(
 
         let mut tree_args = tree_args.make_subtree(root_key, "Zenoh Protocol")?;
 
-        // TODO: the summary of packet
-        let summary_vec = vec![""];
+        let mut summary_vec = vec![];
         if (*pinfo).can_desegment > 0 {
             // Basically this branch is for TCP
 
@@ -215,7 +214,7 @@ unsafe extern "C" fn dissect_main(
                 log::debug!("TCP message counter: {counter}");
 
                 // TODO: Append the summary of this new message
-                // summary_vec.push(msg.summary());
+                summary_vec.push(msg.to_string());
             }
         } else {
             // Basically this branch is for UDP
@@ -239,8 +238,8 @@ unsafe extern "C" fn dissect_main(
             // Add the message into the tree
             msg.add_to_tree("zenoh", &tree_args)?;
 
-            // TODO: Append the summary of this new message
-            // summary_vec.push(msg.summary());
+            // Append the summary of this new message
+            summary_vec.push(msg.to_string());
 
             // Update the range of the buffer to display
             tree_args.start += tree_args.length;
