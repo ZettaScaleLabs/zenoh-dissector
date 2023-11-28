@@ -1489,18 +1489,16 @@ dependencies = [
 
 [[package]]
 name = "zenoh-buffers"
-version = "0.10.0-rc"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22eccc89875d0d31a9cf4896571d62fd9ba47359e41e09c810371308efae207b"
+version = "0.11.0-dev"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=message-display#5ef7de9380a9f37c3e2c54b6cc425c06ecf53a12"
 dependencies = [
  "zenoh-collections",
 ]
 
 [[package]]
 name = "zenoh-codec"
-version = "0.10.0-rc"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bee311a3da49c1de427850924ea9a208905824427a387b795129b3bf697239b1"
+version = "0.11.0-dev"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=message-display#5ef7de9380a9f37c3e2c54b6cc425c06ecf53a12"
 dependencies = [
  "log",
  "serde",
@@ -1511,9 +1509,8 @@ dependencies = [
 
 [[package]]
 name = "zenoh-collections"
-version = "0.10.0-rc"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "271f7e17b79417e0bb5006362b578c5631a2dc281835b73140b2a1d643fdae38"
+version = "0.11.0-dev"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=message-display#5ef7de9380a9f37c3e2c54b6cc425c06ecf53a12"
 
 [[package]]
 name = "zenoh-dissector"
@@ -1531,9 +1528,8 @@ dependencies = [
 
 [[package]]
 name = "zenoh-keyexpr"
-version = "0.10.0-rc"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af6894d8fdd8922bf3a6fdcc3342c7d7473109b05550bab5bb81b50b610864b3"
+version = "0.11.0-dev"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=message-display#5ef7de9380a9f37c3e2c54b6cc425c06ecf53a12"
 dependencies = [
  "hashbrown 0.14.2",
  "keyed-set",
@@ -1546,9 +1542,8 @@ dependencies = [
 
 [[package]]
 name = "zenoh-protocol"
-version = "0.10.0-rc"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e28bf9d201f3bc73eedbf45519209e0a278c1deab7053479a370c5b3331a4bb"
+version = "0.11.0-dev"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=message-display#5ef7de9380a9f37c3e2c54b6cc425c06ecf53a12"
 dependencies = [
  "const_format",
  "hex",
@@ -1563,9 +1558,8 @@ dependencies = [
 
 [[package]]
 name = "zenoh-result"
-version = "0.10.0-rc"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be195cbe1930507af3a43fb9f67fbb85a4cc1cf84fda347b8f2512683d5b975b"
+version = "0.11.0-dev"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=message-display#5ef7de9380a9f37c3e2c54b6cc425c06ecf53a12"
 dependencies = [
  "anyhow",
 ]
