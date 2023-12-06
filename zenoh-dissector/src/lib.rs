@@ -29,9 +29,12 @@ static plugin_want_major: std::ffi::c_int = 4;
 #[used]
 static plugin_want_minor: std::ffi::c_int = 2;
 
-#[no_mangle]
-#[used]
-static MTU: usize = 65536;
+// Max number of summary of batch in one packet
+static MAX_PACKET_SUMMARY: usize = 5;
+// Max number of summary of messages in one batch
+static MAX_BATCH_SUMMARY: usize = 5;
+// Max length of summary of messages
+static MSG_SUMMARY_LIMIT: usize = 30;
 
 #[derive(Default, Debug)]
 struct ProtocolData {
@@ -172,90 +175,156 @@ unsafe extern "C" fn dissect_main(
             start: 0,
             length: 0,
         };
-
         let mut tree_args = tree_args.make_subtree(root_key, "Zenoh Protocol")?;
 
-        let mut summary_vec = vec![];
+        let mut packet_summary = Vec::with_capacity(MAX_PACKET_SUMMARY);
+        let mut packet_summary_full = false;
+
         if (*pinfo).can_desegment > 0 {
-            // Basically this branch is for TCP
+            // This branch aims for TCP
 
+            // At least containing a valid header
+            assert!(reader.len() >= 2);
+
+            // Iterate batches in a packet
             while reader.len() >= 2 {
-                // Length of sliced message
-                let mut length = [0_u8, 0u8];
+                // Fetch the batch size
+                let mut length = [0_u8; 2];
                 reader.read_exact(&mut length).unwrap();
-                let n = BatchSize::from_le_bytes(length) as usize;
+                let batch_size = BatchSize::from_le_bytes(length) as usize;
 
-                if n > reader.len() {
+                // Need to desegment if the batch size exceeds this packet size
+                if batch_size > reader.len() {
                     (*pinfo).desegment_offset = 0;
                     (*pinfo).desegment_len = epan_sys::DESEGMENT_ONE_MORE_SEGMENT;
-                    log::debug!("Skip since n={} >= reader.len()={}", n, reader.len());
+                    log::trace!(
+                        "Skip since batch_size={} >= reader.len()={}",
+                        batch_size,
+                        reader.len()
+                    );
                     break;
                 }
 
-                assert!(0 < n && n <= MTU, "{}", n);
-
-                // Read sliced message into a buffer
-                let mut buf = vec![0_u8; MTU];
-                reader.read_exact(&mut buf[0..n]).unwrap();
+                // Read sliced message into a batch buffer
+                let mut batch = vec![0_u8; batch_size];
+                reader
+                    .read_exact(&mut batch[0..batch_size])
+                    .expect("Failed to read the batch.");
 
                 // Update the range of the buffer to display
-                tree_args.length = 2 + n;
+                tree_args.length = 2 + batch_size;
 
-                // Read and decode the bytes to TransportMessage
-                let msg = <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut buf.reader())
-                    .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
+                // Iterate messages in a batch
+                let mut batch_reader = batch.reader();
+                let mut batch_summary = Vec::with_capacity(MAX_BATCH_SUMMARY);
+                let mut batch_summary_full = false;
+                while batch_reader.can_read() {
+                    // Read and decode the bytes to TransportMessage
+                    let msg =
+                        <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut batch_reader)
+                            .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
 
-                // Add the message into the tree
-                msg.add_to_tree("zenoh", &tree_args)?;
+                    // Add the message into the tree
+                    msg.add_to_tree("zenoh", &tree_args)?;
+
+                    if !batch_summary_full {
+                        if batch_summary.len() >= batch_summary.capacity() {
+                            batch_summary_full = true;
+                        } else {
+                            let mut msg_summary = msg.to_string();
+                            if msg_summary.len() > MSG_SUMMARY_LIMIT {
+                                msg_summary.truncate(MSG_SUMMARY_LIMIT);
+                                msg_summary += "...]";
+                            }
+                            batch_summary.push(msg_summary);
+                        }
+                    }
+                }
+
+                if !packet_summary_full {
+                    if packet_summary.len() >= packet_summary.capacity() {
+                        packet_summary_full = true;
+                    } else {
+                        let batch_summary_content = if batch_summary.len() > 1 {
+                            format!(
+                                "[{}]",
+                                batch_summary.join(", ")
+                                    + if batch_summary_full { ", ..." } else { "" }
+                            )
+                        } else {
+                            batch_summary[0].to_owned()
+                        };
+                        packet_summary.push(batch_summary_content);
+                    }
+                }
 
                 // Update the range of the buffer to display
                 tree_args.start += tree_args.length;
                 counter += 1;
                 log::debug!("TCP message counter: {counter}");
-
-                // TODO: Append the summary of this new message
-                summary_vec.push(msg.to_string());
             }
         } else {
-            // Basically this branch is for UDP
+            // This branch aims for UDP
 
-            let n = reader.len();
-            assert!(0 < n && n <= MTU, "{}", n);
+            // Fetch the batch size
+            let batch_size = reader.len();
 
             // Update the range of the buffer to display
-            tree_args.length = n;
+            tree_args.length = batch_size;
 
-            // Add the message into the tree
-            let msg = <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut reader)
-                .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
-            log::debug!(
-                "Counter: {}, remaining: {}, msg: {:?}",
-                counter,
-                reader.remaining(),
-                &msg
-            );
+            // Iterate messages in a batch
+            let mut batch_reader = reader;
+            let mut batch_summary = Vec::with_capacity(MAX_BATCH_SUMMARY);
+            let mut batch_summary_full = false;
+            while batch_reader.can_read() {
+                // Read and decode the bytes to TransportMessage
+                let msg = <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut batch_reader)
+                    .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
 
-            // Add the message into the tree
-            msg.add_to_tree("zenoh", &tree_args)?;
+                // Add the message into the tree
+                msg.add_to_tree("zenoh", &tree_args)?;
 
-            // Append the summary of this new message
-            summary_vec.push(msg.to_string());
+                if !batch_summary_full {
+                    if batch_summary.len() >= batch_summary.capacity() {
+                        batch_summary_full = true;
+                    } else {
+                        let mut msg_summary = msg.to_string();
+                        if msg_summary.len() > MSG_SUMMARY_LIMIT {
+                            msg_summary.truncate(MSG_SUMMARY_LIMIT);
+                            msg_summary += "...]";
+                        }
+                        batch_summary.push(msg_summary);
+                    }
+                }
+            }
+
+            packet_summary = batch_summary;
 
             // Update the range of the buffer to display
             tree_args.start += tree_args.length;
         }
 
-        anyhow::Ok(summary_vec)
+        anyhow::Ok(packet_summary)
     });
 
     match res {
-        Ok(summary_vec) => {
-            let summary = format!(
-                "{} → {} [{}]",
-                (*pinfo).srcport,
-                (*pinfo).destport,
-                summary_vec.join(", ")
-            );
+        Ok(packet_summary) => {
+            let summary = if packet_summary.len() > 1 {
+                // Multiple batches in this packet
+                format!(
+                    "{} → {} {{{}}}",
+                    (*pinfo).srcport,
+                    (*pinfo).destport,
+                    packet_summary.join(", ")
+                )
+            } else {
+                format!(
+                    "{} → {} {}",
+                    (*pinfo).srcport,
+                    (*pinfo).destport,
+                    packet_summary.join(", ")
+                )
+            };
 
             // Update the info column
             epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
