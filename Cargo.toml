@@ -10,6 +10,7 @@ epan-sys = {git="https://github.com/yuanyuyuan/wsdf", branch="PR/replace-git-sub
 zenoh-protocol = {git="https://github.com/eclipse-zenoh/zenoh", branch="master"}
 zenoh-codec = {git="https://github.com/eclipse-zenoh/zenoh", branch="master"}
 zenoh-buffers = {git="https://github.com/eclipse-zenoh/zenoh", branch="master"}
+zenoh-transport = {git="https://github.com/eclipse-zenoh/zenoh", branch="master", features = ["transport_compression"]}
 anyhow = "1.0.75"
 convert_case = "0.6.0"
 env_logger = "0.10.0"
