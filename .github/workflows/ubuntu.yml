@@ -76,3 +76,9 @@ jobs:
         run: |
           sudo apt install -y --allow-change-held-packages tshark
           [ $(tshark -r assets/sample-data.pcap | grep Zenoh | wc -l) -eq 7 ] || return 1
+
+      - name: Clean up
+        if: always()
+        uses: actions-rs/cargo@v1
+        with:
+          command: clean
