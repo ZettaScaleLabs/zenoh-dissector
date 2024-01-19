@@ -117,3 +117,9 @@ jobs:
         run: |
           & 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap
           if((& 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap | Select-String -pattern "zenoh").length -ne 7) {return 1}
+
+      - name: Clean up
+        if: always()
+        uses: actions-rs/cargo@v1
+        with:
+          command: clean

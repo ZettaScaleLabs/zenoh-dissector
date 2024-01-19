@@ -71,3 +71,9 @@ jobs:
       - name: Test the sample data
         run: |
           [ $(tshark -r assets/sample-data.pcap | grep Zenoh | wc -l) -eq 7 ] || return 1
+
+      - name: Clean up
+        if: always()
+        uses: actions-rs/cargo@v1
+        with:
+          command: clean
