@@ -217,7 +217,6 @@ unsafe extern "C" fn dissect_main(
 
                 // TODO: Append the summary of this new message
                 summary_vec.push(msg.to_string());
-
             }
         } else {
             // Basically this branch is for UDP

@@ -31,7 +31,10 @@ fn link_wireshark() -> Result<()> {
 
     // Default wireshark libraray installed on macos
     #[cfg(target_os = "macos")]
-    println!( "cargo:rustc-link-search=native={}", "/Applications/Wireshark.app/Contents/Frameworks");
+    println!(
+        "cargo:rustc-link-search=native={}",
+        "/Applications/Wireshark.app/Contents/Frameworks"
+    );
 
     // Specify the wireshark library directory by the environmental variable
     println!("cargo:rerun-if-env-changed=WIRESHARK_LIB_DIR");
@@ -49,7 +52,7 @@ fn link_wireshark() -> Result<()> {
             let dst = build_wireshark();
             // Default wireshark libraray installed on windows
             // println!( "cargo:rustc-link-search=native={}", "C:\\Program Files\\Wireshark");
-            println!( "cargo:rustc-link-search=native={}", dst.to_string_lossy());
+            println!("cargo:rustc-link-search=native={}", dst.to_string_lossy());
         }
     }
 
@@ -73,7 +76,8 @@ fn generate_bindings() -> Result<()> {
         Err(_) => {
             download_wireshark()?;
 
-            #[cfg(target_os = "windows")] {
+            #[cfg(target_os = "windows")]
+            {
                 env::set_var("WIRESHARK_BASE_DIR", "C:\\Development");
                 env::set_var("PLATFORM", "win64");
             }
@@ -98,14 +102,12 @@ fn generate_bindings() -> Result<()> {
     Ok(())
 }
 
-
 #[cfg(any(feature = "bindgen", target_os = "windows"))]
 fn download_wireshark() -> Result<()> {
-    use xz2::read::XzDecoder;
     use tar::Archive;
+    use xz2::read::XzDecoder;
 
-    let url =
-        format!("https://2.na.dl.wireshark.org/src/wireshark-{WIRESHARK_VERSION}.tar.xz");
+    let url = format!("https://2.na.dl.wireshark.org/src/wireshark-{WIRESHARK_VERSION}.tar.xz");
 
     let response = reqwest::blocking::get(url)?;
     let bytes = response.bytes()?.to_vec();
