@@ -1,20 +1,34 @@
-[package]
-name = "zenoh-dissector"
-version = "0.1.0"
+#
+# Copyright (c) 2023 ZettaScale Technology
+#
+# This program and the accompanying materials are made available under the
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+# which is available at https://www.apache.org/licenses/LICENSE-2.0.
+#
+# SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+#
+# Contributors:
+#   ZettaScale Zenoh Team, <zenoh@zettascale.tech>
+#
+[workspace]
+resolver = "2"
+members = [
+  "zenoh-dissector"
+]
+
+[workspace.package]
+version = "0.11.0-dev" # Zenoh version
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-epan-sys = {git="https://github.com/yuanyuyuan/wsdf", branch="PR/replace-git-submodule"}
-zenoh-protocol = {git="https://github.com/eclipse-zenoh/zenoh", branch="master"}
-zenoh-codec = {git="https://github.com/eclipse-zenoh/zenoh", branch="master"}
-zenoh-buffers = {git="https://github.com/eclipse-zenoh/zenoh", branch="master"}
-anyhow = "1.0.75"
+[workspace.dependencies]
+anyhow = "1.0.80"
 convert_case = "0.6.0"
-env_logger = "0.10.0"
+env_logger = "0.11.3"
+epan-sys = { git="https://github.com/yuanyuyuan/wsdf", branch="PR/replace-git-submodule" }
 log = "0.4.20"
-
-
-[lib]
-crate-type = ["cdylib"]
+zenoh-buffers = { git="https://github.com/eclipse-zenoh/zenoh", branch="master" }
+zenoh-codec = { git="https://github.com/eclipse-zenoh/zenoh", branch="master" }
+zenoh-protocol = { git="https://github.com/eclipse-zenoh/zenoh", branch="master" }

@@ -27,7 +27,7 @@ static plugin_version: [std::ffi::c_char; 6usize] = [48i8, 46i8, 48i8, 46i8, 49i
 static plugin_want_major: std::ffi::c_int = 4;
 #[no_mangle]
 #[used]
-static plugin_want_minor: std::ffi::c_int = 0;
+static plugin_want_minor: std::ffi::c_int = 2;
 
 #[no_mangle]
 #[used]
@@ -139,6 +139,7 @@ unsafe extern "C" fn dissect_main(
     tree: *mut epan_sys::_proto_node,
     _data: *mut std::ffi::c_void,
 ) -> std::ffi::c_int {
+    dbg!(*pinfo);
     // Update the protocol column
     epan_sys::col_set_str(
         (*pinfo).cinfo,
@@ -178,6 +179,7 @@ unsafe extern "C" fn dissect_main(
         let mut summary_vec = vec![];
         if (*pinfo).can_desegment > 0 {
             // Basically this branch is for TCP
+            log::error!("TCP");
 
             while reader.len() >= 2 {
                 // Length of sliced message
@@ -215,9 +217,11 @@ unsafe extern "C" fn dissect_main(
 
                 // TODO: Append the summary of this new message
                 summary_vec.push(msg.to_string());
+
             }
         } else {
             // Basically this branch is for UDP
+            log::error!("UDP");
 
             let n = reader.len();
             assert!(0 < n && n <= MTU, "{}", n);
