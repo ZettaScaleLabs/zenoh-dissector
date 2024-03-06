@@ -5,7 +5,7 @@
 
 
 > :warning: For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/ZettaScaleLabs/zenoh-dissector/tree/v0.7.2-rc).
-> :warning: The plugin currently requires the Wireshark library version 4.0. Support with a more recent version will be provided in the future.
+> :warning: The plugin currently requires the Wireshark library version 4.2.
 
 ## Installation
 
@@ -79,19 +79,19 @@ cargo build --release
 
 - Linux (Ubuntu)
     ```bash
-    mkdir -p ~/.local/lib/wireshark/plugins/4.0/epan
-    cp ./target/release/libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.0/epan/libzenoh_dissector.so
+    mkdir -p ~/.local/lib/wireshark/plugins/4.2/epan
+    cp ./target/release/libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.2/epan/libzenoh_dissector.so
     ```
 
 - macOS
     ```bash
-    mkdir -p ~/.local/lib/wireshark/plugins/4-0/epan
-    cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/4-0/epan/libzenoh_dissector.so
+    mkdir -p ~/.local/lib/wireshark/plugins/4-2/epan
+    cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/4-2/epan/libzenoh_dissector.so
     ```
 
 - Windows
     ```powershell
-    $epan_dir = "$Env:APPDATA\Wireshark\plugins\4.0\epan"
+    $epan_dir = "$Env:APPDATA\Wireshark\plugins\4.2\epan"
     if (-Not (Test-Path $epan_dir)) {
         mkdir -p $epan_dir
     }
