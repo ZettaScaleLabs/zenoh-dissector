@@ -144,7 +144,12 @@ fn download_wireshark(skip_existing: bool) -> Result<()> {
         *WIRESHARK_VERSION
     );
 
-    let response = reqwest::blocking::get(url)?;
+    // Tackle the too-slow downloading problem
+    let response = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(60 * 5))
+        .build()?
+        .get(url)
+        .send()?;
     let bytes = response.bytes()?.to_vec();
     let readable = XzDecoder::new(bytes.as_slice());
     let mut archive = Archive::new(readable);
