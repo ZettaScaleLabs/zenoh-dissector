@@ -7,10 +7,18 @@
 > :warning: For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/ZettaScaleLabs/zenoh-dissector/tree/v0.7.2-rc).
 > :warning: The plugin currently requires the Wireshark library version 4.2.
 
+## Prerequisites
+
+You must have Wireshark installed on your platform. Please refer to the [download page](https://www.wireshark.org/download.html) or follow the
+installation commands below.
+
+
 ## Installation
 
-We recommend directly download and install the [released plugin](https://github.com/ZettaScaleLabs/zenoh-dissector/releases).
+We highly recommend following the instructions in the [releases](https://github.com/ZettaScaleLabs/zenoh-dissector/releases).
 Or you can follow the following instructions to build your own plugin.
+
+## (Optional) Build the zenoh-dissector from source
 
 ### Install dependencies
 
@@ -46,8 +54,7 @@ We need to install Wireshark with its library. Please follow the steps below acc
 
 ### Build the plugin
 
-zenoh-dissector is written in [Rust](https://www.rust-lang.org/).
-The toolchain [Rustup](https://rustup.rs) is needed to build the program.
+zenoh-dissector is written in [Rust](https://www.rust-lang.org/), therefore the toolchain [Rustup](https://rustup.rs) is needed to build the program.
 
 ```bash
 cargo build --release
@@ -97,7 +104,6 @@ cargo build --release
     }
     cp .\target\release\zenoh_dissector.dll $epan_dir
     ```
-
 
 ## Usage
 
