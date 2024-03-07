@@ -121,6 +121,7 @@ fn generate_bindings() -> Result<()> {
     Ok(())
 }
 
+#[cfg(any(target_os = "windows", feature = "bindgen"))]
 fn download_wireshark(skip_existing: bool) -> Result<()> {
     if skip_existing && WIRESHARK_SOURCE_DIR.exists() {
         return Ok(());
@@ -147,6 +148,7 @@ fn download_wireshark(skip_existing: bool) -> Result<()> {
     Ok(())
 }
 
+#[cfg(any(target_os = "windows", feature = "bindgen"))]
 fn build_wireshark() {
     #[cfg(target_os = "windows")]
     {
