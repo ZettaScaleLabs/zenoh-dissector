@@ -42,15 +42,15 @@ fn link_wireshark() -> Result<()> {
         println!("cargo:rustc-link-search=native={}", libws_dir);
     }
 
-    // Default wireshark libraray installed on macos
-    #[cfg(target_os = "macos")]
-    {
-        let macos_wireshark_library = "/Applications/wireshark.app/contents/frameworks";
-        if !PathBuf::from(macos_wireshark_library).exists() {
-            panic!("wireshark library not found at {macos_wireshark_library}");
-        }
-        println!("cargo:rustc-link-search=native={macos_wireshark_library}");
-    }
+    // // Default wireshark libraray installed on macos
+    // #[cfg(target_os = "macos")]
+    // {
+    //     let macos_wireshark_library = "/Applications/wireshark.app/contents/frameworks";
+    //     if !PathBuf::from(macos_wireshark_library).exists() {
+    //         panic!("wireshark library not found at {macos_wireshark_library}");
+    //     }
+    //     println!("cargo:rustc-link-search=native={macos_wireshark_library}");
+    // }
 
     #[cfg(target_os = "windows")]
     {
