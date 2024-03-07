@@ -24,6 +24,7 @@ on:
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
   DEBIAN_FRONTEND: noninteractive
+  WIRESHARK_VERSION: 4.2
 
 jobs:
   check:
@@ -69,12 +70,12 @@ jobs:
 
       - name: Place the plugin
         run: |
-          mkdir -p ~/.local/lib/wireshark/plugins/4.0/epan
-          cp ./target/release/libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.0/epan/libzenoh_dissector.so
+          mkdir -p ~/.local/lib/wireshark/plugins/${{ env.WIRESHARK_VERSION }}/epan
+          cp ./target/release/libzenoh_dissector.so ~/.local/lib/wireshark/plugins/${{ env.WIRESHARK_VERSION }}/epan/libzenoh_dissector.so
 
       - name: Test the sample data
         run: |
-          # sudo apt install -y --allow-change-held-packages tshark
+          sudo apt install -y --allow-change-held-packages tshark
           [ $(tshark -r assets/sample-data.pcap | grep Zenoh | wc -l) -eq 7 ] || return 1
 
       - name: Clean up

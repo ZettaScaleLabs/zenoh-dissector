@@ -23,8 +23,7 @@ on:
 
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-  WIRESHARK_LIB_DIR: ${{ github.workspace }}
-
+  WIRESHARK_VERSION: 4-2
 
 jobs:
   check:
@@ -65,8 +64,8 @@ jobs:
 
       - name: Place the plugin
         run: |
-          mkdir -p ~/.local/lib/wireshark/plugins/4-0/epan
-          cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/4-0/epan/libzenoh_dissector.so
+          mkdir -p ~/.local/lib/wireshark/plugins/${{ env.WIRESHARK_VERSION }}/epan
+          cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/${{ env.WIRESHARK_VERSION }}/epan/libzenoh_dissector.so
 
       - name: Test the sample data
         run: |
