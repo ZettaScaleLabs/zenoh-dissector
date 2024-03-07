@@ -47,8 +47,8 @@ jobs:
 
       - name: Install Wireshark
         run: |
-          # [ -d /Applications/Wireshark.app/Contents/Frameworks ] || brew install --cask wireshark
-          brew install --cask wireshark
+          # WARN: requires a manual installation on our machines due to the sudo issue
+          [ -d /Applications/Wireshark.app/Contents/Frameworks ] || brew install --cask wireshark
           ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
 
       - name: Clippy
