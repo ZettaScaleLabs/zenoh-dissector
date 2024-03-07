@@ -47,9 +47,10 @@ jobs:
             }
           }
 
-      # WARN: Wireshark building seems to fail on Python 3.13
-      - name: Install Python if needed
-        run: try { python -V } catch { gsudo choco install --force --no-progress python --version=3.11 }
+      # # WARN: Wireshark building seems to fail on Python 3.13
+      # # WARN: This doesn't work on our machines
+      # - name: Install Python if needed
+      #   run: try { python -V } catch { gsudo choco install --force --no-progress python --version=3.11 }
 
       - name: Install Rust toolchain
         run: |
