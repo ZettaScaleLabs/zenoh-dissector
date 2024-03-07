@@ -21,6 +21,9 @@ on:
   schedule:
     - cron: "0 6 * * 1-5"
 
+env:
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+  WIRESHARK_VERSION: 4.2
 
 jobs:
   check:
@@ -33,46 +36,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Download wireshark source code
-        run: |
-          mkdir -f C:\Development\wireshark
-          cd C:\Development\wireshark
-          if (-Not (Test-Path wireshark-src.tar.xz)) {
-            Invoke-WebRequest -URI https://1.as.dl.wireshark.org/src/wireshark-4.0.10.tar.xz -OutFile wireshark-src.tar.xz
-          }
-          if (-Not (Test-Path wireshark-src.tar)) {
-            7z e .\wireshark-src.tar.xz
-          }
-          if (-Not (Test-Path src)) {
-            mkdir src
-            tar xf .\wireshark-src.tar --strip-components 1 -C src
-          }
-
-      - name: Install dependencies
-        run: |
-          $installed = (choco list -l -r --id-only) -join " "
-          $install_list = @("xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "wireshark", "7zip")
-          ForEach ($pkg in $install_list.split(" ")) {
-            if (-Not ($installed.contains($pkg))) {
-              gsudo choco install -y --force --no-progress $pkg
-            }
-          }
-
-      # # WARN: Wireshark building seems to fail on Python 3.13
-      # - name: Install Python if needed
-      #   run: try { python -V } catch { gsudo choco install --force --no-progress python --version=3.11 }
-
-      - name: Build Wireshark from source and install the lib to C:\\Development\wireshark\lib
-        run: |
-          if (-Not (Test-Path C:\Development\wireshark\lib\wireshark.lib)) {
-            $Env:PLATFORM = "win64"
-            $Env:WIRESHARK_BASE_DIR = "C:\Development"
-            cd C:\Development\wireshark
-            if (Test-Path build) { Remove-Item build -Recurse -Force }
-            & "cmake" "C:\Development\wireshark\src" "-G" "Visual Studio 17 2022" "-Thost=x64" "-Ax64" "-DBUILD_androiddump=OFF" "-DBUILD_capinfos=OFF" "-DBUILD_captype=OFF" "-DBUILD_ciscodump=OFF" "-DBUILD_corbaidl2wrs=OFF" "-DBUILD_dcerpcidl2wrs=OFF" "-DBUILD_dftest=OFF" "-DBUILD_dpauxmon=OFF" "-DBUILD_dumpcap=OFF" "-DBUILD_editcap=OFF" "-DBUILD_etwdump=OFF" "-DBUILD_logray=OFF" "-DBUILD_mergecap=OFF" "-DBUILD_randpkt=OFF" "-DBUILD_randpktdump=OFF" "-DBUILD_rawshark=OFF" "-DBUILD_reordercap=OFF" "-DBUILD_sshdump=OFF" "-DBUILD_text2pcap=OFF" "-DBUILD_tfshark=OFF" "-DBUILD_tshark=OFF" "-DBUILD_wifidump=OFF" "-DBUILD_wireshark=OFF" "-DBUILD_xxx2deb=OFF" "-DENABLE_KERBEROS=OFF" "-DENABLE_SBC=OFF" "-DENABLE_SPANDSP=OFF" "-DENABLE_BCG729=OFF" "-DENABLE_AMRNB=OFF" "-DENABLE_ILBC=OFF" "-DENABLE_LIBXML2=OFF" "-DENABLE_OPUS=OFF" "-DENABLE_SINSP=OFF" "-DCMAKE_INSTALL_PREFIX=C:\\Development\wireshark\lib" "-DCMAKE_C_FLAGS= -nologo -MD -Brepro" "-DCMAKE_C_FLAGS_DEBUG= -nologo -MD -Brepro" "-DCMAKE_CXX_FLAGS= -nologo -MD -Brepro" "-DCMAKE_CXX_FLAGS_DEBUG= -nologo -MD -Brepro" "-DCMAKE_ASM_FLAGS= -nologo -MD -Brepro" "-DCMAKE_ASM_FLAGS_DEBUG= -nologo -MD -Brepro" "-DCMAKE_BUILD_TYPE=Release" -B build
-            cmake --build build --target install
-          }
 
       - name: Install Rust toolchain
         run: |
@@ -92,22 +55,16 @@ jobs:
         with:
           command: clippy
           args: --all-targets -- -D warnings
-        env:
-          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-          WIRESHARK_LIB_DIR: C:\\Development\wireshark\lib
 
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release
-        env:
-          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-          WIRESHARK_LIB_DIR: C:\\Development\wireshark\lib
 
       - name: Place the plugin
         run: |
-          $epan_dir = "$Env:APPDATA\Wireshark\plugins\4.0\epan"
+          $epan_dir = "$Env:APPDATA\Wireshark\plugins\${{ env.WIRESHARK_VERSION }}\epan"
           if (-Not (Test-Path $epan_dir)) {
             mkdir -p $epan_dir
           }
