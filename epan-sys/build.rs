@@ -46,7 +46,7 @@ fn link_wireshark() -> Result<()> {
     #[cfg(target_os = "macos")]
     {
         let macos_wireshark_library = "/Applications/wireshark.app/contents/frameworks";
-        if !pathbuf::from(macos_wireshark_library).exists() {
+        if !PathBuf::from(macos_wireshark_library).exists() {
             panic!("wireshark library not found at {macos_wireshark_library}");
         }
         println!("cargo:rustc-link-search=native={macos_wireshark_library}");
