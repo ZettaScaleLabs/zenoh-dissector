@@ -27,7 +27,7 @@ static plugin_version: [std::ffi::c_char; 6usize] = [48i8, 46i8, 48i8, 46i8, 49i
 static plugin_want_major: std::ffi::c_int = 4;
 #[no_mangle]
 #[used]
-static plugin_want_minor: std::ffi::c_int = 0;
+static plugin_want_minor: std::ffi::c_int = 2;
 
 #[no_mangle]
 #[used]
