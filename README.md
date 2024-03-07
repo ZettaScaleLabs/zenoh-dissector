@@ -9,7 +9,7 @@
 
 ## Prerequisites
 
-You must have Wireshark installed on your platform. Please refer to the [download page](https://www.wireshark.org/download.html) or follow the
+You must have Wireshark 4.2 installed on your platform. Please refer to the [download page](https://www.wireshark.org/download.html) or follow the
 installation commands below.
 
 
