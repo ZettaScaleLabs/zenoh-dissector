@@ -42,7 +42,6 @@ fn link_wireshark() -> Result<()> {
         println!("cargo:rustc-link-search=native={}", libws_dir);
     }
 
-
     // Default wireshark libraray installed on macos
     #[cfg(target_os = "macos")]
     {
