@@ -61,7 +61,7 @@ fn link_wireshark() -> Result<()> {
         }
         println!(
             "cargo:rustc-link-search=native={}",
-            WIRESHARK_BUILD_DIR.join("wireshark").to_string_lossy()
+            WIRESHARK_SOURCE_DIR.to_string_lossy()
         );
     }
 
@@ -127,6 +127,10 @@ fn download_wireshark(skip_existing: bool) -> Result<()> {
         return Ok(());
     }
 
+    if WIRESHARK_SOURCE_DIR.exists() {
+        std::fs::remove_dir_all(&*WIRESHARK_SOURCE_DIR)?;
+    }
+
     use tar::Archive;
     use xz2::read::XzDecoder;
 
@@ -140,13 +144,7 @@ fn download_wireshark(skip_existing: bool) -> Result<()> {
     let readable = XzDecoder::new(bytes.as_slice());
     let mut archive = Archive::new(readable);
     archive.unpack(".")?;
-    if WIRESHARK_SOURCE_DIR.exists() {
-        std::fs::remove_dir_all(&*WIRESHARK_SOURCE_DIR)?;
-    }
-    std::fs::rename(
-        format!("wireshark-{}", *WIRESHARK_VERSION),
-        &*WIRESHARK_SOURCE_DIR,
-    )?;
+
     Ok(())
 }
 
