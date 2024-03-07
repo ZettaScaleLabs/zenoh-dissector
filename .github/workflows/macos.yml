@@ -24,7 +24,7 @@ on:
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
   WIRESHARK_VERSION: 4-2
-  # We will link a /Applications/Wireshark.app/Contents/Frameworks/libwireshark.*.dylib
+  # We will link the /Applications/Wireshark.app/Contents/Frameworks/libwireshark.*.dylib
   # to libwireshark.dylib under the project folder to prevent the privilege issue
   WIRESHARK_LIB_DIR: ${{ github.workspace }}
 

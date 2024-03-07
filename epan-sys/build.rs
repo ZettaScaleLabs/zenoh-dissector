@@ -42,6 +42,10 @@ fn link_wireshark() -> Result<()> {
         println!("cargo:rustc-link-search=native={}", libws_dir);
     }
 
+    // WARN: Eventually we don't use this directly due to the privilege issue.
+    // Instead, we will link the /Applications/Wireshark.app/Contents/Frameworks/libwireshark.*.dylib
+    // to libwireshark.dylib under the project folder and configure it via WIRESHARK_LIB_DIR
+    //
     // // Default wireshark libraray installed on macos
     // #[cfg(target_os = "macos")]
     // {
