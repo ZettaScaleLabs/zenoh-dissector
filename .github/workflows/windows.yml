@@ -24,6 +24,8 @@ on:
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
   WIRESHARK_VERSION: 4.2
+  # Use the pre-built wireshark library to speed up
+  WIRESHARK_LIB_DIR: C:\\Users\zenoh\source\repos\zenoh-dissector\epan-sys\wireshark-4.2.3
 
 jobs:
   check:
@@ -62,8 +64,6 @@ jobs:
         with:
           command: fmt
           args: -- --check
-        env:
-          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
       - name: Clippy
         uses: actions-rs/cargo@v1
