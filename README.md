@@ -5,6 +5,7 @@
 
 
 > :warning: For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/ZettaScaleLabs/zenoh-dissector/tree/v0.7.2-rc).
+>
 > :warning: The plugin currently requires the Wireshark library version 4.2.
 
 ## Prerequisites
