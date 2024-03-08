@@ -112,8 +112,8 @@ jobs:
           cd -
 
           echo "Record zenoh version"
-          export PKG_VER=$(cargo pkgid | cut -d "#" -f2)
           command -v jq &> /dev/null || sudo apt install jq -y
+          export PKG_VER=$(cargo metadata | jq -r '.packages[] | select(.name == "zenoh-dissector") | .version')
           export ZENOH_VER=$(cargo metadata | jq -r '.packages[] | select(.name == "zenoh-protocol") | .version')
           envsubst < ${GITHUB_WORKSPACE}/.github/workflows/release-note.md > release-note.md
 
