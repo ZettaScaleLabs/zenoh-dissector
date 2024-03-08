@@ -40,24 +40,24 @@ fn link_wireshark() -> Result<()> {
     println!("cargo:rerun-if-env-changed=WIRESHARK_LIB_DIR");
     if let Ok(libws_dir) = env::var("WIRESHARK_LIB_DIR") {
         println!("cargo:rustc-link-search=native={}", libws_dir);
-    }
+    } else {
+        // WARN: We can't build from source with cmake if WIRESHARK_LIB_DIR is set. That's why we
+        // need to separate these two branches.
 
-    // WARN: Eventually we don't use this directly due to the privilege issue.
-    // Instead, we will link the /Applications/Wireshark.app/Contents/Frameworks/libwireshark.*.dylib
-    // to libwireshark.dylib under the project folder and configure it via WIRESHARK_LIB_DIR
-    //
-    // // Default wireshark libraray installed on macos
-    // #[cfg(target_os = "macos")]
-    // {
-    //     let macos_wireshark_library = "/Applications/wireshark.app/contents/frameworks";
-    //     if !PathBuf::from(macos_wireshark_library).exists() {
-    //         panic!("wireshark library not found at {macos_wireshark_library}");
-    //     }
-    //     println!("cargo:rustc-link-search=native={macos_wireshark_library}");
-    // }
+        // WARN: eventually we don't use this directly due to the privilege issue.
+        // instead, we will link the /applications/wireshark.app/contents/frameworks/libwireshark.*.dylib
+        // to libwireshark.dylib under the project folder and configure it via WIRESHARK_LIB_DIR
+        //
+        // // Default wireshark libraray installed on macos
+        // #[cfg(target_os = "macos")]
+        // {
+        //     let macos_wireshark_library = "/Applications/wireshark.app/contents/frameworks";
+        //     if !PathBuf::from(macos_wireshark_library).exists() {
+        //         panic!("wireshark library not found at {macos_wireshark_library}");
+        //     }
+        //     println!("cargo:rustc-link-search=native={macos_wireshark_library}");
+        // }
 
-    #[cfg(target_os = "windows")]
-    {
         if !WIRESHARK_BUILD_DIR.exists() {
             download_wireshark(true)?;
             build_wireshark();
@@ -125,7 +125,6 @@ fn generate_bindings() -> Result<()> {
     Ok(())
 }
 
-#[cfg(any(target_os = "windows", feature = "bindgen"))]
 fn download_wireshark(skip_existing: bool) -> Result<()> {
     if skip_existing && WIRESHARK_SOURCE_DIR.exists() {
         return Ok(());
@@ -158,7 +157,6 @@ fn download_wireshark(skip_existing: bool) -> Result<()> {
     Ok(())
 }
 
-#[cfg(any(target_os = "windows", feature = "bindgen"))]
 fn build_wireshark() {
     #[cfg(target_os = "windows")]
     {
