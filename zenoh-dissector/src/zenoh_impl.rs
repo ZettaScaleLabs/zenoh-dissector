@@ -183,7 +183,7 @@ mod impl_for_transport {
 
 mod impl_for_zenoh {
     use zenoh_protocol::zenoh::{
-        err::Err, query::Query, reply::Reply, Ack, Del, Pull, PushBody, Put, RequestBody,
+        err::Err, query::Query, reply::Reply, Del, Pull, PushBody, Put, RequestBody,
         ResponseBody,
     };
 
@@ -213,8 +213,8 @@ mod impl_for_zenoh {
     impl_for_struct! {
         struct Query {
             parameters: String,
+            consolidation: Consolidation,
             ext_sinfo: Option<SourceInfoType>,
-            ext_consolidation: Consolidation,
             ext_body: Option<QueryBodyType>,
             ext_unknown: Vec<ZExtUnknown>,
         }
@@ -230,12 +230,9 @@ mod impl_for_zenoh {
     // Reply
     impl_for_struct! {
         struct Reply {
-            timestamp: Option<Timestamp>,
-            encoding: Encoding,
-            ext_sinfo: Option<SourceInfoType>,
-            ext_consolidation: ConsolidationType,
+            consolidation: Consolidation,
             ext_unknown: Vec<ZExtUnknown>,
-            payload: ZBuf,
+            payload: PushBody,
         }
     }
 
@@ -247,15 +244,6 @@ mod impl_for_zenoh {
             timestamp: Option<Timestamp>,
             ext_sinfo: Option<SourceInfoType>,
             ext_body: Option<ErrBodyType>,
-            ext_unknown: Vec<ZExtUnknown>,
-        }
-    }
-
-    // Ack
-    impl_for_struct! {
-        struct Ack {
-            timestamp: Option<Timestamp>,
-            ext_sinfo: Option<SourceInfoType>,
             ext_unknown: Vec<ZExtUnknown>,
         }
     }
@@ -283,7 +271,6 @@ mod impl_for_zenoh {
         enum ResponseBody {
             Reply(Reply),
             Err(Err),
-            Ack(Ack),
             Put(Put),
         }
     }

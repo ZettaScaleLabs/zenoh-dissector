@@ -1732,7 +1732,7 @@ dependencies = [
 [[package]]
 name = "zenoh-buffers"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#7c1e0c7fb1201a05bbda9fa32fe41ea3f877a4ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#77ab6764f48560ed47348c86a908aed5fa2900c0"
 dependencies = [
  "zenoh-collections",
 ]
@@ -1740,7 +1740,7 @@ dependencies = [
 [[package]]
 name = "zenoh-codec"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#7c1e0c7fb1201a05bbda9fa32fe41ea3f877a4ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#77ab6764f48560ed47348c86a908aed5fa2900c0"
 dependencies = [
  "log",
  "serde",
@@ -1752,7 +1752,7 @@ dependencies = [
 [[package]]
 name = "zenoh-collections"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#7c1e0c7fb1201a05bbda9fa32fe41ea3f877a4ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#77ab6764f48560ed47348c86a908aed5fa2900c0"
 
 [[package]]
 name = "zenoh-dissector"
@@ -1771,7 +1771,7 @@ dependencies = [
 [[package]]
 name = "zenoh-keyexpr"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#7c1e0c7fb1201a05bbda9fa32fe41ea3f877a4ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#77ab6764f48560ed47348c86a908aed5fa2900c0"
 dependencies = [
  "hashbrown 0.14.0",
  "keyed-set",
@@ -1785,7 +1785,7 @@ dependencies = [
 [[package]]
 name = "zenoh-protocol"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#7c1e0c7fb1201a05bbda9fa32fe41ea3f877a4ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#77ab6764f48560ed47348c86a908aed5fa2900c0"
 dependencies = [
  "const_format",
  "rand",
@@ -1799,7 +1799,7 @@ dependencies = [
 [[package]]
 name = "zenoh-result"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#7c1e0c7fb1201a05bbda9fa32fe41ea3f877a4ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#77ab6764f48560ed47348c86a908aed5fa2900c0"
 dependencies = [
  "anyhow",
 ]
