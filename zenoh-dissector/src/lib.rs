@@ -19,7 +19,6 @@ use zenoh_impl::ZenohProtocol;
 
 use zenoh_protocol::transport::{BatchSize, TransportMessage};
 
-
 #[no_mangle]
 #[used]
 static plugin_version: [std::ffi::c_char; 6usize] = [48, 46, 50, 46, 48, 0]; // "0.2.0\0"
