@@ -104,7 +104,7 @@ jobs:
       - name: Generate the release note
         run: |
           echo "Compute sha256sum"
-          mkdir zip_files
+          mkdir -p zip_files
           cp ARTIFACTS/*/*.zip zip_files
           cd zip_files
           export SHA256SUM=$(sha256sum *.zip)
