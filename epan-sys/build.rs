@@ -138,10 +138,11 @@ fn download_wireshark(skip_existing: bool) -> Result<()> {
     use xz2::read::XzDecoder;
 
     let url = format!(
-        // "https://2.na.dl.wireshark.org/src/wireshark-{}.tar.xz",
-        "https://1.eu.dl.wireshark.org/src/wireshark-{}.tar.xz",
+        // "https://2.na.dl.wireshark.org/src/all-versions/wireshark-{}.tar.xz",
+        "https://1.eu.dl.wireshark.org/src/all-versions/wireshark-{}.tar.xz",
         *WIRESHARK_VERSION
     );
+    eprintln!("Downloading {url}");
 
     // Tackle the too-slow downloading problem
     let response = reqwest::blocking::Client::builder()
