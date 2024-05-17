@@ -49,7 +49,6 @@ mod impl_for_transport {
             batch_size: BatchSize,
             cookie: ZSlice,
             ext_qos: Option<QoS>,
-            ext_shm: Option<Shm>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLink>,
         }
@@ -64,7 +63,6 @@ mod impl_for_transport {
             resolution: Resolution,
             batch_size: BatchSize,
             ext_qos: Option<QoS>,
-            ext_shm: Option<Shm>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLink>,
         }
@@ -77,7 +75,6 @@ mod impl_for_transport {
             initial_sn: TransportSn,
             cookie: ZSlice,
             ext_qos: Option<QoS>,
-            ext_shm: Option<Shm>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLinkSyn>,
         }
@@ -89,7 +86,6 @@ mod impl_for_transport {
             lease: Duration,
             initial_sn: TransportSn,
             ext_qos: Option<QoS>,
-            ext_shm: Option<Shm>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLinkAck>,
         }
@@ -183,8 +179,7 @@ mod impl_for_transport {
 
 mod impl_for_zenoh {
     use zenoh_protocol::zenoh::{
-        err::Err, query::Query, reply::Reply, Del, Pull, PushBody, Put, RequestBody,
-        ResponseBody,
+        err::Err, query::Query, reply::Reply, Del, PushBody, Put, RequestBody, ResponseBody,
     };
 
     use crate::zenoh_impl::*;
@@ -220,13 +215,6 @@ mod impl_for_zenoh {
         }
     }
 
-    // Pull
-    impl_for_struct! {
-        struct Pull {
-            ext_unknown: Vec<ZExtUnknown>,
-        }
-    }
-
     // Reply
     impl_for_struct! {
         struct Reply {
@@ -239,11 +227,7 @@ mod impl_for_zenoh {
     // Err
     impl_for_struct! {
         struct Err {
-            code: u16,
-            is_infrastructure: bool,
-            timestamp: Option<Timestamp>,
             ext_sinfo: Option<SourceInfoType>,
-            ext_body: Option<ErrBodyType>,
             ext_unknown: Vec<ZExtUnknown>,
         }
     }
@@ -252,9 +236,6 @@ mod impl_for_zenoh {
     impl_for_enum! {
         enum RequestBody {
             Query(Query),
-            Put(Put),
-            Del(Del),
-            Pull(Pull),
         }
     }
 
@@ -271,7 +252,6 @@ mod impl_for_zenoh {
         enum ResponseBody {
             Reply(Reply),
             Err(Err),
-            Put(Put),
         }
     }
 }
@@ -280,10 +260,10 @@ mod impl_for_network {
 
     use zenoh_protocol::{
         network::{
-            declare::FinalInterest, Declare, DeclareBody, DeclareInterest, DeclareKeyExpr,
-            DeclareQueryable, DeclareSubscriber, DeclareToken, NetworkBody, NetworkMessage, Oam,
-            Push, Request, Response, ResponseFinal, UndeclareInterest, UndeclareKeyExpr,
-            UndeclareQueryable, UndeclareSubscriber, UndeclareToken,
+            Declare, DeclareBody, DeclareFinal, DeclareKeyExpr, DeclareQueryable,
+            DeclareSubscriber, DeclareToken, Interest, NetworkBody, NetworkMessage, Oam, Push,
+            Request, Response, ResponseFinal, UndeclareKeyExpr, UndeclareQueryable,
+            UndeclareSubscriber, UndeclareToken,
         },
         zenoh::{PushBody, RequestBody, ResponseBody},
     };
@@ -340,12 +320,24 @@ mod impl_for_network {
         }
     }
 
+    // Interest
+    impl_for_struct! {
+        struct Interest {
+            id: InterestId,
+            mode: InterestMode,
+            options: InterestOptions,
+            wire_expr: Option<WireExpr<'static>>,
+            ext_qos: ext::QoSType,
+            ext_tstamp: Option<ext::TimestampType>,
+            ext_nodeid: ext::NodeIdType,
+        }
+    }
+
     mod impl_for_declare {
 
         use zenoh_protocol::network::{
-            declare::FinalInterest, DeclareInterest, DeclareKeyExpr, DeclareQueryable,
-            DeclareSubscriber, DeclareToken, UndeclareInterest, UndeclareKeyExpr,
-            UndeclareQueryable, UndeclareSubscriber, UndeclareToken,
+            DeclareFinal, DeclareKeyExpr, DeclareQueryable, DeclareSubscriber, DeclareToken,
+            UndeclareKeyExpr, UndeclareQueryable, UndeclareSubscriber, UndeclareToken,
         };
 
         use crate::zenoh_impl::*;
@@ -415,27 +407,9 @@ mod impl_for_network {
             }
         }
 
-        // DeclareInterest
+        // DeclareFinal
         impl_for_struct! {
-            struct DeclareInterest {
-                id: InterestId,
-                wire_expr: WireExpr<'static>,
-                interest: Interest,
-            }
-        }
-
-        // FinalInterest
-        impl_for_struct! {
-            struct FinalInterest {
-                id: InterestId,
-            }
-        }
-
-        // UndeclareInterest
-        impl_for_struct! {
-            struct UndeclareInterest {
-                id: InterestId,
-                ext_wire_expr: WireExprType,
+            struct DeclareFinal {
             }
         }
     }
@@ -451,15 +425,14 @@ mod impl_for_network {
             UndeclareQueryable(UndeclareQueryable),
             DeclareToken(DeclareToken),
             UndeclareToken(UndeclareToken),
-            DeclareInterest(DeclareInterest),
-            FinalInterest(FinalInterest),
-            UndeclareInterest(UndeclareInterest),
+            DeclareFinal(DeclareFinal),
         }
     }
 
     // Declare
     impl_for_struct! {
         struct Declare {
+            interest_id: Option<super::interest::InterestId>,
             ext_qos: QoSType,
             ext_tstamp: Option<TimestampType>,
             ext_nodeid: NodeIdType,
@@ -485,6 +458,7 @@ mod impl_for_network {
             Request(Request),
             Response(Response),
             ResponseFinal(ResponseFinal),
+            Interest(Interest),
             Declare(Declare),
             OAM(Oam),
         }
