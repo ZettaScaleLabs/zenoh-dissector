@@ -19,9 +19,12 @@ use zenoh_impl::ZenohProtocol;
 
 use zenoh_protocol::transport::{BatchSize, TransportMessage};
 
+// Pacakge version: "0.2.0\0"
 #[no_mangle]
 #[used]
-static plugin_version: [std::ffi::c_char; 6usize] = [48, 46, 50, 46, 48, 0]; // "0.2.0\0"
+static plugin_version: [std::ffi::c_char; 6usize] = [48, 46, 50, 46, 48, 0];
+
+// Wireshark version: 4.2
 #[no_mangle]
 #[used]
 static plugin_want_major: std::ffi::c_int = 4;
