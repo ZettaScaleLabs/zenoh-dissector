@@ -33,3 +33,4 @@ log = "0.4.20"
 zenoh-buffers = { git="https://github.com/eclipse-zenoh/zenoh" }
 zenoh-codec = { git="https://github.com/eclipse-zenoh/zenoh" }
 zenoh-protocol = { git="https://github.com/eclipse-zenoh/zenoh" }
+zenoh-transport = { git="https://github.com/eclipse-zenoh/zenoh", features = ["transport_compression"] }
