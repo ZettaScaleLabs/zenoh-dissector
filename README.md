@@ -4,9 +4,10 @@
 [Zenoh](http://zenoh.io/) protocol dissector for Wireshark.
 
 
-> :warning: For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/ZettaScaleLabs/zenoh-dissector/tree/v0.7.2-rc).
+> [!WARNING]
+> For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/ZettaScaleLabs/zenoh-dissector/tree/v0.7.2-rc).
 >
-> :warning: The plugin currently requires the Wireshark library version 4.2.
+> The plugin currently requires the Wireshark library version 4.2.
 
 ## Prerequisites
 
@@ -61,6 +62,7 @@ zenoh-dissector is written in [Rust](https://www.rust-lang.org/), therefore the 
 cargo build --release
 ```
 
+> [!NOTE]
 > (Optional) Choose your custom Wireshark library
 > In case you want to build your Wireshark from source and link to this library while building zenoh-dissector.
 > We also support this way via setting enviromental variable. Note that users need to ensure this library can be found
@@ -148,6 +150,18 @@ Example outpout
 Take the pub/sub as a example. One can check [here](https://github.com/eclipse-zenoh/zenoh#how-to-build-it) for the building instructions.
 
 ![demo-pubsub](./assets/demo-pubsub.png)
+
+### Preferences
+
+One can  change the setting either via Edit > Preferences > Protocols > Zenoh or by a mouse right click > Protocol Preferneces > ZenohProtocols on any packet of zenoh protocol.
+
+We currently support
+
+- TCP/UDP Port selection.
+- (Experimental) Message decompression.
+  > [!WARNING]
+  > If you saw a message like "Failed to decode possibly due to the experimental compression preference.",
+  those messages might not be compressed, please disable the compression preference to properly decode them.
 
 ## License
 
