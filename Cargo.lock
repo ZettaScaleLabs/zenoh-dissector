@@ -479,15 +479,6 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.13.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
-dependencies = [
- "ahash",
-]
-
-[[package]]
-name = "hashbrown"
 version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
@@ -599,7 +590,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "168fb715dda47215e360912c096649d23d58bf392ac62f73919e831745e40f26"
 dependencies = [
  "equivalent",
- "hashbrown 0.14.5",
+ "hashbrown",
 ]
 
 [[package]]
@@ -640,11 +631,11 @@ dependencies = [
 
 [[package]]
 name = "keyed-set"
-version = "0.4.5"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b79e110283e09081809ca488cf3a9709270c6d4d4c4a32674c39cc438366615a"
+checksum = "0a3ec39d2dc17953a1540d63906a112088f79b2e46833b4ed65bc9de3904ae34"
 dependencies = [
- "hashbrown 0.13.2",
+ "hashbrown",
 ]
 
 [[package]]
@@ -1343,9 +1334,9 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "uhlc"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99b6df3f3e948b40e20c38a6d1fd6d8f91b3573922fc164e068ad3331560487e"
+checksum = "79ac3c37bd9506595768f0387bd39d644525728b4a1d783218acabfb56356db7"
 dependencies = [
  "humantime",
  "lazy_static",
@@ -1692,7 +1683,7 @@ dependencies = [
 [[package]]
 name = "zenoh-buffers"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#1015a503c5fc9fe05a2a64620c3f8efb244aef2f"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=dev/1.0.0#f394867423cb03e9fa423e6ebb63e3ad0e48f4a1"
 dependencies = [
  "zenoh-collections",
 ]
@@ -1700,7 +1691,7 @@ dependencies = [
 [[package]]
 name = "zenoh-codec"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#1015a503c5fc9fe05a2a64620c3f8efb244aef2f"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=dev/1.0.0#f394867423cb03e9fa423e6ebb63e3ad0e48f4a1"
 dependencies = [
  "serde",
  "tracing",
@@ -1712,7 +1703,7 @@ dependencies = [
 [[package]]
 name = "zenoh-collections"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#1015a503c5fc9fe05a2a64620c3f8efb244aef2f"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=dev/1.0.0#f394867423cb03e9fa423e6ebb63e3ad0e48f4a1"
 
 [[package]]
 name = "zenoh-dissector"
@@ -1731,9 +1722,9 @@ dependencies = [
 [[package]]
 name = "zenoh-keyexpr"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#1015a503c5fc9fe05a2a64620c3f8efb244aef2f"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=dev/1.0.0#f394867423cb03e9fa423e6ebb63e3ad0e48f4a1"
 dependencies = [
- "hashbrown 0.14.5",
+ "hashbrown",
  "keyed-set",
  "rand",
  "schemars",
@@ -1745,7 +1736,7 @@ dependencies = [
 [[package]]
 name = "zenoh-protocol"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#1015a503c5fc9fe05a2a64620c3f8efb244aef2f"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=dev/1.0.0#f394867423cb03e9fa423e6ebb63e3ad0e48f4a1"
 dependencies = [
  "const_format",
  "rand",
@@ -1760,7 +1751,7 @@ dependencies = [
 [[package]]
 name = "zenoh-result"
 version = "0.11.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh?branch=protocol_changes#1015a503c5fc9fe05a2a64620c3f8efb244aef2f"
+source = "git+https://github.com/eclipse-zenoh/zenoh?branch=dev/1.0.0#f394867423cb03e9fa423e6ebb63e3ad0e48f4a1"
 dependencies = [
  "anyhow",
 ]
