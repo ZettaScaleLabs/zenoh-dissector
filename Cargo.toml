@@ -25,12 +25,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-anyhow = "1.0.80"
+anyhow = "1.0.88"
 convert_case = "0.6.0"
-env_logger = "0.11.3"
+env_logger = "0.11.5"
 epan-sys = { path = "epan-sys"}
-log = "0.4.20"
-zenoh-buffers = { git="https://github.com/eclipse-zenoh/zenoh" }
-zenoh-codec = { git="https://github.com/eclipse-zenoh/zenoh" }
-zenoh-protocol = { git="https://github.com/eclipse-zenoh/zenoh" }
-zenoh-transport = { git="https://github.com/eclipse-zenoh/zenoh", features = ["transport_compression"] }
+log = "0.4.22"
+zenoh-buffers = "0.11.0-rc"
+zenoh-codec = "0.11.0-rc"
+zenoh-protocol = "0.11.0-rc"
+zenoh-transport = { version="0.11.0-rc", features = ["transport_compression"] }
