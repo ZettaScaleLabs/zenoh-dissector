@@ -75,7 +75,7 @@ jobs:
 
       - name: Test the sample data
         run: |
-          sudo apt install -y --allow-change-held-packages tshark
+          sudo apt install -y --allow-downgrades --allow-remove-essential --allow-change-held-packages tshark
           [ $(tshark -r assets/sample-data.pcap | grep Zenoh | wc -l) -eq 7 ] || return 1
 
       - name: Clean up
