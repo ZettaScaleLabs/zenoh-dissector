@@ -36,10 +36,6 @@ jobs:
       matrix:
         os:
           - windows-10
-
-          # Disable Win11 since
-          # 1. The user name issue zenog -> zenoh
-          # 2. Fail to build from source with Rust
           - windows-11
 
     steps:
@@ -48,22 +44,18 @@ jobs:
       - name: Install dependencies
         run: |
           $installed = (choco list -l -r --id-only) -join " "
-          $install_list = @("xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "wireshark", "7zip")
+          $install_list = @("xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "7zip")
           ForEach ($pkg in $install_list.split(" ")) {
             if (-Not ($installed.contains($pkg))) {
               gsudo choco install -y --force --no-progress $pkg
             }
           }
-          # WARN: Force update wireshark
-          gsudo choco install -y --force --no-progress wireshark --version 4.2.0
+          gsudo choco install -y --no-progress wireshark --version 4.2.0
 
       # # WARN: Wireshark building seems to fail on Python 3.13
       # # WARN: Use python"3" according to https://stackoverflow.com/a/74408229
       # - name: Install Python if needed
       #   run: try { python -V } catch { gsudo choco install --force --no-progress python3 --version=3.11 }
-
-      - name: Setup rust-cache
-        uses: Swatinem/rust-cache@v2
 
       - name: Install Rust toolchain
         run: |
