@@ -24,7 +24,7 @@ on:
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
   DEBIAN_FRONTEND: noninteractive
-  WIRESHARK_VERSION: 4.2
+  WIRESHARK_VERSION: 4.4
 
 jobs:
   check:

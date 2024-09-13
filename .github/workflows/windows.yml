@@ -23,9 +23,9 @@ on:
 
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-  WIRESHARK_VERSION: 4.2
+  WIRESHARK_VERSION: 4.4
   # Use the pre-built wireshark library to speed up
-  WIRESHARK_LIB_DIR: C:\Development\wireshark-4.2.3
+  WIRESHARK_LIB_DIR: C:\Development\wireshark-4.4.0
 
 jobs:
   check:
