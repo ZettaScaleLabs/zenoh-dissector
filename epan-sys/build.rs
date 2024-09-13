@@ -7,7 +7,7 @@ use std::env;
 use std::path::PathBuf;
 
 lazy_static! {
-    static ref WIRESHARK_VERSION: String = "4.2.3".to_string();
+    static ref WIRESHARK_VERSION: String = "4.4.0".to_string();
     static ref WIRESHARK_SOURCE_DIR: PathBuf = PathBuf::from(format!(
         "{}/wireshark-{}",
         env::var("CARGO_MANIFEST_DIR").unwrap(),
@@ -103,7 +103,10 @@ fn generate_bindings() -> Result<()> {
             #[cfg(target_os = "windows")]
             env::set_var(
                 "PKG_CONFIG_PATH",
-                "C:\\Development\\wireshark-x64-libs-4.2\\vcpkg-export-20231017-1-x64-windows-ws\\installed\\x64-windows\\lib\\pkgconfig",
+                // // For 4.2
+                // "C:\\Development\\wireshark-x64-libs-4.2\\vcpkg-export-20231017-1-x64-windows-ws\\installed\\x64-windows\\lib\\pkgconfig",
+                // For 4.4
+                "C:\\Development\\wireshark-x64-libs-4.4\\vcpkg-export-20240524-1-x64-windows-ws\\installed\\x64-windows\\lib\\pkgconfig",
             );
 
             // header files for glib-2.0

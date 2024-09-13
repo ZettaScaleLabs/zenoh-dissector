@@ -9,14 +9,15 @@ keywords = ["wireshark", "ffi"]
 categories = ["external-ffi-bindings"]
 
 [build-dependencies]
-pkg-config = "0.3"
-cmake = "0.1"
+pkg-config = "0.3.30"
+cmake = "0.1.51"
+# Lock the bindgen version to below 0.70 to prevent the unstable feature warning with Rust toolchain 1.75.0
 bindgen = { version = "0.69.4", optional = true }
-reqwest = { version = "0.11.24", features = ["blocking"] }
+reqwest = { version = "0.12.7", features = ["blocking"] }
 anyhow = { workspace = true }
-tar = "0.4.40"
+tar = "0.4.41"
 xz2 = "0.1.7"
-lazy_static = "1.4.0"
+lazy_static = "1.5.0"
 
 # Enabling this feature causes us to generate the bindings at build time instead
 # of using the pre-generated bindings.rs file.
