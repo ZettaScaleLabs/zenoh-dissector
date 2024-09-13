@@ -24,13 +24,13 @@ use zenoh_transport::common::batch::Decode;
 #[used]
 static plugin_version: [std::ffi::c_char; 6usize] = [48, 46, 50, 46, 48, 0];
 
-// Wireshark version: 4.2
+// Wireshark version: 4.4
 #[no_mangle]
 #[used]
 static plugin_want_major: std::ffi::c_int = 4;
 #[no_mangle]
 #[used]
-static plugin_want_minor: std::ffi::c_int = 2;
+static plugin_want_minor: std::ffi::c_int = 4;
 
 // Max number of summary of batch in one packet
 static MAX_PACKET_SUMMARY: usize = 5;
@@ -54,7 +54,7 @@ thread_local! {
 }
 
 // Global variables for interacting wtih wireshark preference
-static mut IS_COMPRESSION: i32 = 0;
+static mut IS_COMPRESSION: bool = false;
 static mut UDP_PORT: u32 = 7447;
 static mut TCP_PORT: u32 = 7447;
 static mut CURR_UDP_PORT: u32 = 7447;
@@ -275,7 +275,7 @@ unsafe extern "C" fn dissect_main(
                 }
 
                 let mut rbatch =
-                    utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION == 1)?;
+                    utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION)?;
 
                 // Skip two bytes for the batch_size
                 tree_args.start += 2;
@@ -310,7 +310,7 @@ unsafe extern "C" fn dissect_main(
             // Fetch the batch size
             let batch_size = reader.len();
 
-            let mut rbatch = utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION == 1)?;
+            let mut rbatch = utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION)?;
 
             // Iterate messages in a batch
             let mut batch_summary = utils::SizedSummary::new(MAX_BATCH_SUMMARY);
