@@ -40,7 +40,7 @@ jobs:
           # Disable Win11 since
           # 1. The user name issue zenog -> zenoh
           # 2. Fail to build from source with Rust
-          # - windows-11
+          - windows-11
 
     steps:
       - uses: actions/checkout@v4
