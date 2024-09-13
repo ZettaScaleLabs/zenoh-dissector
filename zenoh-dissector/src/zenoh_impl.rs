@@ -362,7 +362,6 @@ mod impl_for_network {
             struct DeclareSubscriber {
                 id: SubscriberId,
                 wire_expr: WireExpr<'static>,
-                ext_info: SubscriberInfo,
             }
         }
 
