@@ -24,7 +24,7 @@ on:
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
   DEBIAN_FRONTEND: noninteractive
-  WIRESHARK_VERSION: 4.2
+  WIRESHARK_VERSION: 4.4
 
 jobs:
   check:
@@ -36,7 +36,7 @@ jobs:
         os: [ubuntu-22.04, ubuntu-20.04]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         run: |
@@ -75,7 +75,7 @@ jobs:
 
       - name: Test the sample data
         run: |
-          sudo apt install -y --allow-change-held-packages tshark
+          sudo apt install -y tshark
           [ $(tshark -r assets/sample-data.pcap | grep Zenoh | wc -l) -eq 7 ] || return 1
 
       - name: Clean up

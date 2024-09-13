@@ -14,24 +14,30 @@ use utils::nul_terminated_str;
 use wireshark::register_header_field;
 use zenoh_buffers::reader::HasReader;
 use zenoh_buffers::reader::Reader;
-use zenoh_codec::{RCodec, Zenoh080};
 use zenoh_impl::ZenohProtocol;
 
 use zenoh_protocol::transport::{BatchSize, TransportMessage};
+use zenoh_transport::common::batch::Decode;
 
+// Pacakge version: "0.2.0\0"
 #[no_mangle]
 #[used]
-static plugin_version: [std::ffi::c_char; 6usize] = [48i8, 46i8, 48i8, 46i8, 49i8, 0i8];
+static plugin_version: [std::ffi::c_char; 6usize] = [48, 46, 50, 46, 48, 0];
+
+// Wireshark version: 4.4
 #[no_mangle]
 #[used]
 static plugin_want_major: std::ffi::c_int = 4;
 #[no_mangle]
 #[used]
-static plugin_want_minor: std::ffi::c_int = 2;
+static plugin_want_minor: std::ffi::c_int = 4;
 
-#[no_mangle]
-#[used]
-static MTU: usize = 65536;
+// Max number of summary of batch in one packet
+static MAX_PACKET_SUMMARY: usize = 5;
+// Max number of summary of messages in one batch
+static MAX_BATCH_SUMMARY: usize = 5;
+// Max length of summary of messages
+static MSG_SUMMARY_LIMIT: usize = 30;
 
 #[derive(Default, Debug)]
 struct ProtocolData {
@@ -40,11 +46,19 @@ struct ProtocolData {
     hf_map: HashMap<String, std::ffi::c_int>,
     // subtree map
     st_map: HashMap<String, std::ffi::c_int>,
+    handle: Option<epan_sys::dissector_handle_t>,
 }
 
 thread_local! {
     static PROTOCOL_DATA: RefCell<ProtocolData> = ProtocolData::default().into();
 }
+
+// Global variables for interacting wtih wireshark preference
+static mut IS_COMPRESSION: bool = false;
+static mut UDP_PORT: u32 = 7447;
+static mut TCP_PORT: u32 = 7447;
+static mut CURR_UDP_PORT: u32 = 7447;
+static mut CURR_TCP_PORT: u32 = 7447;
 
 #[no_mangle]
 extern "C" fn plugin_register() {
@@ -60,6 +74,37 @@ extern "C" fn plugin_register() {
     }
 }
 
+#[no_mangle]
+unsafe extern "C" fn prefs_callback() {
+    if CURR_TCP_PORT != TCP_PORT {
+        log::info!("Update TCP Port: {CURR_TCP_PORT} -> {TCP_PORT}");
+        PROTOCOL_DATA.with(|data| {
+            let handle = data
+                .borrow()
+                .handle
+                .expect("Handle after registration shouldn't be empty");
+            let tcp_keyword = nul_terminated_str("tcp.port").unwrap();
+            epan_sys::dissector_delete_uint(tcp_keyword, CURR_TCP_PORT, handle);
+            epan_sys::dissector_add_uint_with_preference(tcp_keyword, TCP_PORT as _, handle);
+        });
+        CURR_TCP_PORT = TCP_PORT;
+    }
+
+    if CURR_UDP_PORT != UDP_PORT {
+        log::info!("Update UDP Port: {CURR_UDP_PORT} -> {UDP_PORT}");
+        PROTOCOL_DATA.with(|data| {
+            let handle = data
+                .borrow()
+                .handle
+                .expect("Handle after registration shouldn't be empty");
+            let udp_keyword = nul_terminated_str("udp.port").unwrap();
+            epan_sys::dissector_delete_uint(udp_keyword, CURR_UDP_PORT, handle);
+            epan_sys::dissector_add_uint_with_preference(udp_keyword, UDP_PORT as _, handle);
+        });
+        CURR_UDP_PORT = UDP_PORT;
+    }
+}
+
 fn register_zenoh_protocol() -> Result<()> {
     let proto_id = unsafe {
         epan_sys::proto_register_protocol(
@@ -68,6 +113,34 @@ fn register_zenoh_protocol() -> Result<()> {
             nul_terminated_str("zenoh")?,
         )
     };
+
+    // Register preferences for the zenoh protocol
+    unsafe {
+        let zenoh_module = epan_sys::prefs_register_protocol(proto_id, Some(prefs_callback));
+        epan_sys::prefs_register_uint_preference(
+            zenoh_module,
+            nul_terminated_str("tcp.port")?,
+            nul_terminated_str("TCP Port")?,
+            nul_terminated_str("Zenoh TCP Port to listen to")?,
+            10 as _,
+            &mut TCP_PORT as _,
+        );
+        epan_sys::prefs_register_uint_preference(
+            zenoh_module,
+            nul_terminated_str("udp.port")?,
+            nul_terminated_str("UDP Port")?,
+            nul_terminated_str("Zenoh UDP Port to listen to")?,
+            10 as _,
+            &mut UDP_PORT as _,
+        );
+        epan_sys::prefs_register_bool_preference(
+            zenoh_module,
+            nul_terminated_str("is_compression")?,
+            nul_terminated_str("Is Compression")?,
+            nul_terminated_str("Is Zenoh message compressed")?,
+            &mut IS_COMPRESSION as _,
+        );
+    }
 
     let hf_map = ZenohProtocol::generate_hf_map("zenoh");
     let subtree_names = ZenohProtocol::generate_subtree_names("zenoh");
@@ -118,17 +191,19 @@ unsafe extern "C" fn register_handoff() {
         let proto_id = data.borrow().id;
         unsafe {
             let handle = epan_sys::create_dissector_handle(Some(dissect_main), proto_id);
-            epan_sys::dissector_add_uint(
+            epan_sys::dissector_add_uint_with_preference(
                 nul_terminated_str("tcp.port").unwrap(),
-                7447 as _,
+                TCP_PORT as _,
                 handle,
             );
-            epan_sys::dissector_add_uint(
+            epan_sys::dissector_add_uint_with_preference(
                 nul_terminated_str("udp.port").unwrap(),
-                7447 as _,
+                UDP_PORT as _,
                 handle,
             );
+            data.borrow_mut().handle = Some(handle);
         }
+
         log::info!("Zenoh dissector registered at tcp.port:7447 and udp.port:7447.");
     });
 }
@@ -158,8 +233,6 @@ unsafe extern "C" fn dissect_main(
         );
     }
 
-    let codec = Zenoh080::new();
-    let mut counter = 0;
     let mut reader = tvb_buf.reader();
 
     let root_key = "zenoh";
@@ -170,91 +243,112 @@ unsafe extern "C" fn dissect_main(
             hf_map: &data.borrow().hf_map,
             st_map: &data.borrow().st_map,
             start: 0,
-            length: 0,
+            length: reader.len(),
         };
-
         let mut tree_args = tree_args.make_subtree(root_key, "Zenoh Protocol")?;
 
-        let mut summary_vec = vec![];
+        let mut packet_summary = utils::SizedSummary::new(MAX_PACKET_SUMMARY);
+
         if (*pinfo).can_desegment > 0 {
-            // Basically this branch is for TCP
+            // This branch aims for TCP
 
+            // At least containing a valid header
+            assert!(reader.len() >= 2);
+
+            // Iterate batches in a packet
             while reader.len() >= 2 {
-                // Length of sliced message
-                let mut length = [0_u8, 0u8];
-                reader.read_exact(&mut length).unwrap();
-                let n = BatchSize::from_le_bytes(length) as usize;
+                // Fetch the batch size
+                let mut length = [0_u8; 2];
+                reader.read_exact(&mut length).expect("Didn't read");
+                let batch_size = BatchSize::from_le_bytes(length) as usize;
 
-                if n > reader.len() {
+                // Need to desegment if the batch size exceeds this packet size
+                if batch_size > reader.len() {
                     (*pinfo).desegment_offset = 0;
                     (*pinfo).desegment_len = epan_sys::DESEGMENT_ONE_MORE_SEGMENT;
-                    log::debug!("Skip since n={} >= reader.len()={}", n, reader.len());
+                    log::trace!(
+                        "Skip since batch_size={} >= reader.len()={}",
+                        batch_size,
+                        reader.len()
+                    );
                     break;
                 }
 
-                assert!(0 < n && n <= MTU, "{}", n);
+                let mut rbatch = utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION)?;
 
-                // Read sliced message into a buffer
-                let mut buf = vec![0_u8; MTU];
-                reader.read_exact(&mut buf[0..n]).unwrap();
+                // Skip two bytes for the batch_size
+                tree_args.start += 2;
 
-                // Update the range of the buffer to display
-                tree_args.length = 2 + n;
+                // Iterate messages in a batch
+                let mut batch_summary = utils::SizedSummary::new(MAX_BATCH_SUMMARY);
+                while !rbatch.is_empty() {
+                    // Read and decode the bytes to TransportMessage
+                    let (msg, msg_len): (TransportMessage, BatchSize) = rbatch
+                        .decode()
+                        .map_err(|_| anyhow::anyhow!("decoding error"))?;
 
-                // Read and decode the bytes to TransportMessage
-                let msg = <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut buf.reader())
-                    .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
+                    tree_args.length = msg_len as _;
+                    msg.add_to_tree("zenoh", &tree_args)?;
+                    tree_args.start += tree_args.length;
 
-                // Add the message into the tree
-                msg.add_to_tree("zenoh", &tree_args)?;
+                    batch_summary.append(|| {
+                        let mut msg_summary = msg.to_string();
+                        if msg_summary.len() > MSG_SUMMARY_LIMIT {
+                            msg_summary.truncate(MSG_SUMMARY_LIMIT);
+                            msg_summary += "...]";
+                        }
+                        msg_summary
+                    });
+                }
 
-                // Update the range of the buffer to display
-                tree_args.start += tree_args.length;
-                counter += 1;
-                log::debug!("TCP message counter: {counter}");
-
-                // TODO: Append the summary of this new message
-                summary_vec.push(msg.to_string());
+                packet_summary.append(|| format!("{batch_summary}"));
             }
         } else {
-            // Basically this branch is for UDP
+            // This branch aims for UDP
 
-            let n = reader.len();
-            assert!(0 < n && n <= MTU, "{}", n);
+            // Fetch the batch size
+            let batch_size = reader.len();
 
-            // Update the range of the buffer to display
-            tree_args.length = n;
+            let mut rbatch = utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION)?;
 
-            // Add the message into the tree
-            let msg = <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut reader)
-                .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
-            log::debug!(
-                "Counter: {}, remaining: {}, msg: {:?}",
-                counter,
-                reader.remaining(),
-                &msg
-            );
+            // Iterate messages in a batch
+            let mut batch_summary = utils::SizedSummary::new(MAX_BATCH_SUMMARY);
+            while !rbatch.is_empty() {
+                // Read and decode the bytes to TransportMessage
+                let (msg, msg_len): (TransportMessage, BatchSize) = rbatch
+                    .decode()
+                    .map_err(|_| anyhow::anyhow!("decoding error"))?;
 
-            // Add the message into the tree
-            msg.add_to_tree("zenoh", &tree_args)?;
+                tree_args.length = msg_len as _;
+                msg.add_to_tree("zenoh", &tree_args)?;
+                tree_args.start += tree_args.length;
 
-            // Append the summary of this new message
-            summary_vec.push(msg.to_string());
+                batch_summary.append(|| {
+                    let mut msg_summary = msg.to_string();
+                    if msg_summary.len() > MSG_SUMMARY_LIMIT {
+                        msg_summary.truncate(MSG_SUMMARY_LIMIT);
+                        msg_summary += "...]";
+                    }
+                    msg_summary
+                });
+            }
+
+            packet_summary = batch_summary;
 
             // Update the range of the buffer to display
             tree_args.start += tree_args.length;
         }
 
-        anyhow::Ok(summary_vec)
+        anyhow::Ok(packet_summary)
     });
 
     match res {
-        Ok(summary_vec) => {
+        Ok(packet_summary) => {
             let summary = format!(
-                "{} → {} [{}]",
+                "{} → {} {}",
                 (*pinfo).srcport,
                 (*pinfo).destport,
-                summary_vec.join(", ")
+                packet_summary
             );
 
             // Update the info column
@@ -267,6 +361,20 @@ unsafe extern "C" fn dissect_main(
         }
         Err(err) => {
             log::error!("{err}");
+            let summary = format!(
+                "{} → {} {}",
+                (*pinfo).srcport,
+                (*pinfo).destport,
+                "Failed to decode possibly due to the experimental compression preference.",
+            );
+
+            // Update the info column
+            epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
+            epan_sys::col_set_str(
+                (*pinfo).cinfo,
+                epan_sys::COL_INFO as _,
+                nul_terminated_str(&summary).unwrap(),
+            );
         }
     }
 

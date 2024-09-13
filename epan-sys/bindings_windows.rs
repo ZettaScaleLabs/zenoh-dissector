@@ -80,6 +80,36 @@ where
         }
     }
 }
+#[repr(C)]
+#[derive(Default)]
+pub struct __IncompleteArrayField<T>(::std::marker::PhantomData<T>, [T; 0]);
+impl<T> __IncompleteArrayField<T> {
+    #[inline]
+    pub const fn new() -> Self {
+        __IncompleteArrayField(::std::marker::PhantomData, [])
+    }
+    #[inline]
+    pub fn as_ptr(&self) -> *const T {
+        self as *const _ as *const T
+    }
+    #[inline]
+    pub fn as_mut_ptr(&mut self) -> *mut T {
+        self as *mut _ as *mut T
+    }
+    #[inline]
+    pub unsafe fn as_slice(&self, len: usize) -> &[T] {
+        ::std::slice::from_raw_parts(self.as_ptr(), len)
+    }
+    #[inline]
+    pub unsafe fn as_mut_slice(&mut self, len: usize) -> &mut [T] {
+        ::std::slice::from_raw_parts_mut(self.as_mut_ptr(), len)
+    }
+}
+impl<T> ::std::fmt::Debug for __IncompleteArrayField<T> {
+    fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        fmt.write_str("__IncompleteArrayField")
+    }
+}
 pub const _VCRT_COMPILER_PREPROCESSOR: u32 = 1;
 pub const _SAL_VERSION: u32 = 20;
 pub const __SAL_H_VERSION: u32 = 180000000;
@@ -540,7 +570,7 @@ pub const G_GINTPTR_FORMAT: &[u8; 4] = b"lli\0";
 pub const G_GUINTPTR_FORMAT: &[u8; 4] = b"llu\0";
 pub const GLIB_MAJOR_VERSION: u32 = 2;
 pub const GLIB_MINOR_VERSION: u32 = 78;
-pub const GLIB_MICRO_VERSION: u32 = 0;
+pub const GLIB_MICRO_VERSION: u32 = 4;
 pub const G_HAVE_ISO_VARARGS: u32 = 1;
 pub const G_HAVE_GROWING_STACK: u32 = 0;
 pub const G_PID_FORMAT: &[u8; 2] = b"p\0";
@@ -689,8 +719,8 @@ pub const G_ALLOCATOR_LIST: u32 = 1;
 pub const G_ALLOCATOR_SLIST: u32 = 2;
 pub const G_ALLOCATOR_NODE: u32 = 3;
 pub const WIRESHARK_VERSION_MAJOR: u32 = 4;
-pub const WIRESHARK_VERSION_MINOR: u32 = 2;
-pub const WIRESHARK_VERSION_MICRO: u32 = 3;
+pub const WIRESHARK_VERSION_MINOR: u32 = 4;
+pub const WIRESHARK_VERSION_MICRO: u32 = 0;
 pub const _CRT_INTERNAL_STDIO_SYMBOL_PREFIX: &[u8; 1] = b"\0";
 pub const _CRT_INTERNAL_PRINTF_LEGACY_VSPRINTF_NULL_TERMINATION: u32 = 1;
 pub const _CRT_INTERNAL_PRINTF_STANDARD_SNPRINTF_BEHAVIOR: u32 = 2;
@@ -745,14 +775,9 @@ pub const WS_ASSERT_ENABLED: u32 = 1;
 pub const NSTIME_UNIX_BUFSIZE: u32 = 31;
 pub const WS_TSPREC_MAX: u32 = 9;
 pub const NUM_WS_TSPREC_VALS: u32 = 10;
-pub const IPv6_ADDR_SIZE: u32 = 16;
-pub const IPv6_HDR_SIZE: u32 = 40;
-pub const IPv6_FRAGMENT_HDR_SIZE: u32 = 8;
-pub const IP6F_OFF_MASK: u32 = 65528;
-pub const IP6F_RESERVED_MASK: u32 = 6;
-pub const IP6F_MORE_FRAG: u32 = 1;
 pub const WS_INET_ADDRSTRLEN: u32 = 16;
 pub const WS_INET6_ADDRSTRLEN: u32 = 46;
+pub const WS_INET_CIDRADDRSTRLEN: u32 = 19;
 pub const OPT_EOFOPT: u32 = 0;
 pub const OPT_COMMENT: u32 = 1;
 pub const OPT_CUSTOM_STR_COPY: u32 = 2988;
@@ -1033,6 +1058,8 @@ pub const WTAP_ENCAP_ATSC_ALP: u32 = 220;
 pub const WTAP_ENCAP_FIRA_UCI: u32 = 221;
 pub const WTAP_ENCAP_SILABS_DEBUG_CHANNEL: u32 = 222;
 pub const WTAP_ENCAP_MDB: u32 = 223;
+pub const WTAP_ENCAP_EMS: u32 = 224;
+pub const WTAP_ENCAP_DECT_NR: u32 = 225;
 pub const WTAP_FILE_TYPE_SUBTYPE_UNKNOWN: i32 = -1;
 pub const WTAP_TSPREC_UNKNOWN: i32 = -2;
 pub const WTAP_TSPREC_PER_PACKET: i32 = -1;
@@ -1154,11 +1181,11 @@ pub const PHDR_802_11_BANDWIDTH_20UUL: u32 = 24;
 pub const PHDR_802_11_BANDWIDTH_20UUU: u32 = 25;
 pub const PHDR_802_11AD_MIN_FREQUENCY: u32 = 57000;
 pub const PHDR_802_11AD_MAX_FREQUENCY: u32 = 71000;
+pub const PHDR_802_11BE_MAX_USERS: u32 = 4;
 pub const PHDR_802_11_LAST_PART_OF_A_MPDU: u32 = 1;
 pub const PHDR_802_11_A_MPDU_DELIM_CRC_ERROR: u32 = 2;
 pub const PHDR_802_11_SOUNDING_PSDU: u32 = 0;
 pub const PHDR_802_11_DATA_NOT_CAPTURED: u32 = 1;
-pub const PHDR_802_11_0_LENGTH_PSDU_S1G_NDP: u32 = 2;
 pub const PHDR_802_11_0_LENGTH_PSDU_VENDOR_SPECIFIC: u32 = 255;
 pub const COSINE_MAX_IF_NAME_LEN: u32 = 128;
 pub const COSINE_ENCAP_TEST: u32 = 1;
@@ -1329,6 +1356,7 @@ pub const DESEGMENT_ONE_MORE_SEGMENT: u32 = 268435455;
 pub const DESEGMENT_UNTIL_FIN: u32 = 268435454;
 pub const WS_REGEX_CASELESS: u32 = 1;
 pub const WS_REGEX_NEVER_UTF: u32 = 2;
+pub const WS_REGEX_ANCHORED: u32 = 4;
 pub const FT_ETHER_LEN: u32 = 6;
 pub const FT_GUID_LEN: u32 = 16;
 pub const FT_IPv4_LEN: u32 = 4;
@@ -1424,9 +1452,11 @@ pub const ENC_TIME_SECS_NTP: u32 = 24;
 pub const ENC_TIME_RFC_3971: u32 = 32;
 pub const ENC_TIME_MSEC_NTP: u32 = 34;
 pub const ENC_TIME_MIP6: u32 = 36;
+pub const ENC_TIME_MP4_FILE_SECS: u32 = 38;
 pub const ENC_TIME_CLASSIC_MAC_OS_SECS: u32 = 38;
 pub const ENC_TIME_NSECS: u32 = 40;
 pub const ENC_TIME_USECS: u32 = 48;
+pub const ENC_TIME_ZBEE_ZCL: u32 = 50;
 pub const ENC_ISO_8601_DATE: u32 = 65536;
 pub const ENC_ISO_8601_TIME: u32 = 131072;
 pub const ENC_ISO_8601_DATE_TIME: u32 = 196608;
@@ -1478,6 +1508,9 @@ pub const PI_COMMENTS_GROUP: u32 = 184549376;
 pub const PI_DECRYPTION: u32 = 201326592;
 pub const PI_ASSUMPTION: u32 = 218103808;
 pub const PI_DEPRECATED: u32 = 234881024;
+pub const PI_RECEIVE: u32 = 251658240;
+pub const PI_INTERFACE: u32 = 268435456;
+pub const PI_DISSECTOR_BUG: u32 = 285212672;
 pub const BMT_NO_FLAGS: u32 = 0;
 pub const BMT_NO_APPEND: u32 = 1;
 pub const BMT_NO_INT: u32 = 2;
@@ -1504,8 +1537,13 @@ pub const ST_MAX_BURSTBUCKETS: u32 = 100;
 pub const DEF_GUI_DECIMAL_PLACES1: u32 = 2;
 pub const DEF_GUI_DECIMAL_PLACES2: u32 = 4;
 pub const DEF_GUI_DECIMAL_PLACES3: u32 = 6;
+pub const CONV_DEINT_KEY_CAPFILE: u32 = 1;
+pub const CONV_DEINT_KEY_INTERFACE: u32 = 2;
+pub const CONV_DEINT_KEY_MAC: u32 = 4;
+pub const CONV_DEINT_KEY_VLAN: u32 = 8;
 pub const FO_STYLE_LAST_OPENED: u32 = 0;
 pub const FO_STYLE_SPECIFIED: u32 = 1;
+pub const FO_STYLE_CWD: u32 = 2;
 pub const TB_STYLE_ICONS: u32 = 0;
 pub const TB_STYLE_TEXT: u32 = 1;
 pub const TB_STYLE_BOTH: u32 = 2;
@@ -1515,7 +1553,7 @@ pub const COLOR_STYLE_GRADIENT: u32 = 2;
 pub const COLOR_STYLE_ALPHA: f64 = 0.25;
 pub const COL_MAX_LEN: u32 = 2048;
 pub const COL_MAX_INFO_LEN: u32 = 4096;
-pub const COL_CUSTOM_PRIME_REGEX: &[u8; 40] = b" *([^ \\|]+) *(?:(?:\\|\\|)|(?:or)| *$){1}\0";
+pub const COL_CUSTOM_PRIME_REGEX: &[u8; 39] = b"(?:^ *| *\\|\\| *| +or +| *$)(?![^(]*\\))\0";
 pub const STRING_CASE_SENSITIVE: u32 = 0;
 pub const STRING_CASE_INSENSITIVE: u32 = 1;
 pub const MAX_DECODE_AS_PROMPT_LEN: u32 = 200;
@@ -3150,7 +3188,6 @@ pub type GCompareDataFunc = ::std::option::Option<
 >;
 pub type GEqualFunc =
     ::std::option::Option<unsafe extern "C" fn(a: gconstpointer, b: gconstpointer) -> gboolean>;
-#[doc = " GEqualFuncFull:\n @a: a value\n @b: a value to compare with\n @user_data: user data provided by the caller\n\n Specifies the type of a function used to test two values for\n equality. The function should return %TRUE if both values are equal\n and %FALSE otherwise.\n\n This is a version of #GEqualFunc which provides a @user_data closure from\n the caller.\n\n Returns: %TRUE if @a = @b; %FALSE otherwise\n Since: 2.74"]
 pub type GEqualFuncFull = ::std::option::Option<
     unsafe extern "C" fn(a: gconstpointer, b: gconstpointer, user_data: gpointer) -> gboolean,
 >;
@@ -3160,12 +3197,9 @@ pub type GHashFunc = ::std::option::Option<unsafe extern "C" fn(key: gconstpoint
 pub type GHFunc = ::std::option::Option<
     unsafe extern "C" fn(key: gpointer, value: gpointer, user_data: gpointer),
 >;
-#[doc = " GCopyFunc:\n @src: (not nullable): A pointer to the data which should be copied\n @data: Additional data\n\n A function of this signature is used to copy the node data\n when doing a deep-copy of a tree.\n\n Returns: (not nullable): A pointer to the copy\n\n Since: 2.4"]
 pub type GCopyFunc =
     ::std::option::Option<unsafe extern "C" fn(src: gconstpointer, data: gpointer) -> gpointer>;
-#[doc = " GFreeFunc:\n @data: a data pointer\n\n Declares a type of function which takes an arbitrary\n data pointer argument and has no return value. It is\n not currently used in GLib or GTK."]
 pub type GFreeFunc = ::std::option::Option<unsafe extern "C" fn(data: gpointer)>;
-#[doc = " GTranslateFunc:\n @str: the untranslated string\n @data: user data specified when installing the function, e.g.\n  in g_option_group_set_translate_func()\n\n The type of functions which are used to translate user-visible\n strings, for <option>--help</option> output.\n\n Returns: a translation of the string for the current locale.\n  The returned string is owned by GLib and must not be freed."]
 pub type GTranslateFunc =
     ::std::option::Option<unsafe extern "C" fn(str_: *const gchar, data: gpointer) -> *const gchar>;
 pub type GDoubleIEEE754 = _GDoubleIEEE754;
@@ -4204,7 +4238,6 @@ extern "C" {
 extern "C" {
     pub fn g_intern_static_string(string: *const gchar) -> *const gchar;
 }
-#[doc = " GError:\n @domain: error domain, e.g. %G_FILE_ERROR\n @code: error code, e.g. %G_FILE_ERROR_NOENT\n @message: human-readable informative error message\n\n The `GError` structure contains information about\n an error that has occurred."]
 pub type GError = _GError;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -4258,12 +4291,9 @@ fn bindgen_test_layout__GError() {
         )
     );
 }
-#[doc = " GErrorInitFunc:\n @error: extended error\n\n Specifies the type of function which is called just after an\n extended error instance is created and its fields filled. It should\n only initialize the fields in the private data, which can be\n received with the generated `*_get_private()` function.\n\n Normally, it is better to use G_DEFINE_EXTENDED_ERROR(), as it\n already takes care of getting the private data from @error.\n\n Since: 2.68"]
 pub type GErrorInitFunc = ::std::option::Option<unsafe extern "C" fn(error: *mut GError)>;
-#[doc = " GErrorCopyFunc:\n @src_error: source extended error\n @dest_error: destination extended error\n\n Specifies the type of function which is called when an extended\n error instance is copied. It is passed the pointer to the\n destination error and source error, and should copy only the fields\n of the private data from @src_error to @dest_error.\n\n Normally, it is better to use G_DEFINE_EXTENDED_ERROR(), as it\n already takes care of getting the private data from @src_error and\n @dest_error.\n\n Since: 2.68"]
 pub type GErrorCopyFunc =
     ::std::option::Option<unsafe extern "C" fn(src_error: *const GError, dest_error: *mut GError)>;
-#[doc = " GErrorClearFunc:\n @error: extended error to clear\n\n Specifies the type of function which is called when an extended\n error instance is freed. It is passed the error pointer about to be\n freed, and should free the error's private data fields.\n\n Normally, it is better to use G_DEFINE_EXTENDED_ERROR(), as it\n already takes care of getting the private data from @error.\n\n Since: 2.68"]
 pub type GErrorClearFunc = ::std::option::Option<unsafe extern "C" fn(error: *mut GError)>;
 extern "C" {
     pub fn g_error_domain_register_static(
@@ -4411,12 +4441,10 @@ pub const GUserDirectory_G_USER_DIRECTORY_PUBLIC_SHARE: GUserDirectory = 5;
 pub const GUserDirectory_G_USER_DIRECTORY_TEMPLATES: GUserDirectory = 6;
 pub const GUserDirectory_G_USER_DIRECTORY_VIDEOS: GUserDirectory = 7;
 pub const GUserDirectory_G_USER_N_DIRECTORIES: GUserDirectory = 8;
-#[doc = " GUserDirectory:\n @G_USER_DIRECTORY_DESKTOP: the user's Desktop directory\n @G_USER_DIRECTORY_DOCUMENTS: the user's Documents directory\n @G_USER_DIRECTORY_DOWNLOAD: the user's Downloads directory\n @G_USER_DIRECTORY_MUSIC: the user's Music directory\n @G_USER_DIRECTORY_PICTURES: the user's Pictures directory\n @G_USER_DIRECTORY_PUBLIC_SHARE: the user's shared directory\n @G_USER_DIRECTORY_TEMPLATES: the user's Templates directory\n @G_USER_DIRECTORY_VIDEOS: the user's Movies directory\n @G_USER_N_DIRECTORIES: the number of enum values\n\n These are logical ids for special directories which are defined\n depending on the platform used. You should use g_get_user_special_dir()\n to retrieve the full path associated to the logical id.\n\n The #GUserDirectory enumeration can be extended at later date. Not\n every platform has a directory for every logical id in this\n enumeration.\n\n Since: 2.14"]
 pub type GUserDirectory = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_get_user_special_dir(directory: GUserDirectory) -> *const gchar;
 }
-#[doc = " GDebugKey:\n @key: the string\n @value: the flag\n\n Associates a string with a bit flag.\n Used in g_parse_debug_string()."]
 pub type GDebugKey = _GDebugKey;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -4491,7 +4519,6 @@ extern "C" {
 extern "C" {
     pub fn g_format_size_for_display(size: goffset) -> *mut gchar;
 }
-#[doc = " GVoidFunc:\n\n Declares a type of function which takes no arguments\n and has no return value. It is used to specify the type\n function passed to g_atexit()."]
 pub type GVoidFunc = ::std::option::Option<unsafe extern "C" fn()>;
 extern "C" {
     pub fn g_atexit(func: GVoidFunc);
@@ -4900,13 +4927,9 @@ extern "C" {
 extern "C" {
     pub fn g_get_num_processors() -> guint;
 }
-#[doc = " GMutexLocker:\n\n Opaque type. See g_mutex_locker_new() for details.\n Since: 2.44"]
 pub type GMutexLocker = ::std::os::raw::c_void;
-#[doc = " GRecMutexLocker:\n\n Opaque type. See g_rec_mutex_locker_new() for details.\n Since: 2.60"]
 pub type GRecMutexLocker = ::std::os::raw::c_void;
-#[doc = " GRWLockWriterLocker:\n\n Opaque type. See g_rw_lock_writer_locker_new() for details.\n Since: 2.62"]
 pub type GRWLockWriterLocker = ::std::os::raw::c_void;
-#[doc = " GRWLockReaderLocker:\n\n Opaque type. See g_rw_lock_reader_locker_new() for details.\n Since: 2.62"]
 pub type GRWLockReaderLocker = ::std::os::raw::c_void;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5098,7 +5121,6 @@ pub type GTimeZone = _GTimeZone;
 pub const GTimeType_G_TIME_TYPE_STANDARD: GTimeType = 0;
 pub const GTimeType_G_TIME_TYPE_DAYLIGHT: GTimeType = 1;
 pub const GTimeType_G_TIME_TYPE_UNIVERSAL: GTimeType = 2;
-#[doc = " GTimeType:\n @G_TIME_TYPE_STANDARD: the time is in local standard time\n @G_TIME_TYPE_DAYLIGHT: the time is in local daylight time\n @G_TIME_TYPE_UNIVERSAL: the time is in UTC\n\n Disambiguates a given time in two ways.\n\n First, specifies if the given time is in universal or local time.\n\n Second, if the time is in local time, specifies if it is local\n standard time or local daylight time.  This is important for the case\n where the same local time occurs twice (during daylight savings time\n transitions, for example)."]
 pub type GTimeType = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_time_zone_new(identifier: *const gchar) -> *mut GTimeZone;
@@ -5143,14 +5165,12 @@ extern "C" {
 extern "C" {
     pub fn g_time_zone_get_identifier(tz: *mut GTimeZone) -> *const gchar;
 }
-#[doc = " GTimeSpan:\n\n A value representing an interval of time, in microseconds.\n\n Since: 2.26"]
 pub type GTimeSpan = gint64;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GDateTime {
     _unused: [u8; 0],
 }
-#[doc = " GDateTime:\n\n An opaque structure that represents a date and time, including a time zone.\n\n Since: 2.26"]
 pub type GDateTime = _GDateTime;
 extern "C" {
     pub fn g_date_time_unref(datetime: *mut GDateTime);
@@ -5348,7 +5368,6 @@ pub const GBookmarkFileError_G_BOOKMARK_FILE_ERROR_READ: GBookmarkFileError = 4;
 pub const GBookmarkFileError_G_BOOKMARK_FILE_ERROR_UNKNOWN_ENCODING: GBookmarkFileError = 5;
 pub const GBookmarkFileError_G_BOOKMARK_FILE_ERROR_WRITE: GBookmarkFileError = 6;
 pub const GBookmarkFileError_G_BOOKMARK_FILE_ERROR_FILE_NOT_FOUND: GBookmarkFileError = 7;
-#[doc = " GBookmarkFileError:\n @G_BOOKMARK_FILE_ERROR_INVALID_URI: URI was ill-formed\n @G_BOOKMARK_FILE_ERROR_INVALID_VALUE: a requested field was not found\n @G_BOOKMARK_FILE_ERROR_APP_NOT_REGISTERED: a requested application did\n     not register a bookmark\n @G_BOOKMARK_FILE_ERROR_URI_NOT_FOUND: a requested URI was not found\n @G_BOOKMARK_FILE_ERROR_READ: document was ill formed\n @G_BOOKMARK_FILE_ERROR_UNKNOWN_ENCODING: the text being parsed was\n     in an unknown encoding\n @G_BOOKMARK_FILE_ERROR_WRITE: an error occurred while writing\n @G_BOOKMARK_FILE_ERROR_FILE_NOT_FOUND: requested file was not found\n\n Error codes returned by bookmark file parsing."]
 pub type GBookmarkFileError = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_bookmark_file_error_quark() -> GQuark;
@@ -5358,7 +5377,6 @@ extern "C" {
 pub struct _GBookmarkFile {
     _unused: [u8; 0],
 }
-#[doc = " GBookmarkFile:\n\n An opaque data structure representing a set of bookmarks."]
 pub type GBookmarkFile = _GBookmarkFile;
 extern "C" {
     pub fn g_bookmark_file_new() -> *mut GBookmarkFile;
@@ -5783,14 +5801,12 @@ pub const GChecksumType_G_CHECKSUM_SHA1: GChecksumType = 1;
 pub const GChecksumType_G_CHECKSUM_SHA256: GChecksumType = 2;
 pub const GChecksumType_G_CHECKSUM_SHA512: GChecksumType = 3;
 pub const GChecksumType_G_CHECKSUM_SHA384: GChecksumType = 4;
-#[doc = " GChecksumType:\n @G_CHECKSUM_MD5: Use the MD5 hashing algorithm\n @G_CHECKSUM_SHA1: Use the SHA-1 hashing algorithm\n @G_CHECKSUM_SHA256: Use the SHA-256 hashing algorithm\n @G_CHECKSUM_SHA384: Use the SHA-384 hashing algorithm (Since: 2.51)\n @G_CHECKSUM_SHA512: Use the SHA-512 hashing algorithm (Since: 2.36)\n\n The hashing algorithm to be used by #GChecksum when performing the\n digest of some data.\n\n Note that the #GChecksumType enumeration may be extended at a later\n date to include new hashing algorithm types.\n\n Since: 2.16"]
 pub type GChecksumType = ::std::os::raw::c_int;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GChecksum {
     _unused: [u8; 0],
 }
-#[doc = " GChecksum:\n\n An opaque structure representing a checksumming operation.\n\n To create a new GChecksum, use g_checksum_new(). To free\n a GChecksum, use g_checksum_free().\n\n Since: 2.16"]
 pub type GChecksum = _GChecksum;
 extern "C" {
     pub fn g_checksum_type_get_length(checksum_type: GChecksumType) -> gssize;
@@ -5848,7 +5864,6 @@ pub const GConvertError_G_CONVERT_ERROR_BAD_URI: GConvertError = 4;
 pub const GConvertError_G_CONVERT_ERROR_NOT_ABSOLUTE_PATH: GConvertError = 5;
 pub const GConvertError_G_CONVERT_ERROR_NO_MEMORY: GConvertError = 6;
 pub const GConvertError_G_CONVERT_ERROR_EMBEDDED_NUL: GConvertError = 7;
-#[doc = " GConvertError:\n @G_CONVERT_ERROR_NO_CONVERSION: Conversion between the requested character\n     sets is not supported.\n @G_CONVERT_ERROR_ILLEGAL_SEQUENCE: Invalid byte sequence in conversion input;\n    or the character sequence could not be represented in the target\n    character set.\n @G_CONVERT_ERROR_FAILED: Conversion failed for some reason.\n @G_CONVERT_ERROR_PARTIAL_INPUT: Partial character sequence at end of input.\n @G_CONVERT_ERROR_BAD_URI: URI is invalid.\n @G_CONVERT_ERROR_NOT_ABSOLUTE_PATH: Pathname is not an absolute path.\n @G_CONVERT_ERROR_NO_MEMORY: No memory available. Since: 2.40\n @G_CONVERT_ERROR_EMBEDDED_NUL: An embedded NUL character is present in\n     conversion output where a NUL-terminated string is expected.\n     Since: 2.56\n\n Error codes returned by character set conversion routines."]
 pub type GConvertError = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_convert_error_quark() -> GQuark;
@@ -5858,7 +5873,6 @@ extern "C" {
 pub struct _GIConv {
     _unused: [u8; 0],
 }
-#[doc = " GIConv: (skip)\n\n The GIConv struct wraps an iconv() conversion descriptor. It contains\n private data and should only be accessed using the following functions."]
 pub type GIConv = *mut _GIConv;
 extern "C" {
     pub fn g_iconv_open(to_codeset: *const gchar, from_codeset: *const gchar) -> GIConv;
@@ -6461,7 +6475,6 @@ pub const GFileSetContentsFlags_G_FILE_SET_CONTENTS_NONE: GFileSetContentsFlags 
 pub const GFileSetContentsFlags_G_FILE_SET_CONTENTS_CONSISTENT: GFileSetContentsFlags = 1;
 pub const GFileSetContentsFlags_G_FILE_SET_CONTENTS_DURABLE: GFileSetContentsFlags = 2;
 pub const GFileSetContentsFlags_G_FILE_SET_CONTENTS_ONLY_EXISTING: GFileSetContentsFlags = 4;
-#[doc = " GFileSetContentsFlags:\n @G_FILE_SET_CONTENTS_NONE: No guarantees about file consistency or durability.\n   The most dangerous setting, which is slightly faster than other settings.\n @G_FILE_SET_CONTENTS_CONSISTENT: Guarantee file consistency: after a crash,\n   either the old version of the file or the new version of the file will be\n   available, but not a mixture. On Unix systems this equates to an `fsync()`\n   on the file and use of an atomic `rename()` of the new version of the file\n   over the old.\n @G_FILE_SET_CONTENTS_DURABLE: Guarantee file durability: after a crash, the\n   new version of the file will be available. On Unix systems this equates to\n   an `fsync()` on the file (if %G_FILE_SET_CONTENTS_CONSISTENT is unset), or\n   the effects of %G_FILE_SET_CONTENTS_CONSISTENT plus an `fsync()` on the\n   directory containing the file after calling `rename()`.\n @G_FILE_SET_CONTENTS_ONLY_EXISTING: Only apply consistency and durability\n   guarantees if the file already exists. This may speed up file operations\n   if the file doesn’t currently exist, but may result in a corrupted version\n   of the new file if the system crashes while writing it.\n\n Flags to pass to g_file_set_contents_full() to affect its safety and\n performance.\n\n Since: 2.66"]
 pub type GFileSetContentsFlags = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_file_error_quark() -> GQuark;
@@ -6594,7 +6607,6 @@ extern "C" {
         msgid: *const gchar,
     ) -> *const gchar;
 }
-#[doc = " GMemVTable:\n @malloc: function to use for allocating memory.\n @realloc: function to use for reallocating memory.\n @free: function to use to free memory.\n @calloc: function to use for allocating zero-filled memory.\n @try_malloc: function to use for allocating memory without a default error handler.\n @try_realloc: function to use for reallocating memory without a default error handler.\n\n A set of functions used to perform memory allocation. The same #GMemVTable must\n be used for all allocations in the same program; a call to g_mem_set_vtable(),\n if it exists, should be prior to any use of GLib.\n\n This functions related to this has been deprecated in 2.46, and no longer work."]
 pub type GMemVTable = _GMemVTable;
 extern "C" {
     pub fn g_free(mem: gpointer);
@@ -7403,7 +7415,6 @@ extern "C" {
 pub struct _GHmac {
     _unused: [u8; 0],
 }
-#[doc = " GHmac:\n\n An opaque structure representing a HMAC operation.\n To create a new GHmac, use g_hmac_new(). To free\n a GHmac, use g_hmac_unref().\n\n Since: 2.30"]
 pub type GHmac = _GHmac;
 extern "C" {
     pub fn g_hmac_new(digest_type: GChecksumType, key: *const guchar, key_len: gsize)
@@ -7814,13 +7825,10 @@ extern "C" {
 extern "C" {
     pub fn g_hostname_to_unicode(hostname: *const gchar) -> *mut gchar;
 }
-#[doc = " GPollFD:\n @fd: the file descriptor to poll (or a HANDLE on Win32)\n @events: a bitwise combination from #GIOCondition, specifying which\n     events should be polled for. Typically for reading from a file\n     descriptor you would use %G_IO_IN | %G_IO_HUP | %G_IO_ERR, and\n     for writing you would use %G_IO_OUT | %G_IO_ERR.\n @revents: a bitwise combination of flags from #GIOCondition, returned\n     from the poll() function to indicate which events occurred.\n\n Represents a file descriptor, which events to poll for, and which events\n occurred."]
 pub type GPollFD = _GPollFD;
-#[doc = " GPollFunc:\n @ufds: an array of #GPollFD elements\n @nfsd: the number of elements in @ufds\n @timeout_: the maximum time to wait for an event of the file descriptors.\n     A negative value indicates an infinite timeout.\n\n Specifies the type of function passed to g_main_context_set_poll_func().\n The semantics of the function should match those of the poll() system call.\n\n Returns: the number of #GPollFD elements which have events or errors\n     reported, or -1 if an error occurred."]
 pub type GPollFunc = ::std::option::Option<
     unsafe extern "C" fn(ufds: *mut GPollFD, nfsd: guint, timeout_: gint) -> gint,
 >;
-#[doc = " GPollFD:\n @fd: the file descriptor to poll (or a HANDLE on Win32)\n @events: a bitwise combination from #GIOCondition, specifying which\n     events should be polled for. Typically for reading from a file\n     descriptor you would use %G_IO_IN | %G_IO_HUP | %G_IO_ERR, and\n     for writing you would use %G_IO_OUT | %G_IO_ERR.\n @revents: a bitwise combination of flags from #GIOCondition, returned\n     from the poll() function to indicate which events occurred.\n\n Represents a file descriptor, which events to poll for, and which events\n occurred."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GPollFD {
@@ -7874,7 +7882,6 @@ fn bindgen_test_layout__GPollFD() {
     );
 }
 extern "C" {
-    #[doc = " G_POLLFD_FORMAT:\n\n A format specifier that can be used in printf()-style format strings\n when printing the @fd member of a #GPollFD."]
     pub fn g_poll(fds: *mut GPollFD, nfds: guint, timeout: gint) -> gint;
 }
 pub type GSList = _GSList;
@@ -8043,23 +8050,19 @@ pub const GIOCondition_G_IO_NVAL: GIOCondition = 32;
 pub type GIOCondition = ::std::os::raw::c_int;
 pub const GMainContextFlags_G_MAIN_CONTEXT_FLAGS_NONE: GMainContextFlags = 0;
 pub const GMainContextFlags_G_MAIN_CONTEXT_FLAGS_OWNERLESS_POLLING: GMainContextFlags = 1;
-#[doc = " GMainContextFlags:\n @G_MAIN_CONTEXT_FLAGS_NONE: Default behaviour.\n @G_MAIN_CONTEXT_FLAGS_OWNERLESS_POLLING: Assume that polling for events will\n free the thread to process other jobs. That's useful if you're using\n `g_main_context_{prepare,query,check,dispatch}` to integrate GMainContext in\n other event loops.\n\n Flags to pass to g_main_context_new_with_flags() which affect the behaviour\n of a #GMainContext.\n\n Since: 2.72"]
 pub type GMainContextFlags = ::std::os::raw::c_int;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GMainContext {
     _unused: [u8; 0],
 }
-#[doc = " GMainContext:\n\n The `GMainContext` struct is an opaque data\n type representing a set of sources to be handled in a main loop."]
 pub type GMainContext = _GMainContext;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GMainLoop {
     _unused: [u8; 0],
 }
-#[doc = " GMainLoop:\n\n The `GMainLoop` struct is an opaque data type\n representing the main event loop of a GLib or GTK application."]
 pub type GMainLoop = _GMainLoop;
-#[doc = " GSource:\n\n The `GSource` struct is an opaque data type\n representing an event source."]
 pub type GSource = _GSource;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -8067,18 +8070,12 @@ pub struct _GSourcePrivate {
     _unused: [u8; 0],
 }
 pub type GSourcePrivate = _GSourcePrivate;
-#[doc = " GSourceCallbackFuncs:\n @ref: Called when a reference is added to the callback object\n @unref: Called when a reference to the callback object is dropped\n @get: Called to extract the callback function and data from the\n     callback object.\n\n The `GSourceCallbackFuncs` struct contains\n functions for managing callback objects."]
 pub type GSourceCallbackFuncs = _GSourceCallbackFuncs;
-#[doc = " GSourceFuncs:\n @prepare: Called before all the file descriptors are polled. If the\n     source can determine that it is ready here (without waiting for the\n     results of the poll() call) it should return %TRUE. It can also return\n     a @timeout_ value which should be the maximum timeout (in milliseconds)\n     which should be passed to the poll() call. The actual timeout used will\n     be -1 if all sources returned -1, or it will be the minimum of all\n     the @timeout_ values returned which were >= 0.  Since 2.36 this may\n     be %NULL, in which case the effect is as if the function always returns\n     %FALSE with a timeout of -1.  If @prepare returns a\n     timeout and the source also has a ready time set, then the\n     lower of the two will be used.\n @check: Called after all the file descriptors are polled. The source\n     should return %TRUE if it is ready to be dispatched. Note that some\n     time may have passed since the previous prepare function was called,\n     so the source should be checked again here.  Since 2.36 this may\n     be %NULL, in which case the effect is as if the function always returns\n     %FALSE.\n @dispatch: Called to dispatch the event source, after it has returned\n     %TRUE in either its @prepare or its @check function, or if a ready time\n     has been reached. The @dispatch function receives a callback function and\n     user data. The callback function may be %NULL if the source was never\n     connected to a callback using g_source_set_callback(). The @dispatch\n     function should call the callback function with @user_data and whatever\n     additional parameters are needed for this type of event source. The\n     return value of the @dispatch function should be %G_SOURCE_REMOVE if the\n     source should be removed or %G_SOURCE_CONTINUE to keep it.\n @finalize: Called when the source is finalized. At this point, the source\n     will have been destroyed, had its callback cleared, and have been removed\n     from its #GMainContext, but it will still have its final reference count,\n     so methods can be called on it from within this function.\n\n The `GSourceFuncs` struct contains a table of\n functions used to handle event sources in a generic manner.\n\n For idle sources, the prepare and check functions always return %TRUE\n to indicate that the source is always ready to be processed. The prepare\n function also returns a timeout value of 0 to ensure that the poll() call\n doesn't block (since that would be time wasted which could have been spent\n running the idle function).\n\n For timeout sources, the prepare and check functions both return %TRUE\n if the timeout interval has expired. The prepare function also returns\n a timeout value to ensure that the poll() call doesn't block too long\n and miss the next timeout.\n\n For file descriptor sources, the prepare function typically returns %FALSE,\n since it must wait until poll() has been called before it knows whether\n any events need to be processed. It sets the returned timeout to -1 to\n indicate that it doesn't mind how long the poll() call blocks. In the\n check function, it tests the results of the poll() call to see if the\n required condition has been met, and returns %TRUE if so."]
 pub type GSourceFuncs = _GSourceFuncs;
-#[doc = " GSourceFunc:\n @user_data: data passed to the function, set when the source was\n     created with one of the above functions\n\n Specifies the type of function passed to g_timeout_add(),\n g_timeout_add_full(), g_idle_add(), and g_idle_add_full().\n\n When calling g_source_set_callback(), you may need to cast a function of a\n different type to this type. Use G_SOURCE_FUNC() to avoid warnings about\n incompatible function types.\n\n Returns: %FALSE if the source should be removed. %G_SOURCE_CONTINUE and\n %G_SOURCE_REMOVE are more memorable names for the return value."]
 pub type GSourceFunc = ::std::option::Option<unsafe extern "C" fn(user_data: gpointer) -> gboolean>;
-#[doc = " GSourceOnceFunc:\n @user_data: data passed to the function, set when the source was\n   created\n\n A source function that is only called once before being removed from the main\n context automatically.\n\n See: g_idle_add_once(), g_timeout_add_once()\n\n Since: 2.74"]
 pub type GSourceOnceFunc = ::std::option::Option<unsafe extern "C" fn(user_data: gpointer)>;
-#[doc = " GChildWatchFunc:\n @pid: the process id of the child process\n @wait_status: Status information about the child process, encoded\n               in a platform-specific manner\n @user_data: user data passed to g_child_watch_add()\n\n Prototype of a #GChildWatchSource callback, called when a child\n process has exited.\n\n To interpret @wait_status, see the documentation\n for g_spawn_check_wait_status(). In particular,\n on Unix platforms, note that it is usually not equal\n to the integer passed to `exit()` or returned from `main()`."]
 pub type GChildWatchFunc =
     ::std::option::Option<unsafe extern "C" fn(pid: GPid, wait_status: gint, user_data: gpointer)>;
-#[doc = " GSourceDisposeFunc:\n @source: #GSource that is currently being disposed\n\n Dispose function for @source. See g_source_set_dispose_function() for\n details.\n\n Since: 2.64"]
 pub type GSourceDisposeFunc = ::std::option::Option<unsafe extern "C" fn(source: *mut GSource)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -8302,7 +8299,6 @@ fn bindgen_test_layout__GSourceCallbackFuncs() {
         )
     );
 }
-#[doc = " GSourceDummyMarshal:\n\n This is just a placeholder for #GClosureMarshal,\n which cannot be used here for dependency reasons."]
 pub type GSourceDummyMarshal = ::std::option::Option<unsafe extern "C" fn()>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -8509,7 +8505,6 @@ extern "C" {
 extern "C" {
     pub fn g_main_context_ref_thread_default() -> *mut GMainContext;
 }
-#[doc = " GMainContextPusher:\n\n Opaque type. See g_main_context_pusher_new() for details.\n\n Since: 2.64"]
 pub type GMainContextPusher = ::std::os::raw::c_void;
 extern "C" {
     pub fn g_main_loop_new(context: *mut GMainContext, is_running: gboolean) -> *mut GMainLoop;
@@ -8658,7 +8653,6 @@ extern "C" {
         user_data: gpointer,
     ) -> gboolean;
 }
-#[doc = " GClearHandleFunc:\n @handle_id: the handle ID to clear\n\n Specifies the type of function passed to g_clear_handle_id().\n The implementation is expected to free the resource identified\n by @handle_id; for instance, if @handle_id is a #GSource ID,\n g_source_remove() can be used.\n\n Since: 2.56"]
 pub type GClearHandleFunc = ::std::option::Option<unsafe extern "C" fn(handle_id: guint)>;
 extern "C" {
     pub fn g_clear_handle_id(tag_ptr: *mut guint, clear_func: GClearHandleFunc);
@@ -8747,9 +8741,7 @@ extern "C" {
 extern "C" {
     pub static mut g_idle_funcs: GSourceFuncs;
 }
-#[doc = " gunichar:\n\n A type which can hold any UTF-32 or UCS-4 character code,\n also known as a Unicode code point.\n\n If you want to produce the UTF-8 representation of a #gunichar,\n use g_ucs4_to_utf8(). See also g_utf8_to_ucs4() for the reverse\n process.\n\n To print/scan values of this type as integer, use\n %G_GINT32_MODIFIER and/or %G_GUINT32_FORMAT.\n\n The notation to express a Unicode code point in running text is\n as a hexadecimal number with four to six digits and uppercase\n letters, prefixed by the string \"U+\". Leading zeros are omitted,\n unless the code point would have fewer than four hexadecimal digits.\n For example, \"U+0041 LATIN CAPITAL LETTER A\". To print a code point\n in the U+-notation, use the format string \"U+\\%04\"G_GINT32_FORMAT\"X\".\n To scan, use the format string \"U+\\%06\"G_GINT32_FORMAT\"X\".\n\n |[\n gunichar c;\n sscanf (\"U+0041\", \"U+%06\"G_GINT32_FORMAT\"X\", &amp;c)\n g_print (\"Read U+%04\"G_GINT32_FORMAT\"X\", c);\n ]|"]
 pub type gunichar = guint32;
-#[doc = " gunichar2:\n\n A type which can hold any UTF-16 code\n point<footnote id=\"utf16_surrogate_pairs\">UTF-16 also has so called\n <firstterm>surrogate pairs</firstterm> to encode characters beyond\n the BMP as pairs of 16bit numbers. Surrogate pairs cannot be stored\n in a single gunichar2 field, but all GLib functions accepting gunichar2\n arrays will correctly interpret surrogate pairs.</footnote>.\n\n To print/scan values of this type to/from text you need to convert\n to/from UTF-8, using g_utf16_to_utf8()/g_utf8_to_utf16().\n\n To print/scan values of this type as integer, use\n %G_GINT16_MODIFIER and/or %G_GUINT16_FORMAT."]
 pub type gunichar2 = guint16;
 pub const GUnicodeType_G_UNICODE_CONTROL: GUnicodeType = 0;
 pub const GUnicodeType_G_UNICODE_FORMAT: GUnicodeType = 1;
@@ -8781,7 +8773,6 @@ pub const GUnicodeType_G_UNICODE_OTHER_SYMBOL: GUnicodeType = 26;
 pub const GUnicodeType_G_UNICODE_LINE_SEPARATOR: GUnicodeType = 27;
 pub const GUnicodeType_G_UNICODE_PARAGRAPH_SEPARATOR: GUnicodeType = 28;
 pub const GUnicodeType_G_UNICODE_SPACE_SEPARATOR: GUnicodeType = 29;
-#[doc = " GUnicodeType:\n @G_UNICODE_CONTROL: General category \"Other, Control\" (Cc)\n @G_UNICODE_FORMAT: General category \"Other, Format\" (Cf)\n @G_UNICODE_UNASSIGNED: General category \"Other, Not Assigned\" (Cn)\n @G_UNICODE_PRIVATE_USE: General category \"Other, Private Use\" (Co)\n @G_UNICODE_SURROGATE: General category \"Other, Surrogate\" (Cs)\n @G_UNICODE_LOWERCASE_LETTER: General category \"Letter, Lowercase\" (Ll)\n @G_UNICODE_MODIFIER_LETTER: General category \"Letter, Modifier\" (Lm)\n @G_UNICODE_OTHER_LETTER: General category \"Letter, Other\" (Lo)\n @G_UNICODE_TITLECASE_LETTER: General category \"Letter, Titlecase\" (Lt)\n @G_UNICODE_UPPERCASE_LETTER: General category \"Letter, Uppercase\" (Lu)\n @G_UNICODE_SPACING_MARK: General category \"Mark, Spacing\" (Mc)\n @G_UNICODE_ENCLOSING_MARK: General category \"Mark, Enclosing\" (Me)\n @G_UNICODE_NON_SPACING_MARK: General category \"Mark, Nonspacing\" (Mn)\n @G_UNICODE_DECIMAL_NUMBER: General category \"Number, Decimal Digit\" (Nd)\n @G_UNICODE_LETTER_NUMBER: General category \"Number, Letter\" (Nl)\n @G_UNICODE_OTHER_NUMBER: General category \"Number, Other\" (No)\n @G_UNICODE_CONNECT_PUNCTUATION: General category \"Punctuation, Connector\" (Pc)\n @G_UNICODE_DASH_PUNCTUATION: General category \"Punctuation, Dash\" (Pd)\n @G_UNICODE_CLOSE_PUNCTUATION: General category \"Punctuation, Close\" (Pe)\n @G_UNICODE_FINAL_PUNCTUATION: General category \"Punctuation, Final quote\" (Pf)\n @G_UNICODE_INITIAL_PUNCTUATION: General category \"Punctuation, Initial quote\" (Pi)\n @G_UNICODE_OTHER_PUNCTUATION: General category \"Punctuation, Other\" (Po)\n @G_UNICODE_OPEN_PUNCTUATION: General category \"Punctuation, Open\" (Ps)\n @G_UNICODE_CURRENCY_SYMBOL: General category \"Symbol, Currency\" (Sc)\n @G_UNICODE_MODIFIER_SYMBOL: General category \"Symbol, Modifier\" (Sk)\n @G_UNICODE_MATH_SYMBOL: General category \"Symbol, Math\" (Sm)\n @G_UNICODE_OTHER_SYMBOL: General category \"Symbol, Other\" (So)\n @G_UNICODE_LINE_SEPARATOR: General category \"Separator, Line\" (Zl)\n @G_UNICODE_PARAGRAPH_SEPARATOR: General category \"Separator, Paragraph\" (Zp)\n @G_UNICODE_SPACE_SEPARATOR: General category \"Separator, Space\" (Zs)\n\n These are the possible character classifications from the\n Unicode specification.\n See [Unicode Character Database](http://www.unicode.org/reports/tr44/#General_Category_Values)."]
 pub type GUnicodeType = ::std::os::raw::c_int;
 pub const GUnicodeBreakType_G_UNICODE_BREAK_MANDATORY: GUnicodeBreakType = 0;
 pub const GUnicodeBreakType_G_UNICODE_BREAK_CARRIAGE_RETURN: GUnicodeBreakType = 1;
@@ -8827,7 +8818,6 @@ pub const GUnicodeBreakType_G_UNICODE_BREAK_REGIONAL_INDICATOR: GUnicodeBreakTyp
 pub const GUnicodeBreakType_G_UNICODE_BREAK_EMOJI_BASE: GUnicodeBreakType = 40;
 pub const GUnicodeBreakType_G_UNICODE_BREAK_EMOJI_MODIFIER: GUnicodeBreakType = 41;
 pub const GUnicodeBreakType_G_UNICODE_BREAK_ZERO_WIDTH_JOINER: GUnicodeBreakType = 42;
-#[doc = " GUnicodeBreakType:\n @G_UNICODE_BREAK_MANDATORY: Mandatory Break (BK)\n @G_UNICODE_BREAK_CARRIAGE_RETURN: Carriage Return (CR)\n @G_UNICODE_BREAK_LINE_FEED: Line Feed (LF)\n @G_UNICODE_BREAK_COMBINING_MARK: Attached Characters and Combining Marks (CM)\n @G_UNICODE_BREAK_SURROGATE: Surrogates (SG)\n @G_UNICODE_BREAK_ZERO_WIDTH_SPACE: Zero Width Space (ZW)\n @G_UNICODE_BREAK_INSEPARABLE: Inseparable (IN)\n @G_UNICODE_BREAK_NON_BREAKING_GLUE: Non-breaking (\"Glue\") (GL)\n @G_UNICODE_BREAK_CONTINGENT: Contingent Break Opportunity (CB)\n @G_UNICODE_BREAK_SPACE: Space (SP)\n @G_UNICODE_BREAK_AFTER: Break Opportunity After (BA)\n @G_UNICODE_BREAK_BEFORE: Break Opportunity Before (BB)\n @G_UNICODE_BREAK_BEFORE_AND_AFTER: Break Opportunity Before and After (B2)\n @G_UNICODE_BREAK_HYPHEN: Hyphen (HY)\n @G_UNICODE_BREAK_NON_STARTER: Nonstarter (NS)\n @G_UNICODE_BREAK_OPEN_PUNCTUATION: Opening Punctuation (OP)\n @G_UNICODE_BREAK_CLOSE_PUNCTUATION: Closing Punctuation (CL)\n @G_UNICODE_BREAK_QUOTATION: Ambiguous Quotation (QU)\n @G_UNICODE_BREAK_EXCLAMATION: Exclamation/Interrogation (EX)\n @G_UNICODE_BREAK_IDEOGRAPHIC: Ideographic (ID)\n @G_UNICODE_BREAK_NUMERIC: Numeric (NU)\n @G_UNICODE_BREAK_INFIX_SEPARATOR: Infix Separator (Numeric) (IS)\n @G_UNICODE_BREAK_SYMBOL: Symbols Allowing Break After (SY)\n @G_UNICODE_BREAK_ALPHABETIC: Ordinary Alphabetic and Symbol Characters (AL)\n @G_UNICODE_BREAK_PREFIX: Prefix (Numeric) (PR)\n @G_UNICODE_BREAK_POSTFIX: Postfix (Numeric) (PO)\n @G_UNICODE_BREAK_COMPLEX_CONTEXT: Complex Content Dependent (South East Asian) (SA)\n @G_UNICODE_BREAK_AMBIGUOUS: Ambiguous (Alphabetic or Ideographic) (AI)\n @G_UNICODE_BREAK_UNKNOWN: Unknown (XX)\n @G_UNICODE_BREAK_NEXT_LINE: Next Line (NL)\n @G_UNICODE_BREAK_WORD_JOINER: Word Joiner (WJ)\n @G_UNICODE_BREAK_HANGUL_L_JAMO: Hangul L Jamo (JL)\n @G_UNICODE_BREAK_HANGUL_V_JAMO: Hangul V Jamo (JV)\n @G_UNICODE_BREAK_HANGUL_T_JAMO: Hangul T Jamo (JT)\n @G_UNICODE_BREAK_HANGUL_LV_SYLLABLE: Hangul LV Syllable (H2)\n @G_UNICODE_BREAK_HANGUL_LVT_SYLLABLE: Hangul LVT Syllable (H3)\n @G_UNICODE_BREAK_CLOSE_PARANTHESIS: Closing Parenthesis (CP). Since 2.28. Deprecated: 2.70: Use %G_UNICODE_BREAK_CLOSE_PARENTHESIS instead.\n @G_UNICODE_BREAK_CLOSE_PARENTHESIS: Closing Parenthesis (CP). Since 2.70\n @G_UNICODE_BREAK_CONDITIONAL_JAPANESE_STARTER: Conditional Japanese Starter (CJ). Since: 2.32\n @G_UNICODE_BREAK_HEBREW_LETTER: Hebrew Letter (HL). Since: 2.32\n @G_UNICODE_BREAK_REGIONAL_INDICATOR: Regional Indicator (RI). Since: 2.36\n @G_UNICODE_BREAK_EMOJI_BASE: Emoji Base (EB). Since: 2.50\n @G_UNICODE_BREAK_EMOJI_MODIFIER: Emoji Modifier (EM). Since: 2.50\n @G_UNICODE_BREAK_ZERO_WIDTH_JOINER: Zero Width Joiner (ZWJ). Since: 2.50\n\n These are the possible line break classifications.\n\n Since new unicode versions may add new types here, applications should be ready\n to handle unknown values. They may be regarded as %G_UNICODE_BREAK_UNKNOWN.\n\n See [Unicode Line Breaking Algorithm](https://www.unicode.org/reports/tr14/)."]
 pub type GUnicodeBreakType = ::std::os::raw::c_int;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_INVALID_CODE: GUnicodeScript = -1;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_COMMON: GUnicodeScript = 0;
@@ -8995,7 +8985,6 @@ pub const GUnicodeScript_G_UNICODE_SCRIPT_VITHKUQI: GUnicodeScript = 161;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_MATH: GUnicodeScript = 162;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_KAWI: GUnicodeScript = 163;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_NAG_MUNDARI: GUnicodeScript = 164;
-#[doc = " GUnicodeScript:\n @G_UNICODE_SCRIPT_INVALID_CODE:\n                               a value never returned from g_unichar_get_script()\n @G_UNICODE_SCRIPT_COMMON:     a character used by multiple different scripts\n @G_UNICODE_SCRIPT_INHERITED:  a mark glyph that takes its script from the\n                               base glyph to which it is attached\n @G_UNICODE_SCRIPT_ARABIC:     Arabic\n @G_UNICODE_SCRIPT_ARMENIAN:   Armenian\n @G_UNICODE_SCRIPT_BENGALI:    Bengali\n @G_UNICODE_SCRIPT_BOPOMOFO:   Bopomofo\n @G_UNICODE_SCRIPT_CHEROKEE:   Cherokee\n @G_UNICODE_SCRIPT_COPTIC:     Coptic\n @G_UNICODE_SCRIPT_CYRILLIC:   Cyrillic\n @G_UNICODE_SCRIPT_DESERET:    Deseret\n @G_UNICODE_SCRIPT_DEVANAGARI: Devanagari\n @G_UNICODE_SCRIPT_ETHIOPIC:   Ethiopic\n @G_UNICODE_SCRIPT_GEORGIAN:   Georgian\n @G_UNICODE_SCRIPT_GOTHIC:     Gothic\n @G_UNICODE_SCRIPT_GREEK:      Greek\n @G_UNICODE_SCRIPT_GUJARATI:   Gujarati\n @G_UNICODE_SCRIPT_GURMUKHI:   Gurmukhi\n @G_UNICODE_SCRIPT_HAN:        Han\n @G_UNICODE_SCRIPT_HANGUL:     Hangul\n @G_UNICODE_SCRIPT_HEBREW:     Hebrew\n @G_UNICODE_SCRIPT_HIRAGANA:   Hiragana\n @G_UNICODE_SCRIPT_KANNADA:    Kannada\n @G_UNICODE_SCRIPT_KATAKANA:   Katakana\n @G_UNICODE_SCRIPT_KHMER:      Khmer\n @G_UNICODE_SCRIPT_LAO:        Lao\n @G_UNICODE_SCRIPT_LATIN:      Latin\n @G_UNICODE_SCRIPT_MALAYALAM:  Malayalam\n @G_UNICODE_SCRIPT_MONGOLIAN:  Mongolian\n @G_UNICODE_SCRIPT_MYANMAR:    Myanmar\n @G_UNICODE_SCRIPT_OGHAM:      Ogham\n @G_UNICODE_SCRIPT_OLD_ITALIC: Old Italic\n @G_UNICODE_SCRIPT_ORIYA:      Oriya\n @G_UNICODE_SCRIPT_RUNIC:      Runic\n @G_UNICODE_SCRIPT_SINHALA:    Sinhala\n @G_UNICODE_SCRIPT_SYRIAC:     Syriac\n @G_UNICODE_SCRIPT_TAMIL:      Tamil\n @G_UNICODE_SCRIPT_TELUGU:     Telugu\n @G_UNICODE_SCRIPT_THAANA:     Thaana\n @G_UNICODE_SCRIPT_THAI:       Thai\n @G_UNICODE_SCRIPT_TIBETAN:    Tibetan\n @G_UNICODE_SCRIPT_CANADIAN_ABORIGINAL:\n                               Canadian Aboriginal\n @G_UNICODE_SCRIPT_YI:         Yi\n @G_UNICODE_SCRIPT_TAGALOG:    Tagalog\n @G_UNICODE_SCRIPT_HANUNOO:    Hanunoo\n @G_UNICODE_SCRIPT_BUHID:      Buhid\n @G_UNICODE_SCRIPT_TAGBANWA:   Tagbanwa\n @G_UNICODE_SCRIPT_BRAILLE:    Braille\n @G_UNICODE_SCRIPT_CYPRIOT:    Cypriot\n @G_UNICODE_SCRIPT_LIMBU:      Limbu\n @G_UNICODE_SCRIPT_OSMANYA:    Osmanya\n @G_UNICODE_SCRIPT_SHAVIAN:    Shavian\n @G_UNICODE_SCRIPT_LINEAR_B:   Linear B\n @G_UNICODE_SCRIPT_TAI_LE:     Tai Le\n @G_UNICODE_SCRIPT_UGARITIC:   Ugaritic\n @G_UNICODE_SCRIPT_NEW_TAI_LUE:\n                               New Tai Lue\n @G_UNICODE_SCRIPT_BUGINESE:   Buginese\n @G_UNICODE_SCRIPT_GLAGOLITIC: Glagolitic\n @G_UNICODE_SCRIPT_TIFINAGH:   Tifinagh\n @G_UNICODE_SCRIPT_SYLOTI_NAGRI:\n                               Syloti Nagri\n @G_UNICODE_SCRIPT_OLD_PERSIAN:\n                               Old Persian\n @G_UNICODE_SCRIPT_KHAROSHTHI: Kharoshthi\n @G_UNICODE_SCRIPT_UNKNOWN:    an unassigned code point\n @G_UNICODE_SCRIPT_BALINESE:   Balinese\n @G_UNICODE_SCRIPT_CUNEIFORM:  Cuneiform\n @G_UNICODE_SCRIPT_PHOENICIAN: Phoenician\n @G_UNICODE_SCRIPT_PHAGS_PA:   Phags-pa\n @G_UNICODE_SCRIPT_NKO:        N'Ko\n @G_UNICODE_SCRIPT_KAYAH_LI:   Kayah Li. Since 2.16.3\n @G_UNICODE_SCRIPT_LEPCHA:     Lepcha. Since 2.16.3\n @G_UNICODE_SCRIPT_REJANG:     Rejang. Since 2.16.3\n @G_UNICODE_SCRIPT_SUNDANESE:  Sundanese. Since 2.16.3\n @G_UNICODE_SCRIPT_SAURASHTRA: Saurashtra. Since 2.16.3\n @G_UNICODE_SCRIPT_CHAM:       Cham. Since 2.16.3\n @G_UNICODE_SCRIPT_OL_CHIKI:   Ol Chiki. Since 2.16.3\n @G_UNICODE_SCRIPT_VAI:        Vai. Since 2.16.3\n @G_UNICODE_SCRIPT_CARIAN:     Carian. Since 2.16.3\n @G_UNICODE_SCRIPT_LYCIAN:     Lycian. Since 2.16.3\n @G_UNICODE_SCRIPT_LYDIAN:     Lydian. Since 2.16.3\n @G_UNICODE_SCRIPT_AVESTAN:    Avestan. Since 2.26\n @G_UNICODE_SCRIPT_BAMUM:      Bamum. Since 2.26\n @G_UNICODE_SCRIPT_EGYPTIAN_HIEROGLYPHS:\n                               Egyptian Hieroglpyhs. Since 2.26\n @G_UNICODE_SCRIPT_IMPERIAL_ARAMAIC:\n                               Imperial Aramaic. Since 2.26\n @G_UNICODE_SCRIPT_INSCRIPTIONAL_PAHLAVI:\n                               Inscriptional Pahlavi. Since 2.26\n @G_UNICODE_SCRIPT_INSCRIPTIONAL_PARTHIAN:\n                               Inscriptional Parthian. Since 2.26\n @G_UNICODE_SCRIPT_JAVANESE:   Javanese. Since 2.26\n @G_UNICODE_SCRIPT_KAITHI:     Kaithi. Since 2.26\n @G_UNICODE_SCRIPT_LISU:       Lisu. Since 2.26\n @G_UNICODE_SCRIPT_MEETEI_MAYEK:\n                               Meetei Mayek. Since 2.26\n @G_UNICODE_SCRIPT_OLD_SOUTH_ARABIAN:\n                               Old South Arabian. Since 2.26\n @G_UNICODE_SCRIPT_OLD_TURKIC: Old Turkic. Since 2.28\n @G_UNICODE_SCRIPT_SAMARITAN:  Samaritan. Since 2.26\n @G_UNICODE_SCRIPT_TAI_THAM:   Tai Tham. Since 2.26\n @G_UNICODE_SCRIPT_TAI_VIET:   Tai Viet. Since 2.26\n @G_UNICODE_SCRIPT_BATAK:      Batak. Since 2.28\n @G_UNICODE_SCRIPT_BRAHMI:     Brahmi. Since 2.28\n @G_UNICODE_SCRIPT_MANDAIC:    Mandaic. Since 2.28\n @G_UNICODE_SCRIPT_CHAKMA:               Chakma. Since: 2.32\n @G_UNICODE_SCRIPT_MEROITIC_CURSIVE:     Meroitic Cursive. Since: 2.32\n @G_UNICODE_SCRIPT_MEROITIC_HIEROGLYPHS: Meroitic Hieroglyphs. Since: 2.32\n @G_UNICODE_SCRIPT_MIAO:                 Miao. Since: 2.32\n @G_UNICODE_SCRIPT_SHARADA:              Sharada. Since: 2.32\n @G_UNICODE_SCRIPT_SORA_SOMPENG:         Sora Sompeng. Since: 2.32\n @G_UNICODE_SCRIPT_TAKRI:                Takri. Since: 2.32\n @G_UNICODE_SCRIPT_BASSA_VAH:            Bassa. Since: 2.42\n @G_UNICODE_SCRIPT_CAUCASIAN_ALBANIAN:   Caucasian Albanian. Since: 2.42\n @G_UNICODE_SCRIPT_DUPLOYAN:             Duployan. Since: 2.42\n @G_UNICODE_SCRIPT_ELBASAN:              Elbasan. Since: 2.42\n @G_UNICODE_SCRIPT_GRANTHA:              Grantha. Since: 2.42\n @G_UNICODE_SCRIPT_KHOJKI:               Kjohki. Since: 2.42\n @G_UNICODE_SCRIPT_KHUDAWADI:            Khudawadi, Sindhi. Since: 2.42\n @G_UNICODE_SCRIPT_LINEAR_A:             Linear A. Since: 2.42\n @G_UNICODE_SCRIPT_MAHAJANI:             Mahajani. Since: 2.42\n @G_UNICODE_SCRIPT_MANICHAEAN:           Manichaean. Since: 2.42\n @G_UNICODE_SCRIPT_MENDE_KIKAKUI:        Mende Kikakui. Since: 2.42\n @G_UNICODE_SCRIPT_MODI:                 Modi. Since: 2.42\n @G_UNICODE_SCRIPT_MRO:                  Mro. Since: 2.42\n @G_UNICODE_SCRIPT_NABATAEAN:            Nabataean. Since: 2.42\n @G_UNICODE_SCRIPT_OLD_NORTH_ARABIAN:    Old North Arabian. Since: 2.42\n @G_UNICODE_SCRIPT_OLD_PERMIC:           Old Permic. Since: 2.42\n @G_UNICODE_SCRIPT_PAHAWH_HMONG:         Pahawh Hmong. Since: 2.42\n @G_UNICODE_SCRIPT_PALMYRENE:            Palmyrene. Since: 2.42\n @G_UNICODE_SCRIPT_PAU_CIN_HAU:          Pau Cin Hau. Since: 2.42\n @G_UNICODE_SCRIPT_PSALTER_PAHLAVI:      Psalter Pahlavi. Since: 2.42\n @G_UNICODE_SCRIPT_SIDDHAM:              Siddham. Since: 2.42\n @G_UNICODE_SCRIPT_TIRHUTA:              Tirhuta. Since: 2.42\n @G_UNICODE_SCRIPT_WARANG_CITI:          Warang Citi. Since: 2.42\n @G_UNICODE_SCRIPT_AHOM:                 Ahom. Since: 2.48\n @G_UNICODE_SCRIPT_ANATOLIAN_HIEROGLYPHS: Anatolian Hieroglyphs. Since: 2.48\n @G_UNICODE_SCRIPT_HATRAN:               Hatran. Since: 2.48\n @G_UNICODE_SCRIPT_MULTANI:              Multani. Since: 2.48\n @G_UNICODE_SCRIPT_OLD_HUNGARIAN:        Old Hungarian. Since: 2.48\n @G_UNICODE_SCRIPT_SIGNWRITING:          Signwriting. Since: 2.48\n @G_UNICODE_SCRIPT_ADLAM:                Adlam. Since: 2.50\n @G_UNICODE_SCRIPT_BHAIKSUKI:            Bhaiksuki. Since: 2.50\n @G_UNICODE_SCRIPT_MARCHEN:              Marchen. Since: 2.50\n @G_UNICODE_SCRIPT_NEWA:                 Newa. Since: 2.50\n @G_UNICODE_SCRIPT_OSAGE:                Osage. Since: 2.50\n @G_UNICODE_SCRIPT_TANGUT:               Tangut. Since: 2.50\n @G_UNICODE_SCRIPT_MASARAM_GONDI:        Masaram Gondi. Since: 2.54\n @G_UNICODE_SCRIPT_NUSHU:                Nushu. Since: 2.54\n @G_UNICODE_SCRIPT_SOYOMBO:              Soyombo. Since: 2.54\n @G_UNICODE_SCRIPT_ZANABAZAR_SQUARE:     Zanabazar Square. Since: 2.54\n @G_UNICODE_SCRIPT_DOGRA:                Dogra. Since: 2.58\n @G_UNICODE_SCRIPT_GUNJALA_GONDI:        Gunjala Gondi. Since: 2.58\n @G_UNICODE_SCRIPT_HANIFI_ROHINGYA:      Hanifi Rohingya. Since: 2.58\n @G_UNICODE_SCRIPT_MAKASAR:              Makasar. Since: 2.58\n @G_UNICODE_SCRIPT_MEDEFAIDRIN:          Medefaidrin. Since: 2.58\n @G_UNICODE_SCRIPT_OLD_SOGDIAN:          Old Sogdian. Since: 2.58\n @G_UNICODE_SCRIPT_SOGDIAN:              Sogdian. Since: 2.58\n @G_UNICODE_SCRIPT_ELYMAIC:              Elym. Since: 2.62\n @G_UNICODE_SCRIPT_NANDINAGARI:          Nand. Since: 2.62\n @G_UNICODE_SCRIPT_NYIAKENG_PUACHUE_HMONG: Rohg. Since: 2.62\n @G_UNICODE_SCRIPT_WANCHO:               Wcho. Since: 2.62\n @G_UNICODE_SCRIPT_CHORASMIAN:           Chorasmian. Since: 2.66\n @G_UNICODE_SCRIPT_DIVES_AKURU:          Dives Akuru. Since: 2.66\n @G_UNICODE_SCRIPT_KHITAN_SMALL_SCRIPT:  Khitan small script. Since: 2.66\n @G_UNICODE_SCRIPT_YEZIDI:               Yezidi. Since: 2.66\n @G_UNICODE_SCRIPT_CYPRO_MINOAN:         Cypro-Minoan. Since: 2.72\n @G_UNICODE_SCRIPT_OLD_UYGHUR:           Old Uyghur. Since: 2.72\n @G_UNICODE_SCRIPT_TANGSA:               Tangsa. Since: 2.72\n @G_UNICODE_SCRIPT_TOTO:                 Toto. Since: 2.72\n @G_UNICODE_SCRIPT_VITHKUQI:             Vithkuqi. Since: 2.72\n @G_UNICODE_SCRIPT_MATH:                 Mathematical notation. Since: 2.72\n @G_UNICODE_SCRIPT_KAWI:                 Kawi. Since 2.74\n @G_UNICODE_SCRIPT_NAG_MUNDARI:          Nag Mundari. Since 2.74\n\n The #GUnicodeScript enumeration identifies different writing\n systems. The values correspond to the names as defined in the\n Unicode standard. The enumeration has been added in GLib 2.14,\n and is interchangeable with #PangoScript.\n\n Note that new types may be added in the future. Applications\n should be ready to handle unknown values.\n See [Unicode Standard Annex #24: Script names](http://www.unicode.org/reports/tr24/)."]
 pub type GUnicodeScript = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_unicode_script_to_iso15924(script: GUnicodeScript) -> guint32;
@@ -9245,7 +9234,6 @@ pub const GNormalizeMode_G_NORMALIZE_ALL: GNormalizeMode = 2;
 pub const GNormalizeMode_G_NORMALIZE_NFKD: GNormalizeMode = 2;
 pub const GNormalizeMode_G_NORMALIZE_ALL_COMPOSE: GNormalizeMode = 3;
 pub const GNormalizeMode_G_NORMALIZE_NFKC: GNormalizeMode = 3;
-#[doc = " GNormalizeMode:\n @G_NORMALIZE_DEFAULT: standardize differences that do not affect the\n     text content, such as the above-mentioned accent representation\n @G_NORMALIZE_NFD: another name for %G_NORMALIZE_DEFAULT\n @G_NORMALIZE_DEFAULT_COMPOSE: like %G_NORMALIZE_DEFAULT, but with\n     composed forms rather than a maximally decomposed form\n @G_NORMALIZE_NFC: another name for %G_NORMALIZE_DEFAULT_COMPOSE\n @G_NORMALIZE_ALL: beyond %G_NORMALIZE_DEFAULT also standardize the\n     \"compatibility\" characters in Unicode, such as SUPERSCRIPT THREE\n     to the standard forms (in this case DIGIT THREE). Formatting\n     information may be lost but for most text operations such\n     characters should be considered the same\n @G_NORMALIZE_NFKD: another name for %G_NORMALIZE_ALL\n @G_NORMALIZE_ALL_COMPOSE: like %G_NORMALIZE_ALL, but with composed\n     forms rather than a maximally decomposed form\n @G_NORMALIZE_NFKC: another name for %G_NORMALIZE_ALL_COMPOSE\n\n Defines how a Unicode string is transformed in a canonical\n form, standardizing such issues as whether a character with\n an accent is represented as a base character and combining\n accent or as a single precomposed character. Unicode strings\n should generally be normalized before comparing them."]
 pub type GNormalizeMode = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_utf8_normalize(str_: *const gchar, len: gssize, mode: GNormalizeMode) -> *mut gchar;
@@ -9485,7 +9473,6 @@ extern "C" {
 }
 pub const GNumberParserError_G_NUMBER_PARSER_ERROR_INVALID: GNumberParserError = 0;
 pub const GNumberParserError_G_NUMBER_PARSER_ERROR_OUT_OF_BOUNDS: GNumberParserError = 1;
-#[doc = " GNumberParserError:\n @G_NUMBER_PARSER_ERROR_INVALID: String was not a valid number.\n @G_NUMBER_PARSER_ERROR_OUT_OF_BOUNDS: String was a number, but out of bounds.\n\n Error codes returned by functions converting a string to a number.\n\n Since: 2.54"]
 pub type GNumberParserError = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_number_parser_error_quark() -> GQuark;
@@ -10833,7 +10820,6 @@ pub const GMarkupError_G_MARKUP_ERROR_UNKNOWN_ELEMENT: GMarkupError = 3;
 pub const GMarkupError_G_MARKUP_ERROR_UNKNOWN_ATTRIBUTE: GMarkupError = 4;
 pub const GMarkupError_G_MARKUP_ERROR_INVALID_CONTENT: GMarkupError = 5;
 pub const GMarkupError_G_MARKUP_ERROR_MISSING_ATTRIBUTE: GMarkupError = 6;
-#[doc = " GMarkupError:\n @G_MARKUP_ERROR_BAD_UTF8: text being parsed was not valid UTF-8\n @G_MARKUP_ERROR_EMPTY: document contained nothing, or only whitespace\n @G_MARKUP_ERROR_PARSE: document was ill-formed\n @G_MARKUP_ERROR_UNKNOWN_ELEMENT: error should be set by #GMarkupParser\n     functions; element wasn't known\n @G_MARKUP_ERROR_UNKNOWN_ATTRIBUTE: error should be set by #GMarkupParser\n     functions; attribute wasn't known\n @G_MARKUP_ERROR_INVALID_CONTENT: error should be set by #GMarkupParser\n     functions; content was invalid\n @G_MARKUP_ERROR_MISSING_ATTRIBUTE: error should be set by #GMarkupParser\n     functions; a required attribute was missing\n\n Error codes returned by markup parsing."]
 pub type GMarkupError = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_markup_error_quark() -> GQuark;
@@ -10843,18 +10829,14 @@ pub const GMarkupParseFlags_G_MARKUP_DO_NOT_USE_THIS_UNSUPPORTED_FLAG: GMarkupPa
 pub const GMarkupParseFlags_G_MARKUP_TREAT_CDATA_AS_TEXT: GMarkupParseFlags = 2;
 pub const GMarkupParseFlags_G_MARKUP_PREFIX_ERROR_POSITION: GMarkupParseFlags = 4;
 pub const GMarkupParseFlags_G_MARKUP_IGNORE_QUALIFIED: GMarkupParseFlags = 8;
-#[doc = " GMarkupParseFlags:\n @G_MARKUP_DEFAULT_FLAGS: No special behaviour. Since: 2.74\n @G_MARKUP_DO_NOT_USE_THIS_UNSUPPORTED_FLAG: flag you should not use\n @G_MARKUP_TREAT_CDATA_AS_TEXT: When this flag is set, CDATA marked\n     sections are not passed literally to the @passthrough function of\n     the parser. Instead, the content of the section (without the\n     `<![CDATA[` and `]]>`) is\n     passed to the @text function. This flag was added in GLib 2.12\n @G_MARKUP_PREFIX_ERROR_POSITION: Normally errors caught by GMarkup\n     itself have line/column information prefixed to them to let the\n     caller know the location of the error. When this flag is set the\n     location information is also prefixed to errors generated by the\n     #GMarkupParser implementation functions\n @G_MARKUP_IGNORE_QUALIFIED: Ignore (don't report) qualified\n     attributes and tags, along with their contents.  A qualified\n     attribute or tag is one that contains ':' in its name (ie: is in\n     another namespace).  Since: 2.40.\n\n Flags that affect the behaviour of the parser."]
 pub type GMarkupParseFlags = ::std::os::raw::c_int;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GMarkupParseContext {
     _unused: [u8; 0],
 }
-#[doc = " GMarkupParseContext:\n\n A parse context is used to parse a stream of bytes that\n you expect to contain marked-up text.\n\n See g_markup_parse_context_new(), #GMarkupParser, and so\n on for more details."]
 pub type GMarkupParseContext = _GMarkupParseContext;
-#[doc = " GMarkupParser:\n @start_element: Callback to invoke when the opening tag of an element\n     is seen. The callback's @attribute_names and @attribute_values parameters\n     are %NULL-terminated.\n @end_element: Callback to invoke when the closing tag of an element\n     is seen. Note that this is also called for empty tags like\n     `<empty/>`.\n @text: Callback to invoke when some text is seen (text is always\n     inside an element). Note that the text of an element may be spread\n     over multiple calls of this function. If the\n     %G_MARKUP_TREAT_CDATA_AS_TEXT flag is set, this function is also\n     called for the content of CDATA marked sections.\n @passthrough: Callback to invoke for comments, processing instructions\n     and doctype declarations; if you're re-writing the parsed document,\n     write the passthrough text back out in the same position. If the\n     %G_MARKUP_TREAT_CDATA_AS_TEXT flag is not set, this function is also\n     called for CDATA marked sections.\n @error: Callback to invoke when an error occurs.\n\n Any of the fields in #GMarkupParser can be %NULL, in which case they\n will be ignored. Except for the @error function, any of these callbacks\n can set an error; in particular the %G_MARKUP_ERROR_UNKNOWN_ELEMENT,\n %G_MARKUP_ERROR_UNKNOWN_ATTRIBUTE, and %G_MARKUP_ERROR_INVALID_CONTENT\n errors are intended to be set from these callbacks. If you set an error\n from a callback, g_markup_parse_context_parse() will report that error\n back to its caller."]
 pub type GMarkupParser = _GMarkupParser;
-#[doc = " GMarkupParser:\n @start_element: Callback to invoke when the opening tag of an element\n     is seen. The callback's @attribute_names and @attribute_values parameters\n     are %NULL-terminated.\n @end_element: Callback to invoke when the closing tag of an element\n     is seen. Note that this is also called for empty tags like\n     `<empty/>`.\n @text: Callback to invoke when some text is seen (text is always\n     inside an element). Note that the text of an element may be spread\n     over multiple calls of this function. If the\n     %G_MARKUP_TREAT_CDATA_AS_TEXT flag is set, this function is also\n     called for the content of CDATA marked sections.\n @passthrough: Callback to invoke for comments, processing instructions\n     and doctype declarations; if you're re-writing the parsed document,\n     write the passthrough text back out in the same position. If the\n     %G_MARKUP_TREAT_CDATA_AS_TEXT flag is not set, this function is also\n     called for CDATA marked sections.\n @error: Callback to invoke when an error occurs.\n\n Any of the fields in #GMarkupParser can be %NULL, in which case they\n will be ignored. Except for the @error function, any of these callbacks\n can set an error; in particular the %G_MARKUP_ERROR_UNKNOWN_ELEMENT,\n %G_MARKUP_ERROR_UNKNOWN_ATTRIBUTE, and %G_MARKUP_ERROR_INVALID_CONTENT\n errors are intended to be set from these callbacks. If you set an error\n from a callback, g_markup_parse_context_parse() will report that error\n back to its caller."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GMarkupParser {
@@ -11063,7 +11045,6 @@ extern "C" {
 pub struct _GVariantType {
     _unused: [u8; 0],
 }
-#[doc = " GVariantType:\n\n A type in the GVariant type system.\n\n Two types may not be compared by value; use g_variant_type_equal() or\n g_variant_type_is_subtype_of().  May be copied using\n g_variant_type_copy() and freed using g_variant_type_free()."]
 pub type GVariantType = _GVariantType;
 extern "C" {
     pub fn g_variant_type_string_is_valid(type_string: *const gchar) -> gboolean;
@@ -12051,9 +12032,7 @@ extern "C" {
 }
 pub const GLogWriterOutput_G_LOG_WRITER_HANDLED: GLogWriterOutput = 1;
 pub const GLogWriterOutput_G_LOG_WRITER_UNHANDLED: GLogWriterOutput = 0;
-#[doc = " GLogWriterOutput:\n @G_LOG_WRITER_HANDLED: Log writer has handled the log entry.\n @G_LOG_WRITER_UNHANDLED: Log writer could not handle the log entry.\n\n Return values from #GLogWriterFuncs to indicate whether the given log entry\n was successfully handled by the writer, or whether there was an error in\n handling it (and hence a fallback writer should be used).\n\n If a #GLogWriterFunc ignores a log entry, it should return\n %G_LOG_WRITER_HANDLED.\n\n Since: 2.50"]
 pub type GLogWriterOutput = ::std::os::raw::c_int;
-#[doc = " GLogField:\n @key: field name (UTF-8 string)\n @value: field value (arbitrary bytes)\n @length: length of @value, in bytes, or -1 if it is nul-terminated\n\n Structure representing a single field in a structured log entry. See\n g_log_structured() for details.\n\n Log fields may contain arbitrary values, including binary with embedded nul\n bytes. If the field contains a string, the string must be UTF-8 encoded and\n have a trailing nul byte. Otherwise, @length must be set to a non-negative\n value.\n\n Since: 2.50"]
 pub type GLogField = _GLogField;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -12107,7 +12086,6 @@ fn bindgen_test_layout__GLogField() {
         )
     );
 }
-#[doc = " GLogWriterFunc:\n @log_level: log level of the message\n @fields: (array length=n_fields): fields forming the message\n @n_fields: number of @fields\n @user_data: user data passed to g_log_set_writer_func()\n\n Writer function for log entries. A log entry is a collection of one or more\n #GLogFields, using the standard [field names from journal\n specification](https://www.freedesktop.org/software/systemd/man/systemd.journal-fields.html).\n See g_log_structured() for more information.\n\n Writer functions must ignore fields which they do not recognise, unless they\n can write arbitrary binary output, as field values may be arbitrary binary.\n\n @log_level is guaranteed to be included in @fields as the `PRIORITY` field,\n but is provided separately for convenience of deciding whether or where to\n output the log entry.\n\n Writer functions should return %G_LOG_WRITER_HANDLED if they handled the log\n message successfully or if they deliberately ignored it. If there was an\n error handling the message (for example, if the writer function is meant to\n send messages to a remote logging server and there is a network error), it\n should return %G_LOG_WRITER_UNHANDLED. This allows writer functions to be\n chained and fall back to simpler handlers in case of failure.\n\n Returns: %G_LOG_WRITER_HANDLED if the log entry was handled successfully;\n   %G_LOG_WRITER_UNHANDLED otherwise\n\n Since: 2.50"]
 pub type GLogWriterFunc = ::std::option::Option<
     unsafe extern "C" fn(
         log_level: GLogLevelFlags,
@@ -12237,7 +12215,6 @@ extern "C" {
         ...
     );
 }
-#[doc = " GPrintFunc:\n @string: the message to output\n\n Specifies the type of the print handler functions.\n These are called with the complete formatted string to output."]
 pub type GPrintFunc = ::std::option::Option<unsafe extern "C" fn(string: *const gchar)>;
 extern "C" {
     pub fn g_print(format: *const gchar, ...);
@@ -12256,16 +12233,13 @@ extern "C" {
 pub struct _GOptionContext {
     _unused: [u8; 0],
 }
-#[doc = " GOptionContext:\n\n A `GOptionContext` struct defines which options\n are accepted by the commandline option parser. The struct has only private\n fields and should not be directly accessed."]
 pub type GOptionContext = _GOptionContext;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GOptionGroup {
     _unused: [u8; 0],
 }
-#[doc = " GOptionGroup:\n\n A `GOptionGroup` struct defines the options in a single\n group. The struct has only private fields and should not be directly accessed.\n\n All options in a group share the same translation function. Libraries which\n need to parse commandline options are expected to provide a function for\n getting a `GOptionGroup` holding their options, which\n the application can then add to its #GOptionContext."]
 pub type GOptionGroup = _GOptionGroup;
-#[doc = " GOptionEntry:\n @long_name: The long name of an option can be used to specify it\n     in a commandline as `--long_name`. Every option must have a\n     long name. To resolve conflicts if multiple option groups contain\n     the same long name, it is also possible to specify the option as\n     `--groupname-long_name`.\n @short_name: If an option has a short name, it can be specified\n     `-short_name` in a commandline. @short_name must be  a printable\n     ASCII character different from '-', or zero if the option has no\n     short name.\n @flags: Flags from #GOptionFlags\n @arg: The type of the option, as a #GOptionArg\n @arg_data: If the @arg type is %G_OPTION_ARG_CALLBACK, then @arg_data\n     must point to a #GOptionArgFunc callback function, which will be\n     called to handle the extra argument. Otherwise, @arg_data is a\n     pointer to a location to store the value, the required type of\n     the location depends on the @arg type:\n      - %G_OPTION_ARG_NONE: %gboolean\n      - %G_OPTION_ARG_STRING: %gchar*\n      - %G_OPTION_ARG_INT: %gint\n      - %G_OPTION_ARG_FILENAME: %gchar*\n      - %G_OPTION_ARG_STRING_ARRAY: %gchar**\n      - %G_OPTION_ARG_FILENAME_ARRAY: %gchar**\n      - %G_OPTION_ARG_DOUBLE: %gdouble\n     If @arg type is %G_OPTION_ARG_STRING or %G_OPTION_ARG_FILENAME,\n     the location will contain a newly allocated string if the option\n     was given. That string needs to be freed by the callee using g_free().\n     Likewise if @arg type is %G_OPTION_ARG_STRING_ARRAY or\n     %G_OPTION_ARG_FILENAME_ARRAY, the data should be freed using g_strfreev().\n @description: the description for the option in `--help`\n     output. The @description is translated using the @translate_func\n     of the group, see g_option_group_set_translation_domain().\n @arg_description: The placeholder to use for the extra argument parsed\n     by the option in `--help` output. The @arg_description is translated\n     using the @translate_func of the group, see\n     g_option_group_set_translation_domain().\n\n A GOptionEntry struct defines a single option. To have an effect, they\n must be added to a #GOptionGroup with g_option_context_add_main_entries()\n or g_option_group_add_entries()."]
 pub type GOptionEntry = _GOptionEntry;
 pub const GOptionFlags_G_OPTION_FLAG_NONE: GOptionFlags = 0;
 pub const GOptionFlags_G_OPTION_FLAG_HIDDEN: GOptionFlags = 1;
@@ -12275,7 +12249,6 @@ pub const GOptionFlags_G_OPTION_FLAG_NO_ARG: GOptionFlags = 8;
 pub const GOptionFlags_G_OPTION_FLAG_FILENAME: GOptionFlags = 16;
 pub const GOptionFlags_G_OPTION_FLAG_OPTIONAL_ARG: GOptionFlags = 32;
 pub const GOptionFlags_G_OPTION_FLAG_NOALIAS: GOptionFlags = 64;
-#[doc = " GOptionFlags:\n @G_OPTION_FLAG_NONE: No flags. Since: 2.42.\n @G_OPTION_FLAG_HIDDEN: The option doesn't appear in `--help` output.\n @G_OPTION_FLAG_IN_MAIN: The option appears in the main section of the\n     `--help` output, even if it is defined in a group.\n @G_OPTION_FLAG_REVERSE: For options of the %G_OPTION_ARG_NONE kind, this\n     flag indicates that the sense of the option is reversed. i.e. %FALSE will\n     be stored into the argument rather than %TRUE.\n @G_OPTION_FLAG_NO_ARG: For options of the %G_OPTION_ARG_CALLBACK kind,\n     this flag indicates that the callback does not take any argument\n     (like a %G_OPTION_ARG_NONE option). Since 2.8\n @G_OPTION_FLAG_FILENAME: For options of the %G_OPTION_ARG_CALLBACK\n     kind, this flag indicates that the argument should be passed to the\n     callback in the GLib filename encoding rather than UTF-8. Since 2.8\n @G_OPTION_FLAG_OPTIONAL_ARG: For options of the %G_OPTION_ARG_CALLBACK\n     kind, this flag indicates that the argument supply is optional.\n     If no argument is given then data of %GOptionParseFunc will be\n     set to NULL. Since 2.8\n @G_OPTION_FLAG_NOALIAS: This flag turns off the automatic conflict\n     resolution which prefixes long option names with `groupname-` if\n     there is a conflict. This option should only be used in situations\n     where aliasing is necessary to model some legacy commandline interface.\n     It is not safe to use this option, unless all option groups are under\n     your direct control. Since 2.8.\n\n Flags which modify individual options."]
 pub type GOptionFlags = ::std::os::raw::c_int;
 pub const GOptionArg_G_OPTION_ARG_NONE: GOptionArg = 0;
 pub const GOptionArg_G_OPTION_ARG_STRING: GOptionArg = 1;
@@ -12286,9 +12259,7 @@ pub const GOptionArg_G_OPTION_ARG_STRING_ARRAY: GOptionArg = 5;
 pub const GOptionArg_G_OPTION_ARG_FILENAME_ARRAY: GOptionArg = 6;
 pub const GOptionArg_G_OPTION_ARG_DOUBLE: GOptionArg = 7;
 pub const GOptionArg_G_OPTION_ARG_INT64: GOptionArg = 8;
-#[doc = " GOptionArg:\n @G_OPTION_ARG_NONE: No extra argument. This is useful for simple flags or booleans.\n @G_OPTION_ARG_STRING: The option takes a UTF-8 string argument.\n @G_OPTION_ARG_INT: The option takes an integer argument.\n @G_OPTION_ARG_CALLBACK: The option provides a callback (of type\n     #GOptionArgFunc) to parse the extra argument.\n @G_OPTION_ARG_FILENAME: The option takes a filename as argument, which will\nbe in the GLib filename encoding rather than UTF-8.\n @G_OPTION_ARG_STRING_ARRAY: The option takes a string argument, multiple\n     uses of the option are collected into an array of strings.\n @G_OPTION_ARG_FILENAME_ARRAY: The option takes a filename as argument,\n     multiple uses of the option are collected into an array of strings.\n @G_OPTION_ARG_DOUBLE: The option takes a double argument. The argument\n     can be formatted either for the user's locale or for the \"C\" locale.\n     Since 2.12\n @G_OPTION_ARG_INT64: The option takes a 64-bit integer. Like\n     %G_OPTION_ARG_INT but for larger numbers. The number can be in\n     decimal base, or in hexadecimal (when prefixed with `0x`, for\n     example, `0xffffffff`). Since 2.12\n\n The #GOptionArg enum values determine which type of extra argument the\n options expect to find. If an option expects an extra argument, it can\n be specified in several ways; with a short option: `-x arg`, with a long\n option: `--name arg` or combined in a single argument: `--name=arg`."]
 pub type GOptionArg = ::std::os::raw::c_int;
-#[doc = " GOptionArgFunc:\n @option_name: The name of the option being parsed. This will be either a\n  single dash followed by a single letter (for a short name) or two dashes\n  followed by a long option name.\n @value: The value to be parsed.\n @data: User data added to the #GOptionGroup containing the option when it\n  was created with g_option_group_new()\n @error: A return location for errors. The error code %G_OPTION_ERROR_FAILED\n  is intended to be used for errors in #GOptionArgFunc callbacks.\n\n The type of function to be passed as callback for %G_OPTION_ARG_CALLBACK\n options.\n\n Returns: %TRUE if the option was successfully parsed, %FALSE if an error\n  occurred, in which case @error should be set with g_set_error()"]
 pub type GOptionArgFunc = ::std::option::Option<
     unsafe extern "C" fn(
         option_name: *const gchar,
@@ -12297,7 +12268,6 @@ pub type GOptionArgFunc = ::std::option::Option<
         error: *mut *mut GError,
     ) -> gboolean,
 >;
-#[doc = " GOptionParseFunc:\n @context: The active #GOptionContext\n @group: The group to which the function belongs\n @data: User data added to the #GOptionGroup containing the option when it\n  was created with g_option_group_new()\n @error: A return location for error details\n\n The type of function that can be called before and after parsing.\n\n Returns: %TRUE if the function completed successfully, %FALSE if an error\n  occurred, in which case @error should be set with g_set_error()"]
 pub type GOptionParseFunc = ::std::option::Option<
     unsafe extern "C" fn(
         context: *mut GOptionContext,
@@ -12306,7 +12276,6 @@ pub type GOptionParseFunc = ::std::option::Option<
         error: *mut *mut GError,
     ) -> gboolean,
 >;
-#[doc = " GOptionErrorFunc:\n @context: The active #GOptionContext\n @group: The group to which the function belongs\n @data: User data added to the #GOptionGroup containing the option when it\n  was created with g_option_group_new()\n @error: The #GError containing details about the parse error\n\n The type of function to be used as callback when a parse error occurs."]
 pub type GOptionErrorFunc = ::std::option::Option<
     unsafe extern "C" fn(
         context: *mut GOptionContext,
@@ -12318,12 +12287,10 @@ pub type GOptionErrorFunc = ::std::option::Option<
 pub const GOptionError_G_OPTION_ERROR_UNKNOWN_OPTION: GOptionError = 0;
 pub const GOptionError_G_OPTION_ERROR_BAD_VALUE: GOptionError = 1;
 pub const GOptionError_G_OPTION_ERROR_FAILED: GOptionError = 2;
-#[doc = " GOptionError:\n @G_OPTION_ERROR_UNKNOWN_OPTION: An option was not known to the parser.\n  This error will only be reported, if the parser hasn't been instructed\n  to ignore unknown options, see g_option_context_set_ignore_unknown_options().\n @G_OPTION_ERROR_BAD_VALUE: A value couldn't be parsed.\n @G_OPTION_ERROR_FAILED: A #GOptionArgFunc callback failed.\n\n Error codes returned by option parsing."]
 pub type GOptionError = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_option_error_quark() -> GQuark;
 }
-#[doc = " GOptionEntry:\n @long_name: The long name of an option can be used to specify it\n     in a commandline as `--long_name`. Every option must have a\n     long name. To resolve conflicts if multiple option groups contain\n     the same long name, it is also possible to specify the option as\n     `--groupname-long_name`.\n @short_name: If an option has a short name, it can be specified\n     `-short_name` in a commandline. @short_name must be  a printable\n     ASCII character different from '-', or zero if the option has no\n     short name.\n @flags: Flags from #GOptionFlags\n @arg: The type of the option, as a #GOptionArg\n @arg_data: If the @arg type is %G_OPTION_ARG_CALLBACK, then @arg_data\n     must point to a #GOptionArgFunc callback function, which will be\n     called to handle the extra argument. Otherwise, @arg_data is a\n     pointer to a location to store the value, the required type of\n     the location depends on the @arg type:\n      - %G_OPTION_ARG_NONE: %gboolean\n      - %G_OPTION_ARG_STRING: %gchar*\n      - %G_OPTION_ARG_INT: %gint\n      - %G_OPTION_ARG_FILENAME: %gchar*\n      - %G_OPTION_ARG_STRING_ARRAY: %gchar**\n      - %G_OPTION_ARG_FILENAME_ARRAY: %gchar**\n      - %G_OPTION_ARG_DOUBLE: %gdouble\n     If @arg type is %G_OPTION_ARG_STRING or %G_OPTION_ARG_FILENAME,\n     the location will contain a newly allocated string if the option\n     was given. That string needs to be freed by the callee using g_free().\n     Likewise if @arg type is %G_OPTION_ARG_STRING_ARRAY or\n     %G_OPTION_ARG_FILENAME_ARRAY, the data should be freed using g_strfreev().\n @description: the description for the option in `--help`\n     output. The @description is translated using the @translate_func\n     of the group, see g_option_group_set_translation_domain().\n @arg_description: The placeholder to use for the extra argument parsed\n     by the option in `--help` output. The @arg_description is translated\n     using the @translate_func of the group, see\n     g_option_group_set_translation_domain().\n\n A GOptionEntry struct defines a single option. To have an effect, they\n must be added to a #GOptionGroup with g_option_context_add_main_entries()\n or g_option_group_add_entries()."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GOptionEntry {
@@ -12556,9 +12523,7 @@ extern "C" {
 extern "C" {
     pub fn g_option_group_set_translation_domain(group: *mut GOptionGroup, domain: *const gchar);
 }
-#[doc = " GPathBuf: (copy-func g_path_buf_copy) (free-func g_path_buf_free)\n\n A mutable path builder.\n\n Since: 2.76"]
 pub type GPathBuf = _GPathBuf;
-#[doc = " GPathBuf: (copy-func g_path_buf_copy) (free-func g_path_buf_free)\n\n A mutable path builder.\n\n Since: 2.76"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GPathBuf {
@@ -12701,9 +12666,7 @@ extern "C" {
         user_data: gpointer,
     );
 }
-#[doc = " GQueue:\n @head: a pointer to the first element of the queue\n @tail: a pointer to the last element of the queue\n @length: the number of elements in the queue\n\n Contains the public fields of a\n [Queue][glib-Double-ended-Queues]."]
 pub type GQueue = _GQueue;
-#[doc = " GQueue:\n @head: a pointer to the first element of the queue\n @tail: a pointer to the last element of the queue\n @length: the number of elements in the queue\n\n Contains the public fields of a\n [Queue][glib-Double-ended-Queues]."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GQueue {
@@ -13037,7 +13000,6 @@ extern "C" {
 extern "C" {
     pub fn g_ref_string_length(str_: *mut ::std::os::raw::c_char) -> gsize;
 }
-#[doc = " GRefString:\n\n A typedef for a reference-counted string. A pointer to a #GRefString can be\n treated like a standard `char*` array by all code, but can additionally have\n `g_ref_string_*()` methods called on it. `g_ref_string_*()` methods cannot be\n called on `char*` arrays not allocated using g_ref_string_new().\n\n If using #GRefString with autocleanups, g_autoptr() must be used rather than\n g_autofree(), so that the reference counting metadata is also freed.\n\n Since: 2.58"]
 pub type GRefString = ::std::os::raw::c_char;
 pub const GRegexError_G_REGEX_ERROR_COMPILE: GRegexError = 0;
 pub const GRegexError_G_REGEX_ERROR_OPTIMIZE: GRegexError = 1;
@@ -13096,7 +13058,6 @@ pub const GRegexError_G_REGEX_ERROR_NOT_SUPPORTED_IN_CLASS: GRegexError = 171;
 pub const GRegexError_G_REGEX_ERROR_TOO_MANY_FORWARD_REFERENCES: GRegexError = 172;
 pub const GRegexError_G_REGEX_ERROR_NAME_TOO_LONG: GRegexError = 175;
 pub const GRegexError_G_REGEX_ERROR_CHARACTER_VALUE_TOO_LARGE: GRegexError = 176;
-#[doc = " GRegexError:\n @G_REGEX_ERROR_COMPILE: Compilation of the regular expression failed.\n @G_REGEX_ERROR_OPTIMIZE: Optimization of the regular expression failed.\n @G_REGEX_ERROR_REPLACE: Replacement failed due to an ill-formed replacement\n     string.\n @G_REGEX_ERROR_MATCH: The match process failed.\n @G_REGEX_ERROR_INTERNAL: Internal error of the regular expression engine.\n     Since 2.16\n @G_REGEX_ERROR_STRAY_BACKSLASH: \"\\\\\" at end of pattern. Since 2.16\n @G_REGEX_ERROR_MISSING_CONTROL_CHAR: \"\\\\c\" at end of pattern. Since 2.16\n @G_REGEX_ERROR_UNRECOGNIZED_ESCAPE: Unrecognized character follows \"\\\\\".\n     Since 2.16\n @G_REGEX_ERROR_QUANTIFIERS_OUT_OF_ORDER: Numbers out of order in \"{}\"\n     quantifier. Since 2.16\n @G_REGEX_ERROR_QUANTIFIER_TOO_BIG: Number too big in \"{}\" quantifier.\n     Since 2.16\n @G_REGEX_ERROR_UNTERMINATED_CHARACTER_CLASS: Missing terminating \"]\" for\n     character class. Since 2.16\n @G_REGEX_ERROR_INVALID_ESCAPE_IN_CHARACTER_CLASS: Invalid escape sequence\n     in character class. Since 2.16\n @G_REGEX_ERROR_RANGE_OUT_OF_ORDER: Range out of order in character class.\n     Since 2.16\n @G_REGEX_ERROR_NOTHING_TO_REPEAT: Nothing to repeat. Since 2.16\n @G_REGEX_ERROR_UNRECOGNIZED_CHARACTER: Unrecognized character after \"(?\",\n     \"(?<\" or \"(?P\". Since 2.16\n @G_REGEX_ERROR_POSIX_NAMED_CLASS_OUTSIDE_CLASS: POSIX named classes are\n     supported only within a class. Since 2.16\n @G_REGEX_ERROR_UNMATCHED_PARENTHESIS: Missing terminating \")\" or \")\"\n     without opening \"(\". Since 2.16\n @G_REGEX_ERROR_INEXISTENT_SUBPATTERN_REFERENCE: Reference to non-existent\n     subpattern. Since 2.16\n @G_REGEX_ERROR_UNTERMINATED_COMMENT: Missing terminating \")\" after comment.\n     Since 2.16\n @G_REGEX_ERROR_EXPRESSION_TOO_LARGE: Regular expression too large.\n     Since 2.16\n @G_REGEX_ERROR_MEMORY_ERROR: Failed to get memory. Since 2.16\n @G_REGEX_ERROR_VARIABLE_LENGTH_LOOKBEHIND: Lookbehind assertion is not\n     fixed length. Since 2.16\n @G_REGEX_ERROR_MALFORMED_CONDITION: Malformed number or name after \"(?(\".\n     Since 2.16\n @G_REGEX_ERROR_TOO_MANY_CONDITIONAL_BRANCHES: Conditional group contains\n     more than two branches. Since 2.16\n @G_REGEX_ERROR_ASSERTION_EXPECTED: Assertion expected after \"(?(\".\n     Since 2.16\n @G_REGEX_ERROR_UNKNOWN_POSIX_CLASS_NAME: Unknown POSIX class name.\n     Since 2.16\n @G_REGEX_ERROR_POSIX_COLLATING_ELEMENTS_NOT_SUPPORTED: POSIX collating\n     elements are not supported. Since 2.16\n @G_REGEX_ERROR_HEX_CODE_TOO_LARGE: Character value in \"\\\\x{...}\" sequence\n     is too large. Since 2.16\n @G_REGEX_ERROR_INVALID_CONDITION: Invalid condition \"(?(0)\". Since 2.16\n @G_REGEX_ERROR_SINGLE_BYTE_MATCH_IN_LOOKBEHIND: \\\\C not allowed in\n     lookbehind assertion. Since 2.16\n @G_REGEX_ERROR_INFINITE_LOOP: Recursive call could loop indefinitely.\n     Since 2.16\n @G_REGEX_ERROR_MISSING_SUBPATTERN_NAME_TERMINATOR: Missing terminator\n     in subpattern name. Since 2.16\n @G_REGEX_ERROR_DUPLICATE_SUBPATTERN_NAME: Two named subpatterns have\n     the same name. Since 2.16\n @G_REGEX_ERROR_MALFORMED_PROPERTY: Malformed \"\\\\P\" or \"\\\\p\" sequence.\n     Since 2.16\n @G_REGEX_ERROR_UNKNOWN_PROPERTY: Unknown property name after \"\\\\P\" or\n     \"\\\\p\". Since 2.16\n @G_REGEX_ERROR_SUBPATTERN_NAME_TOO_LONG: Subpattern name is too long\n     (maximum 32 characters). Since 2.16\n @G_REGEX_ERROR_TOO_MANY_SUBPATTERNS: Too many named subpatterns (maximum\n     10,000). Since 2.16\n @G_REGEX_ERROR_INVALID_OCTAL_VALUE: Octal value is greater than \"\\\\377\".\n     Since 2.16\n @G_REGEX_ERROR_TOO_MANY_BRANCHES_IN_DEFINE: \"DEFINE\" group contains more\n     than one branch. Since 2.16\n @G_REGEX_ERROR_DEFINE_REPETION: Repeating a \"DEFINE\" group is not allowed.\n     This error is never raised. Since: 2.16 Deprecated: 2.34\n @G_REGEX_ERROR_INCONSISTENT_NEWLINE_OPTIONS: Inconsistent newline options.\n     Since 2.16\n @G_REGEX_ERROR_MISSING_BACK_REFERENCE: \"\\\\g\" is not followed by a braced,\n      angle-bracketed, or quoted name or number, or by a plain number. Since: 2.16\n @G_REGEX_ERROR_INVALID_RELATIVE_REFERENCE: relative reference must not be zero. Since: 2.34\n @G_REGEX_ERROR_BACKTRACKING_CONTROL_VERB_ARGUMENT_FORBIDDEN: the backtracing\n     control verb used does not allow an argument. Since: 2.34\n @G_REGEX_ERROR_UNKNOWN_BACKTRACKING_CONTROL_VERB: unknown backtracing\n     control verb. Since: 2.34\n @G_REGEX_ERROR_NUMBER_TOO_BIG: number is too big in escape sequence. Since: 2.34\n @G_REGEX_ERROR_MISSING_SUBPATTERN_NAME: Missing subpattern name. Since: 2.34\n @G_REGEX_ERROR_MISSING_DIGIT: Missing digit. Since 2.34\n @G_REGEX_ERROR_INVALID_DATA_CHARACTER: In JavaScript compatibility mode,\n     \"[\" is an invalid data character. Since: 2.34\n @G_REGEX_ERROR_EXTRA_SUBPATTERN_NAME: different names for subpatterns of the\n     same number are not allowed. Since: 2.34\n @G_REGEX_ERROR_BACKTRACKING_CONTROL_VERB_ARGUMENT_REQUIRED: the backtracing control\n     verb requires an argument. Since: 2.34\n @G_REGEX_ERROR_INVALID_CONTROL_CHAR: \"\\\\c\" must be followed by an ASCII\n     character. Since: 2.34\n @G_REGEX_ERROR_MISSING_NAME: \"\\\\k\" is not followed by a braced, angle-bracketed, or\n     quoted name. Since: 2.34\n @G_REGEX_ERROR_NOT_SUPPORTED_IN_CLASS: \"\\\\N\" is not supported in a class. Since: 2.34\n @G_REGEX_ERROR_TOO_MANY_FORWARD_REFERENCES: too many forward references. Since: 2.34\n @G_REGEX_ERROR_NAME_TOO_LONG: the name is too long in \"(*MARK)\", \"(*PRUNE)\",\n     \"(*SKIP)\", or \"(*THEN)\". Since: 2.34\n @G_REGEX_ERROR_CHARACTER_VALUE_TOO_LARGE: the character value in the \\\\u sequence is\n     too large. Since: 2.34\n\n Error codes returned by regular expressions functions.\n\n Since: 2.14"]
 pub type GRegexError = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_regex_error_quark() -> GQuark;
@@ -13120,7 +13081,6 @@ pub const GRegexCompileFlags_G_REGEX_NEWLINE_CRLF: GRegexCompileFlags = 3145728;
 pub const GRegexCompileFlags_G_REGEX_NEWLINE_ANYCRLF: GRegexCompileFlags = 5242880;
 pub const GRegexCompileFlags_G_REGEX_BSR_ANYCRLF: GRegexCompileFlags = 8388608;
 pub const GRegexCompileFlags_G_REGEX_JAVASCRIPT_COMPAT: GRegexCompileFlags = 33554432;
-#[doc = " GRegexCompileFlags:\n @G_REGEX_DEFAULT: No special options set. Since: 2.74\n @G_REGEX_CASELESS: Letters in the pattern match both upper- and\n     lowercase letters. This option can be changed within a pattern\n     by a \"(?i)\" option setting.\n @G_REGEX_MULTILINE: By default, GRegex treats the strings as consisting\n     of a single line of characters (even if it actually contains\n     newlines). The \"start of line\" metacharacter (\"^\") matches only\n     at the start of the string, while the \"end of line\" metacharacter\n     (\"$\") matches only at the end of the string, or before a terminating\n     newline (unless %G_REGEX_DOLLAR_ENDONLY is set). When\n     %G_REGEX_MULTILINE is set, the \"start of line\" and \"end of line\"\n     constructs match immediately following or immediately before any\n     newline in the string, respectively, as well as at the very start\n     and end. This can be changed within a pattern by a \"(?m)\" option\n     setting.\n @G_REGEX_DOTALL: A dot metacharacter (\".\") in the pattern matches all\n     characters, including newlines. Without it, newlines are excluded.\n     This option can be changed within a pattern by a (\"?s\") option setting.\n @G_REGEX_EXTENDED: Whitespace data characters in the pattern are\n     totally ignored except when escaped or inside a character class.\n     Whitespace does not include the VT character (code 11). In addition,\n     characters between an unescaped \"#\" outside a character class and\n     the next newline character, inclusive, are also ignored. This can\n     be changed within a pattern by a \"(?x)\" option setting.\n @G_REGEX_ANCHORED: The pattern is forced to be \"anchored\", that is,\n     it is constrained to match only at the first matching point in the\n     string that is being searched. This effect can also be achieved by\n     appropriate constructs in the pattern itself such as the \"^\"\n     metacharacter.\n @G_REGEX_DOLLAR_ENDONLY: A dollar metacharacter (\"$\") in the pattern\n     matches only at the end of the string. Without this option, a\n     dollar also matches immediately before the final character if\n     it is a newline (but not before any other newlines). This option\n     is ignored if %G_REGEX_MULTILINE is set.\n @G_REGEX_UNGREEDY: Inverts the \"greediness\" of the quantifiers so that\n     they are not greedy by default, but become greedy if followed by \"?\".\n     It can also be set by a \"(?U)\" option setting within the pattern.\n @G_REGEX_RAW: Usually strings must be valid UTF-8 strings, using this\n     flag they are considered as a raw sequence of bytes.\n @G_REGEX_NO_AUTO_CAPTURE: Disables the use of numbered capturing\n     parentheses in the pattern. Any opening parenthesis that is not\n     followed by \"?\" behaves as if it were followed by \"?:\" but named\n     parentheses can still be used for capturing (and they acquire numbers\n     in the usual way).\n @G_REGEX_OPTIMIZE: Since 2.74 and the port to pcre2, requests JIT\n     compilation, which, if the just-in-time compiler is available, further\n     processes a compiled pattern into machine code that executes much\n     faster. However, it comes at the cost of extra processing before the\n     match is performed, so it is most beneficial to use this when the same\n     compiled pattern is used for matching many times. Before 2.74 this\n     option used the built-in non-JIT optimizations in pcre1.\n @G_REGEX_FIRSTLINE: Limits an unanchored pattern to match before (or at) the\n     first newline. Since: 2.34\n @G_REGEX_DUPNAMES: Names used to identify capturing subpatterns need not\n     be unique. This can be helpful for certain types of pattern when it\n     is known that only one instance of the named subpattern can ever be\n     matched.\n @G_REGEX_NEWLINE_CR: Usually any newline character or character sequence is\n     recognized. If this option is set, the only recognized newline character\n     is '\\r'.\n @G_REGEX_NEWLINE_LF: Usually any newline character or character sequence is\n     recognized. If this option is set, the only recognized newline character\n     is '\\n'.\n @G_REGEX_NEWLINE_CRLF: Usually any newline character or character sequence is\n     recognized. If this option is set, the only recognized newline character\n     sequence is '\\r\\n'.\n @G_REGEX_NEWLINE_ANYCRLF: Usually any newline character or character sequence\n     is recognized. If this option is set, the only recognized newline character\n     sequences are '\\r', '\\n', and '\\r\\n'. Since: 2.34\n @G_REGEX_BSR_ANYCRLF: Usually any newline character or character sequence\n     is recognised. If this option is set, then \"\\R\" only recognizes the newline\n    characters '\\r', '\\n' and '\\r\\n'. Since: 2.34\n @G_REGEX_JAVASCRIPT_COMPAT: Changes behaviour so that it is compatible with\n     JavaScript rather than PCRE. Since GLib 2.74 this is no longer supported,\n     as libpcre2 does not support it. Since: 2.34 Deprecated: 2.74\n\n Flags specifying compile-time options.\n\n Since: 2.14"]
 pub type GRegexCompileFlags = ::std::os::raw::c_int;
 pub const GRegexMatchFlags_G_REGEX_MATCH_DEFAULT: GRegexMatchFlags = 0;
 pub const GRegexMatchFlags_G_REGEX_MATCH_ANCHORED: GRegexMatchFlags = 16;
@@ -13138,23 +13098,19 @@ pub const GRegexMatchFlags_G_REGEX_MATCH_BSR_ANY: GRegexMatchFlags = 16777216;
 pub const GRegexMatchFlags_G_REGEX_MATCH_PARTIAL_SOFT: GRegexMatchFlags = 32768;
 pub const GRegexMatchFlags_G_REGEX_MATCH_PARTIAL_HARD: GRegexMatchFlags = 134217728;
 pub const GRegexMatchFlags_G_REGEX_MATCH_NOTEMPTY_ATSTART: GRegexMatchFlags = 268435456;
-#[doc = " GRegexMatchFlags:\n @G_REGEX_MATCH_DEFAULT: No special options set. Since: 2.74\n @G_REGEX_MATCH_ANCHORED: The pattern is forced to be \"anchored\", that is,\n     it is constrained to match only at the first matching point in the\n     string that is being searched. This effect can also be achieved by\n     appropriate constructs in the pattern itself such as the \"^\"\n     metacharacter.\n @G_REGEX_MATCH_NOTBOL: Specifies that first character of the string is\n     not the beginning of a line, so the circumflex metacharacter should\n     not match before it. Setting this without %G_REGEX_MULTILINE (at\n     compile time) causes circumflex never to match. This option affects\n     only the behaviour of the circumflex metacharacter, it does not\n     affect \"\\A\".\n @G_REGEX_MATCH_NOTEOL: Specifies that the end of the subject string is\n     not the end of a line, so the dollar metacharacter should not match\n     it nor (except in multiline mode) a newline immediately before it.\n     Setting this without %G_REGEX_MULTILINE (at compile time) causes\n     dollar never to match. This option affects only the behaviour of\n     the dollar metacharacter, it does not affect \"\\Z\" or \"\\z\".\n @G_REGEX_MATCH_NOTEMPTY: An empty string is not considered to be a valid\n     match if this option is set. If there are alternatives in the pattern,\n     they are tried. If all the alternatives match the empty string, the\n     entire match fails. For example, if the pattern \"a?b?\" is applied to\n     a string not beginning with \"a\" or \"b\", it matches the empty string\n     at the start of the string. With this flag set, this match is not\n     valid, so GRegex searches further into the string for occurrences\n     of \"a\" or \"b\".\n @G_REGEX_MATCH_PARTIAL: Turns on the partial matching feature, for more\n     documentation on partial matching see g_match_info_is_partial_match().\n @G_REGEX_MATCH_NEWLINE_CR: Overrides the newline definition set when\n     creating a new #GRegex, setting the '\\r' character as line terminator.\n @G_REGEX_MATCH_NEWLINE_LF: Overrides the newline definition set when\n     creating a new #GRegex, setting the '\\n' character as line terminator.\n @G_REGEX_MATCH_NEWLINE_CRLF: Overrides the newline definition set when\n     creating a new #GRegex, setting the '\\r\\n' characters sequence as line terminator.\n @G_REGEX_MATCH_NEWLINE_ANY: Overrides the newline definition set when\n     creating a new #GRegex, any Unicode newline sequence\n     is recognised as a newline. These are '\\r', '\\n' and '\\rn', and the\n     single characters U+000B LINE TABULATION, U+000C FORM FEED (FF),\n     U+0085 NEXT LINE (NEL), U+2028 LINE SEPARATOR and\n     U+2029 PARAGRAPH SEPARATOR.\n @G_REGEX_MATCH_NEWLINE_ANYCRLF: Overrides the newline definition set when\n     creating a new #GRegex; any '\\r', '\\n', or '\\r\\n' character sequence\n     is recognized as a newline. Since: 2.34\n @G_REGEX_MATCH_BSR_ANYCRLF: Overrides the newline definition for \"\\R\" set when\n     creating a new #GRegex; only '\\r', '\\n', or '\\r\\n' character sequences\n     are recognized as a newline by \"\\R\". Since: 2.34\n @G_REGEX_MATCH_BSR_ANY: Overrides the newline definition for \"\\R\" set when\n     creating a new #GRegex; any Unicode newline character or character sequence\n     are recognized as a newline by \"\\R\". These are '\\r', '\\n' and '\\rn', and the\n     single characters U+000B LINE TABULATION, U+000C FORM FEED (FF),\n     U+0085 NEXT LINE (NEL), U+2028 LINE SEPARATOR and\n     U+2029 PARAGRAPH SEPARATOR. Since: 2.34\n @G_REGEX_MATCH_PARTIAL_SOFT: An alias for %G_REGEX_MATCH_PARTIAL. Since: 2.34\n @G_REGEX_MATCH_PARTIAL_HARD: Turns on the partial matching feature. In contrast to\n     to %G_REGEX_MATCH_PARTIAL_SOFT, this stops matching as soon as a partial match\n     is found, without continuing to search for a possible complete match. See\n     g_match_info_is_partial_match() for more information. Since: 2.34\n @G_REGEX_MATCH_NOTEMPTY_ATSTART: Like %G_REGEX_MATCH_NOTEMPTY, but only applied to\n     the start of the matched string. For anchored\n     patterns this can only happen for pattern containing \"\\K\". Since: 2.34\n\n Flags specifying match-time options.\n\n Since: 2.14"]
 pub type GRegexMatchFlags = ::std::os::raw::c_int;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GRegex {
     _unused: [u8; 0],
 }
-#[doc = " GRegex:\n\n A GRegex is the \"compiled\" form of a regular expression pattern.\n This structure is opaque and its fields cannot be accessed directly.\n\n Since: 2.14"]
 pub type GRegex = _GRegex;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GMatchInfo {
     _unused: [u8; 0],
 }
-#[doc = " GMatchInfo:\n\n A GMatchInfo is an opaque struct used to return information about\n matches."]
 pub type GMatchInfo = _GMatchInfo;
-#[doc = " GRegexEvalCallback:\n @match_info: the #GMatchInfo generated by the match.\n     Use g_match_info_get_regex() and g_match_info_get_string() if you\n     need the #GRegex or the matched string.\n @result: a #GString containing the new string\n @user_data: user data passed to g_regex_replace_eval()\n\n Specifies the type of the function passed to g_regex_replace_eval().\n It is called for each occurrence of the pattern in the string passed\n to g_regex_replace_eval(), and it should append the replacement to\n @result.\n\n Returns: %FALSE to continue the replacement process, %TRUE to stop it\n\n Since: 2.14"]
 pub type GRegexEvalCallback = ::std::option::Option<
     unsafe extern "C" fn(
         match_info: *const GMatchInfo,
@@ -14613,9 +14569,7 @@ pub const GSpawnError_G_SPAWN_ERROR_INVAL: GSpawnError = 16;
 pub const GSpawnError_G_SPAWN_ERROR_ISDIR: GSpawnError = 17;
 pub const GSpawnError_G_SPAWN_ERROR_LIBBAD: GSpawnError = 18;
 pub const GSpawnError_G_SPAWN_ERROR_FAILED: GSpawnError = 19;
-#[doc = " GSpawnError:\n @G_SPAWN_ERROR_FORK: Fork failed due to lack of memory.\n @G_SPAWN_ERROR_READ: Read or select on pipes failed.\n @G_SPAWN_ERROR_CHDIR: Changing to working directory failed.\n @G_SPAWN_ERROR_ACCES: execv() returned `EACCES`\n @G_SPAWN_ERROR_PERM: execv() returned `EPERM`\n @G_SPAWN_ERROR_TOO_BIG: execv() returned `E2BIG`\n @G_SPAWN_ERROR_2BIG: deprecated alias for %G_SPAWN_ERROR_TOO_BIG (deprecated since GLib 2.32)\n @G_SPAWN_ERROR_NOEXEC: execv() returned `ENOEXEC`\n @G_SPAWN_ERROR_NAMETOOLONG: execv() returned `ENAMETOOLONG`\n @G_SPAWN_ERROR_NOENT: execv() returned `ENOENT`\n @G_SPAWN_ERROR_NOMEM: execv() returned `ENOMEM`\n @G_SPAWN_ERROR_NOTDIR: execv() returned `ENOTDIR`\n @G_SPAWN_ERROR_LOOP: execv() returned `ELOOP`\n @G_SPAWN_ERROR_TXTBUSY: execv() returned `ETXTBUSY`\n @G_SPAWN_ERROR_IO: execv() returned `EIO`\n @G_SPAWN_ERROR_NFILE: execv() returned `ENFILE`\n @G_SPAWN_ERROR_MFILE: execv() returned `EMFILE`\n @G_SPAWN_ERROR_INVAL: execv() returned `EINVAL`\n @G_SPAWN_ERROR_ISDIR: execv() returned `EISDIR`\n @G_SPAWN_ERROR_LIBBAD: execv() returned `ELIBBAD`\n @G_SPAWN_ERROR_FAILED: Some other fatal failure,\n   `error->message` should explain.\n\n Error codes returned by spawning processes."]
 pub type GSpawnError = ::std::os::raw::c_int;
-#[doc = " GSpawnChildSetupFunc:\n @data: user data passed to the function.\n\n Specifies the type of the setup function passed to g_spawn_async(),\n g_spawn_sync() and g_spawn_async_with_pipes(), which can, in very\n limited ways, be used to affect the child's execution.\n\n On POSIX platforms, the function is called in the child after GLib\n has performed all the setup it plans to perform, but before calling\n exec(). Actions taken in this function will only affect the child,\n not the parent.\n\n On Windows, the function is called in the parent. Its usefulness on\n Windows is thus questionable. In many cases executing the child setup\n function in the parent can have ill effects, and you should be very\n careful when porting software to Windows that uses child setup\n functions.\n\n However, even on POSIX, you are extremely limited in what you can\n safely do from a #GSpawnChildSetupFunc, because any mutexes that were\n held by other threads in the parent process at the time of the fork()\n will still be locked in the child process, and they will never be\n unlocked (since the threads that held them don't exist in the child).\n POSIX allows only async-signal-safe functions (see signal(7)) to be\n called in the child between fork() and exec(), which drastically limits\n the usefulness of child setup functions.\n\n In particular, it is not safe to call any function which may\n call malloc(), which includes POSIX functions such as setenv().\n If you need to set up the child environment differently from\n the parent, you should use g_get_environ(), g_environ_setenv(),\n and g_environ_unsetenv(), and then pass the complete environment\n list to the `g_spawn...` function."]
 pub type GSpawnChildSetupFunc = ::std::option::Option<unsafe extern "C" fn(data: gpointer)>;
 pub const GSpawnFlags_G_SPAWN_DEFAULT: GSpawnFlags = 0;
 pub const GSpawnFlags_G_SPAWN_LEAVE_DESCRIPTORS_OPEN: GSpawnFlags = 1;
@@ -14627,13 +14581,9 @@ pub const GSpawnFlags_G_SPAWN_CHILD_INHERITS_STDIN: GSpawnFlags = 32;
 pub const GSpawnFlags_G_SPAWN_FILE_AND_ARGV_ZERO: GSpawnFlags = 64;
 pub const GSpawnFlags_G_SPAWN_SEARCH_PATH_FROM_ENVP: GSpawnFlags = 128;
 pub const GSpawnFlags_G_SPAWN_CLOEXEC_PIPES: GSpawnFlags = 256;
-#[doc = " G_SPAWN_CHILD_INHERITS_STDOUT:\n\n The child will inherit the parent's standard output.\n\n Since: 2.74"]
 pub const GSpawnFlags_G_SPAWN_CHILD_INHERITS_STDOUT: GSpawnFlags = 512;
-#[doc = " G_SPAWN_CHILD_INHERITS_STDERR:\n\n The child will inherit the parent's standard error.\n\n Since: 2.74"]
 pub const GSpawnFlags_G_SPAWN_CHILD_INHERITS_STDERR: GSpawnFlags = 1024;
-#[doc = " G_SPAWN_STDIN_FROM_DEV_NULL:\n\n The child's standard input is attached to `/dev/null`.\n\n Since: 2.74"]
 pub const GSpawnFlags_G_SPAWN_STDIN_FROM_DEV_NULL: GSpawnFlags = 2048;
-#[doc = " GSpawnFlags:\n @G_SPAWN_DEFAULT: no flags, default behaviour\n @G_SPAWN_LEAVE_DESCRIPTORS_OPEN: the parent's open file descriptors will\n     be inherited by the child; otherwise all descriptors except stdin,\n     stdout and stderr will be closed before calling exec() in the child.\n @G_SPAWN_DO_NOT_REAP_CHILD: the child will not be automatically reaped;\n     you must use g_child_watch_add() yourself (or call waitpid() or handle\n     `SIGCHLD` yourself), or the child will become a zombie.\n @G_SPAWN_SEARCH_PATH: `argv[0]` need not be an absolute path, it will be\n     looked for in the user's `PATH`.\n @G_SPAWN_STDOUT_TO_DEV_NULL: the child's standard output will be discarded,\n     instead of going to the same location as the parent's standard output.\n @G_SPAWN_STDERR_TO_DEV_NULL: the child's standard error will be discarded.\n @G_SPAWN_CHILD_INHERITS_STDIN: the child will inherit the parent's standard\n     input (by default, the child's standard input is attached to `/dev/null`).\n @G_SPAWN_FILE_AND_ARGV_ZERO: the first element of `argv` is the file to\n     execute, while the remaining elements are the actual argument vector\n     to pass to the file. Normally g_spawn_async_with_pipes() uses `argv[0]`\n     as the file to execute, and passes all of `argv` to the child.\n @G_SPAWN_SEARCH_PATH_FROM_ENVP: if `argv[0]` is not an absolute path,\n     it will be looked for in the `PATH` from the passed child environment.\n     Since: 2.34\n @G_SPAWN_CLOEXEC_PIPES: create all pipes with the `O_CLOEXEC` flag set.\n     Since: 2.40\n @G_SPAWN_CHILD_INHERITS_STDOUT: the child will inherit the parent's standard output.\n     Since: 2.74\n @G_SPAWN_CHILD_INHERITS_STDERR: the child will inherit the parent's standard error.\n     Since: 2.74\n @G_SPAWN_STDIN_FROM_DEV_NULL: the child's standard input is attached to `/dev/null`.\n     Since: 2.74\n\n Flags passed to g_spawn_sync(), g_spawn_async() and g_spawn_async_with_pipes()."]
 pub type GSpawnFlags = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_spawn_error_quark() -> GQuark;
@@ -14778,7 +14728,6 @@ extern "C" {
 pub struct _GStrvBuilder {
     _unused: [u8; 0],
 }
-#[doc = " GStrvBuilder:\n\n A helper object to build a %NULL-terminated string array\n by appending. See g_strv_builder_new().\n\n Since: 2.68"]
 pub type GStrvBuilder = _GStrvBuilder;
 extern "C" {
     pub fn g_strv_builder_new() -> *mut GStrvBuilder;
@@ -16459,7 +16408,6 @@ pub const GTestTrapFlags_G_TEST_TRAP_DEFAULT: GTestTrapFlags = 0;
 pub const GTestTrapFlags_G_TEST_TRAP_SILENCE_STDOUT: GTestTrapFlags = 128;
 pub const GTestTrapFlags_G_TEST_TRAP_SILENCE_STDERR: GTestTrapFlags = 256;
 pub const GTestTrapFlags_G_TEST_TRAP_INHERIT_STDIN: GTestTrapFlags = 512;
-#[doc = " GTestTrapFlags:\n @G_TEST_TRAP_DEFAULT: Default behaviour. Since: 2.74\n @G_TEST_TRAP_SILENCE_STDOUT: Redirect stdout of the test child to\n     `/dev/null` so it cannot be observed on the console during test\n     runs. The actual output is still captured though to allow later\n     tests with g_test_trap_assert_stdout().\n @G_TEST_TRAP_SILENCE_STDERR: Redirect stderr of the test child to\n     `/dev/null` so it cannot be observed on the console during test\n     runs. The actual output is still captured though to allow later\n     tests with g_test_trap_assert_stderr().\n @G_TEST_TRAP_INHERIT_STDIN: If this flag is given, stdin of the\n     child process is shared with stdin of its parent process.\n     It is redirected to `/dev/null` otherwise.\n\n Test traps are guards around forked tests.\n These flags determine what traps to set.\n\n Deprecated: 2.38: #GTestTrapFlags is used only with g_test_trap_fork(),\n which is deprecated. g_test_trap_subprocess() uses\n #GTestSubprocessFlags."]
 pub type GTestTrapFlags = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_test_trap_fork(usec_timeout: guint64, test_trap_flags: GTestTrapFlags) -> gboolean;
@@ -16868,7 +16816,6 @@ extern "C" {
 extern "C" {
     pub fn g_test_log_msg_free(tmsg: *mut GTestLogMsg);
 }
-#[doc = " GTestLogFatalFunc:\n @log_domain: the log domain of the message\n @log_level: the log level of the message (including the fatal and recursion flags)\n @message: the message to process\n @user_data: user data, set in g_test_log_set_fatal_handler()\n\n Specifies the prototype of fatal log handler functions.\n\n Returns: %TRUE if the program should abort, %FALSE otherwise\n\n Since: 2.22"]
 pub type GTestLogFatalFunc = ::std::option::Option<
     unsafe extern "C" fn(
         log_domain: *const gchar,
@@ -17137,12 +17084,10 @@ pub type GTree = _GTree;
 pub struct _GTreeNode {
     _unused: [u8; 0],
 }
-#[doc = " GTreeNode:\n\n An opaque type which identifies a specific node in a #GTree.\n\n Since: 2.68"]
 pub type GTreeNode = _GTreeNode;
 pub type GTraverseFunc = ::std::option::Option<
     unsafe extern "C" fn(key: gpointer, value: gpointer, data: gpointer) -> gboolean,
 >;
-#[doc = " GTraverseNodeFunc:\n @node: a #GTreeNode\n @data: user data passed to g_tree_foreach_node()\n\n Specifies the type of function passed to g_tree_foreach_node(). It is\n passed each node, together with the @user_data parameter passed to\n g_tree_foreach_node(). If the function returns %TRUE, the traversal is\n stopped.\n\n Returns: %TRUE to stop the traversal\n Since: 2.68"]
 pub type GTraverseNodeFunc =
     ::std::option::Option<unsafe extern "C" fn(node: *mut GTreeNode, data: gpointer) -> gboolean>;
 extern "C" {
@@ -17286,7 +17231,6 @@ pub const GUriFlags_G_URI_FLAGS_ENCODED_QUERY: GUriFlags = 32;
 pub const GUriFlags_G_URI_FLAGS_ENCODED_PATH: GUriFlags = 64;
 pub const GUriFlags_G_URI_FLAGS_ENCODED_FRAGMENT: GUriFlags = 128;
 pub const GUriFlags_G_URI_FLAGS_SCHEME_NORMALIZE: GUriFlags = 256;
-#[doc = " GUriFlags:\n @G_URI_FLAGS_NONE: No flags set.\n @G_URI_FLAGS_PARSE_RELAXED: Parse the URI more relaxedly than the\n     [RFC 3986](https://tools.ietf.org/html/rfc3986) grammar specifies,\n     fixing up or ignoring common mistakes in URIs coming from external\n     sources. This is also needed for some obscure URI schemes where `;`\n     separates the host from the path. Don’t use this flag unless you need to.\n @G_URI_FLAGS_HAS_PASSWORD: The userinfo field may contain a password,\n     which will be separated from the username by `:`.\n @G_URI_FLAGS_HAS_AUTH_PARAMS: The userinfo may contain additional\n     authentication-related parameters, which will be separated from\n     the username and/or password by `;`.\n @G_URI_FLAGS_NON_DNS: The host component should not be assumed to be a\n     DNS hostname or IP address (for example, for `smb` URIs with NetBIOS\n     hostnames).\n @G_URI_FLAGS_ENCODED: When parsing a URI, this indicates that `%`-encoded\n     characters in the userinfo, path, query, and fragment fields\n     should not be decoded. (And likewise the host field if\n     %G_URI_FLAGS_NON_DNS is also set.) When building a URI, it indicates\n     that you have already `%`-encoded the components, and so #GUri\n     should not do any encoding itself.\n @G_URI_FLAGS_ENCODED_QUERY: Same as %G_URI_FLAGS_ENCODED, for the query\n     field only.\n @G_URI_FLAGS_ENCODED_PATH: Same as %G_URI_FLAGS_ENCODED, for the path only.\n @G_URI_FLAGS_ENCODED_FRAGMENT: Same as %G_URI_FLAGS_ENCODED, for the\n     fragment only.\n @G_URI_FLAGS_SCHEME_NORMALIZE: A scheme-based normalization will be applied.\n     For example, when parsing an HTTP URI changing omitted path to `/` and\n     omitted port to `80`; and when building a URI, changing empty path to `/`\n     and default port `80`). This only supports a subset of known schemes. (Since: 2.68)\n\n Flags that describe a URI.\n\n When parsing a URI, if you need to choose different flags based on\n the type of URI, you can use g_uri_peek_scheme() on the URI string\n to check the scheme first, and use that to decide what flags to\n parse it with.\n\n Since: 2.66"]
 pub type GUriFlags = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_uri_split(
@@ -17416,7 +17360,6 @@ pub const GUriHideFlags_G_URI_HIDE_PASSWORD: GUriHideFlags = 2;
 pub const GUriHideFlags_G_URI_HIDE_AUTH_PARAMS: GUriHideFlags = 4;
 pub const GUriHideFlags_G_URI_HIDE_QUERY: GUriHideFlags = 8;
 pub const GUriHideFlags_G_URI_HIDE_FRAGMENT: GUriHideFlags = 16;
-#[doc = " GUriHideFlags:\n @G_URI_HIDE_NONE: No flags set.\n @G_URI_HIDE_USERINFO: Hide the userinfo.\n @G_URI_HIDE_PASSWORD: Hide the password.\n @G_URI_HIDE_AUTH_PARAMS: Hide the auth_params.\n @G_URI_HIDE_QUERY: Hide the query.\n @G_URI_HIDE_FRAGMENT: Hide the fragment.\n\n Flags describing what parts of the URI to hide in\n g_uri_to_string_partial(). Note that %G_URI_HIDE_PASSWORD and\n %G_URI_HIDE_AUTH_PARAMS will only work if the #GUri was parsed with\n the corresponding flags.\n\n Since: 2.66"]
 pub type GUriHideFlags = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_uri_to_string(uri: *mut GUri) -> *mut ::std::os::raw::c_char;
@@ -17464,7 +17407,6 @@ pub const GUriParamsFlags_G_URI_PARAMS_NONE: GUriParamsFlags = 0;
 pub const GUriParamsFlags_G_URI_PARAMS_CASE_INSENSITIVE: GUriParamsFlags = 1;
 pub const GUriParamsFlags_G_URI_PARAMS_WWW_FORM: GUriParamsFlags = 2;
 pub const GUriParamsFlags_G_URI_PARAMS_PARSE_RELAXED: GUriParamsFlags = 4;
-#[doc = " GUriParamsFlags:\n @G_URI_PARAMS_NONE: No flags set.\n @G_URI_PARAMS_CASE_INSENSITIVE: Parameter names are case insensitive.\n @G_URI_PARAMS_WWW_FORM: Replace `+` with space character. Only useful for\n     URLs on the web, using the `https` or `http` schemas.\n @G_URI_PARAMS_PARSE_RELAXED: See %G_URI_FLAGS_PARSE_RELAXED.\n\n Flags modifying the way parameters are handled by g_uri_parse_params() and\n #GUriParamsIter.\n\n Since: 2.66"]
 pub type GUriParamsFlags = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_uri_parse_params(
@@ -17569,7 +17511,6 @@ pub const GUriError_G_URI_ERROR_BAD_PORT: GUriError = 6;
 pub const GUriError_G_URI_ERROR_BAD_PATH: GUriError = 7;
 pub const GUriError_G_URI_ERROR_BAD_QUERY: GUriError = 8;
 pub const GUriError_G_URI_ERROR_BAD_FRAGMENT: GUriError = 9;
-#[doc = " GUriError:\n @G_URI_ERROR_FAILED: Generic error if no more specific error is available.\n     See the error message for details.\n @G_URI_ERROR_BAD_SCHEME: The scheme of a URI could not be parsed.\n @G_URI_ERROR_BAD_USER: The user/userinfo of a URI could not be parsed.\n @G_URI_ERROR_BAD_PASSWORD: The password of a URI could not be parsed.\n @G_URI_ERROR_BAD_AUTH_PARAMS: The authentication parameters of a URI could not be parsed.\n @G_URI_ERROR_BAD_HOST: The host of a URI could not be parsed.\n @G_URI_ERROR_BAD_PORT: The port of a URI could not be parsed.\n @G_URI_ERROR_BAD_PATH: The path of a URI could not be parsed.\n @G_URI_ERROR_BAD_QUERY: The query of a URI could not be parsed.\n @G_URI_ERROR_BAD_FRAGMENT: The fragment of a URI could not be parsed.\n\n Error codes returned by #GUri methods.\n\n Since: 2.66"]
 pub type GUriError = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_uri_unescape_string(
@@ -17677,7 +17618,6 @@ extern "C" {
 pub const GWin32OSType_G_WIN32_OS_ANY: GWin32OSType = 0;
 pub const GWin32OSType_G_WIN32_OS_WORKSTATION: GWin32OSType = 1;
 pub const GWin32OSType_G_WIN32_OS_SERVER: GWin32OSType = 2;
-#[doc = " GWin32OSType:\n @G_WIN32_OS_ANY: The running system can be a workstation or a server edition of\n  Windows.  The type of the running system is therefore not checked.\n @G_WIN32_OS_WORKSTATION: The running system is a workstation edition of Windows,\n  such as Windows 7 Professional.\n @G_WIN32_OS_SERVER: The running system is a server edition of Windows, such as\n  Windows Server 2008 R2.\n\n Type of Windows edition to check for at run-time."]
 pub type GWin32OSType = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_win32_check_windows_version(
@@ -19741,7 +19681,6 @@ fn bindgen_test_layout_ws_log_manifest_t() {
         )
     );
 }
-#[doc = " Callback for registering a log writer."]
 pub type ws_log_writer_cb = ::std::option::Option<
     unsafe extern "C" fn(
         domain: *const ::std::os::raw::c_char,
@@ -19756,7 +19695,6 @@ pub type ws_log_writer_cb = ::std::option::Option<
         user_data: *mut ::std::os::raw::c_void,
     ),
 >;
-#[doc = " Callback for freeing a user data pointer."]
 pub type ws_log_writer_free_data_cb =
     ::std::option::Option<unsafe extern "C" fn(user_data: *mut ::std::os::raw::c_void)>;
 extern "C" {
@@ -19785,60 +19723,46 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Configure log levels \"info\" and below to use stdout.\n\n Normally all log messages are written to stderr. For backward compatibility\n with GLib calling this function with true configures log levels \"info\",\n \"debug\" and \"noisy\" to be written to stdout."]
     pub fn ws_log_console_writer_set_use_stdout(use_stdout: bool);
 }
 extern "C" {
-    #[doc = " Convert a numerical level to its string representation."]
     pub fn ws_log_level_to_string(level: ws_log_level) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Checks if a domain and level combination generate output.\n\n Returns true if a message will be printed for the domain/level combo."]
     pub fn ws_log_msg_is_active(domain: *const ::std::os::raw::c_char, level: ws_log_level)
         -> bool;
 }
 extern "C" {
-    #[doc = " Return the currently active log level."]
     pub fn ws_log_get_level() -> ws_log_level;
 }
 extern "C" {
-    #[doc = " Set the active log level. Returns the active level or LOG_LEVEL_NONE\n if level is invalid."]
     pub fn ws_log_set_level(level: ws_log_level) -> ws_log_level;
 }
 extern "C" {
-    #[doc = " Set the active log level from a string.\n\n String levels are \"error\", \"critical\", \"warning\", \"message\", \"info\",\n \"debug\" and \"noisy\" (case insensitive).\n Returns the new log level or LOG_LEVEL NONE if the string representation\n is invalid."]
     pub fn ws_log_set_level_str(str_level: *const ::std::os::raw::c_char) -> ws_log_level;
 }
 extern "C" {
-    #[doc = " Set a domain filter from a string.\n\n Domain filter is a case insensitive list separated by ',' or ';'. Only\n the domains in the filter will generate output; the others will be muted.\n Filter expressions can be preceded by '!' to invert the sense of the match.\n In this case only non-matching domains will generate output."]
     pub fn ws_log_set_domain_filter(domain_filter: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    #[doc = " Set a fatal domain filter from a string.\n\n Domain filter is a case insensitive list separated by ',' or ';'. Domains\n in the filter will cause the program to abort."]
     pub fn ws_log_set_fatal_domain_filter(domain_filter: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    #[doc = " Set a debug filter from a string.\n\n A debug filter lists all domains that should have debug level output turned\n on, regardless of the global log level and domain filter. If negated\n then debug (and below) will be disabled and the others unaffected by\n the filter."]
     pub fn ws_log_set_debug_filter(str_filter: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    #[doc = " Set a noisy filter from a string.\n\n Same as ws_log_set_debug_filter() for \"noisy\" level."]
     pub fn ws_log_set_noisy_filter(str_filter: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    #[doc = " Set the fatal log level.\n\n Sets the log level at which calls to ws_log() will abort the program. The\n argument can be LOG_LEVEL_ERROR, LOG_LEVEL_CRITICAL or LOG_LEVEL_WARNING.\n Level LOG_LEVEL_ERROR is always fatal."]
     pub fn ws_log_set_fatal_level(level: ws_log_level) -> ws_log_level;
 }
 extern "C" {
-    #[doc = " Set the fatal log level from a string.\n\n Same as ws_log_set_fatal(), but accepts the strings \"error\", critical\" or\n \"warning\" instead as arguments."]
     pub fn ws_log_set_fatal_level_str(str_level: *const ::std::os::raw::c_char) -> ws_log_level;
 }
 extern "C" {
-    #[doc = " Set the active log writer.\n\n The parameter 'writer' can be NULL to use the default writer."]
     pub fn ws_log_set_writer(writer: ws_log_writer_cb);
 }
 extern "C" {
-    #[doc = " Set the active log writer.\n\n The parameter 'writer' can be NULL to use the default writer.\n Accepts an extra user_data parameter that will be passed to\n the log writer."]
     pub fn ws_log_set_writer_with_data(
         writer: ws_log_writer_cb,
         user_data: *mut ::std::os::raw::c_void,
@@ -19846,7 +19770,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Parses the command line arguments for log options.\n\n Returns zero for no error, non-zero for one or more invalid options."]
     pub fn ws_log_parse_args(
         argc_ptr: *mut ::std::os::raw::c_int,
         argv: *mut *mut ::std::os::raw::c_char,
@@ -19857,7 +19780,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Initializes the logging code.\n\n Must be called at startup before using the log API. If provided\n vcmdarg_err is used to print initialization errors. This usually means\n a misconfigured environment variable."]
     pub fn ws_log_init(
         progname: *const ::std::os::raw::c_char,
         vcmdarg_err: ::std::option::Option<
@@ -19866,7 +19788,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Initializes the logging code.\n\n Can be used instead of wslog_init(). Takes an extra writer argument.\n If provided this callback will be used instead of the default writer."]
     pub fn ws_log_init_with_writer(
         progname: *const ::std::os::raw::c_char,
         writer: ws_log_writer_cb,
@@ -19876,7 +19797,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Initializes the logging code.\n\n Accepts a user data pointer in addition to the writer. This pointer will\n be provided to the writer with every invocation. If provided\n free_user_data will be called during cleanup."]
     pub fn ws_log_init_with_writer_and_data(
         progname: *const ::std::os::raw::c_char,
         writer: ws_log_writer_cb,
@@ -19888,7 +19808,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " This function is called to output a message to the log.\n\n Takes a format string and a variable number of arguments."]
     pub fn ws_log(
         domain: *const ::std::os::raw::c_char,
         level: ws_log_level,
@@ -19897,7 +19816,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " This function is called to output a message to the log.\n\n Takes a format string and a 'va_list'."]
     pub fn ws_logv(
         domain: *const ::std::os::raw::c_char,
         level: ws_log_level,
@@ -19906,7 +19824,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " This function is called to output a message to the log.\n\n In addition to the message this function accepts file/line/function\n information."]
     pub fn ws_log_full(
         domain: *const ::std::os::raw::c_char,
         level: ws_log_level,
@@ -19918,7 +19835,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " This function is called to output a message to the log.\n\n In addition to the message this function accepts file/line/function\n information."]
     pub fn ws_logv_full(
         domain: *const ::std::os::raw::c_char,
         level: ws_log_level,
@@ -19953,7 +19869,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " This function is called to log a buffer (bytes array).\n\n Accepts an optional 'msg' argument to provide a description."]
     pub fn ws_log_buffer_full(
         domain: *const ::std::os::raw::c_char,
         level: ws_log_level,
@@ -19967,7 +19882,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Auxiliary function to write custom logging functions.\n\n This function is the same as ws_log_full() but does not perform any\n domain/level filtering to avoid a useless double activation check.\n It should only be used in conjunction with a pre-check using\n ws_log_msg_is_active()."]
     pub fn ws_log_write_always_full(
         domain: *const ::std::os::raw::c_char,
         level: ws_log_level,
@@ -19979,50 +19893,37 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Define an auxiliary file pointer where messages should be written.\n\n This file, if set, functions in addition to the registered or\n default log writer."]
     pub fn ws_log_add_custom_file(fp: *mut FILE);
 }
 extern "C" {
     pub fn ws_log_print_usage(fp: *mut FILE);
 }
-#[doc = " @defgroup wmem Wireshark Memory Manager\n\n Wmem is a memory management framework for Wireshark that makes it simple to\n write dissectors (and other 'user-space' code) that doesn't leak memory. The\n core module provides basic functions like malloc, realloc and free, but\n many other functions are available (see the \"Modules\" list at the top of\n the generated doxygen HTML).\n\n Any wmem functions which allocate memory are guaranteed to either succeed or\n abort the program. However, they *can* still legally return NULL when the\n amount of requested memory is zero.\n\n @{"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _wmem_allocator_t {
     _unused: [u8; 0],
 }
-#[doc = " A public opaque type representing one wmem allocation pool."]
 pub type wmem_allocator_t = _wmem_allocator_t;
-#[doc = "< A trivial allocator that mallocs requested\nmemory and tracks allocations via a hash table. As simple as\npossible, intended more as a demo than for practical usage. Also\nhas the benefit of being friendly to tools like valgrind."]
 pub const _wmem_allocator_type_t_WMEM_ALLOCATOR_SIMPLE: _wmem_allocator_type_t = 0;
-#[doc = "< A block allocator that grabs large chunks of\nmemory at a time (8 MB currently) and serves allocations out of\nthose chunks. Designed for efficiency, especially in the\nfree_all operation."]
 pub const _wmem_allocator_type_t_WMEM_ALLOCATOR_BLOCK: _wmem_allocator_type_t = 1;
-#[doc = "< An allocator that does its best to find invalid\nmemory usage via things like canaries and scrubbing freed\nmemory. Valgrind is the better choice on platforms that support\nit."]
 pub const _wmem_allocator_type_t_WMEM_ALLOCATOR_STRICT: _wmem_allocator_type_t = 2;
-#[doc = "< A block allocator like WMEM_ALLOCATOR_BLOCK\nbut even faster by tracking absolutely minimal metadata and\nmaking 'free' a no-op. Useful only for very short-lived scopes\nwhere there's no reason to free individual allocations because\nthe next free_all is always just around the corner."]
 pub const _wmem_allocator_type_t_WMEM_ALLOCATOR_BLOCK_FAST: _wmem_allocator_type_t = 3;
-#[doc = " An enumeration of the different types of available allocators."]
 pub type _wmem_allocator_type_t = ::std::os::raw::c_int;
-#[doc = " An enumeration of the different types of available allocators."]
 pub use self::_wmem_allocator_type_t as wmem_allocator_type_t;
 extern "C" {
-    #[doc = " Allocate the requested amount of memory in the given pool.\n\n @param allocator The allocator object to use to allocate the memory.\n @param size The amount of memory to allocate.\n @return A void pointer to the newly allocated memory."]
     pub fn wmem_alloc(allocator: *mut wmem_allocator_t, size: usize)
         -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Allocate the requested amount of memory in the given pool. Initializes the\n allocated memory with zeroes.\n\n @param allocator The allocator object to use to allocate the memory.\n @param size The amount of memory to allocate.\n @return A void pointer to the newly allocated and zeroed memory."]
     pub fn wmem_alloc0(
         allocator: *mut wmem_allocator_t,
         size: usize,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Returns the allocated memory to the allocator. This function should only\n be called directly by allocators when the allocated block is sufficiently\n large that the reduced memory usage is worth the cost of the extra function\n call. It's usually easier to just let it get cleaned up when wmem_free_all()\n is called.\n\n @param allocator The allocator object used to originally allocate the memory.\n @param ptr The pointer to the memory block to free. After this function\n returns it no longer points to valid memory."]
     pub fn wmem_free(allocator: *mut wmem_allocator_t, ptr: *mut ::std::os::raw::c_void);
 }
 extern "C" {
-    #[doc = " Resizes a block of memory, potentially moving it if resizing it in place\n is not possible.\n\n @param allocator The allocator object used to originally allocate the memory.\n @param ptr The pointer to the memory block to resize.\n @param size The new size for the memory block.\n @return The new location of the memory block. If this is different from ptr\n then ptr no longer points to valid memory."]
     pub fn wmem_realloc(
         allocator: *mut wmem_allocator_t,
         ptr: *mut ::std::os::raw::c_void,
@@ -20030,27 +19931,21 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Frees all the memory allocated in a pool. Depending on the allocator\n implementation used this can be significantly cheaper than calling\n wmem_free() on all the individual blocks. It also doesn't require you to have\n external pointers to those blocks.\n\n @param allocator The allocator to free the memory from."]
     pub fn wmem_free_all(allocator: *mut wmem_allocator_t);
 }
 extern "C" {
-    #[doc = " Triggers a garbage-collection in the allocator. This does not free any\n memory, but it can return unused blocks to the operating system or perform\n other optimizations.\n\n @param allocator The allocator in which to trigger the garbage collection."]
     pub fn wmem_gc(allocator: *mut wmem_allocator_t);
 }
 extern "C" {
-    #[doc = " Destroy the given allocator, freeing all memory allocated in it. Once this\n function has been called, no memory allocated with the allocator is valid.\n\n @param allocator The allocator to destroy."]
     pub fn wmem_destroy_allocator(allocator: *mut wmem_allocator_t);
 }
 extern "C" {
-    #[doc = " Create a new allocator of the given type. The type may be overridden by the\n WIRESHARK_DEBUG_WMEM_OVERRIDE environment variable.\n\n @param type The type of allocator to create.\n @return The new allocator."]
     pub fn wmem_allocator_new(type_: wmem_allocator_type_t) -> *mut wmem_allocator_t;
 }
 extern "C" {
-    #[doc = " Initialize the wmem subsystem. This must be called before any other wmem\n function, usually at the very beginning of your program."]
     pub fn wmem_init();
 }
 extern "C" {
-    #[doc = " Teardown the wmem subsystem. This must be called after all other wmem\n functions, usually at the very end of your program. This function will not\n destroy outstanding allocators, you must do that yourself."]
     pub fn wmem_cleanup();
 }
 extern "C" {
@@ -20062,7 +19957,6 @@ extern "C" {
 extern "C" {
     pub fn wmem_in_scope(allocator: *mut wmem_allocator_t) -> bool;
 }
-#[doc = " @addtogroup wmem\n  @{\n    @defgroup wmem-array Array\n\n    A resizable array implementation on top of wmem.\n\n    @{"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _wmem_array_t {
@@ -20131,7 +20025,6 @@ extern "C" {
 extern "C" {
     pub fn wmem_destroy_array(array: *mut wmem_array_t);
 }
-#[doc = " @addtogroup wmem\n  @{\n    @defgroup wmem-list Doubly-Linked List\n\n    A doubly-linked list implementation on top of wmem.\n\n    @{"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _wmem_list_t {
@@ -20195,6 +20088,13 @@ extern "C" {
     );
 }
 extern "C" {
+    pub fn wmem_list_append_sorted(
+        list: *mut wmem_list_t,
+        data: *mut ::std::os::raw::c_void,
+        func: GCompareFunc,
+    );
+}
+extern "C" {
     pub fn wmem_list_new(allocator: *mut wmem_allocator_t) -> *mut wmem_list_t;
 }
 extern "C" {
@@ -20207,7 +20107,6 @@ extern "C" {
 extern "C" {
     pub fn wmem_destroy_list(list: *mut wmem_list_t);
 }
-#[doc = " @addtogroup wmem\n  @{\n    @defgroup wmem-map Hash Map\n\n    A hash map implementation on top of wmem. Provides insertion, deletion and\n    lookup in expected amortized constant time. Uses universal hashing to map\n    keys into buckets, and provides a generic strong hash function that makes\n    it secure against algorithmic complexity attacks, and suitable for use\n    even with untrusted data.\n\n    @{"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _wmem_map_t {
@@ -20215,7 +20114,6 @@ pub struct _wmem_map_t {
 }
 pub type wmem_map_t = _wmem_map_t;
 extern "C" {
-    #[doc = " Creates a map with the given allocator scope. When the scope is emptied,\n the map is fully destroyed. Items stored in it will not be freed unless they\n were allocated from the same scope. For details on the GHashFunc and\n GEqualFunc parameters, see the glib documentation at:\n https://developer-old.gnome.org/glib/stable/glib-Hash-Tables.html\n\n If the keys are coming from untrusted data, do *not* use glib's default hash\n functions for strings, int64s or doubles. Wmem provides stronger equivalents\n below. Feel free to use the g_direct_hash, g_int_hash, and any of the\n g_*_equal functions though, as they should be safe.\n\n @param allocator The allocator scope with which to create the map.\n @param hash_func The hash function used to place inserted keys.\n @param eql_func  The equality function used to compare inserted keys.\n @return The newly-allocated map."]
     pub fn wmem_map_new(
         allocator: *mut wmem_allocator_t,
         hash_func: GHashFunc,
@@ -20223,7 +20121,6 @@ extern "C" {
     ) -> *mut wmem_map_t;
 }
 extern "C" {
-    #[doc = " Creates a map with two allocator scopes. The base structure lives in the\n metadata scope, and the map data lives in the data scope. Every time free_all\n occurs in the data scope the map is transparently emptied without affecting\n the location of the base / metadata structure.\n\n WARNING: None of the map (even the part in the metadata scope) can be used\n after the data scope has been *destroyed*.\n\n The primary use for this function is to create maps that reset for each new\n capture file that is loaded. This can be done by specifying wmem_epan_scope()\n as the metadata scope and wmem_file_scope() as the data scope."]
     pub fn wmem_map_new_autoreset(
         metadata_scope: *mut wmem_allocator_t,
         data_scope: *mut wmem_allocator_t,
@@ -20232,7 +20129,6 @@ extern "C" {
     ) -> *mut wmem_map_t;
 }
 extern "C" {
-    #[doc = " Inserts a value into the map.\n\n @param map The map to insert into. Must not be NULL.\n @param key The key to insert by.\n @param value The value to insert.\n @return The previous value stored at this key if any, or NULL."]
     pub fn wmem_map_insert(
         map: *mut wmem_map_t,
         key: *const ::std::os::raw::c_void,
@@ -20240,18 +20136,15 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Check if a value is in the map.\n\n @param map The map to search in. May be NULL.\n @param key The key to lookup.\n @return true if the key is in the map, otherwise false."]
     pub fn wmem_map_contains(map: *mut wmem_map_t, key: *const ::std::os::raw::c_void) -> bool;
 }
 extern "C" {
-    #[doc = " Lookup a value in the map.\n\n @param map The map to search in. May be NULL.\n @param key The key to lookup.\n @return The value stored at the key if any, or NULL."]
     pub fn wmem_map_lookup(
         map: *mut wmem_map_t,
         key: *const ::std::os::raw::c_void,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Lookup a value in the map, returning the key, value, and a boolean which\n is true if the key is found.\n\n @param map The map to search in. May be NULL.\n @param key The key to lookup.\n @param orig_key (optional) The key that was determined to be a match, if any.\n @param value (optional) The value stored at the key, if any.\n @return true if the key is in the map, otherwise false."]
     pub fn wmem_map_lookup_extended(
         map: *mut wmem_map_t,
         key: *const ::std::os::raw::c_void,
@@ -20260,25 +20153,21 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[doc = " Remove a value from the map. If no value is stored at that key, nothing\n happens.\n\n @param map The map to remove from. May be NULL.\n @param key The key of the value to remove.\n @return The (removed) value stored at the key if any, or NULL."]
     pub fn wmem_map_remove(
         map: *mut wmem_map_t,
         key: *const ::std::os::raw::c_void,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Remove a key and value from the map but does not destroy (free) them. If no\n value is stored at that key, nothing happens.\n\n @param map The map to remove from. May be NULL.\n @param key The key of the value to remove.\n @return true if key is found false if not."]
     pub fn wmem_map_steal(map: *mut wmem_map_t, key: *const ::std::os::raw::c_void) -> bool;
 }
 extern "C" {
-    #[doc = " Retrieves a list of keys inside the map\n\n @param list_allocator The allocator scope for the returned list.\n @param map The map to extract keys from\n @return list of keys in the map"]
     pub fn wmem_map_get_keys(
         list_allocator: *mut wmem_allocator_t,
         map: *mut wmem_map_t,
     ) -> *mut wmem_list_t;
 }
 extern "C" {
-    #[doc = " Run a function against all key/value pairs in the map. The order\n of the calls is unpredictable, since it is based on the internal\n storage of data.\n\n @param map The map to use. May be NULL.\n @param foreach_func the function to call for each key/value pair\n @param user_data user data to pass to the function"]
     pub fn wmem_map_foreach(
         map: *mut wmem_map_t,
         foreach_func: GHFunc,
@@ -20286,7 +20175,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Run a function against all key/value pairs in the map. If the\n function returns true, then the key/value pair is removed from\n the map. The order of the calls is unpredictable, since it is\n based on the internal storage of data.\n\n @param map The map to use. May be NULL.\n @param foreach_func the function to call for each key/value pair\n @param user_data user data to pass to the function\n @return The number of items removed"]
     pub fn wmem_map_foreach_remove(
         map: *mut wmem_map_t,
         foreach_func: GHRFunc,
@@ -20294,27 +20182,21 @@ extern "C" {
     ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Return the number of elements of the map.\n\n @param map The map to use\n @return the number of elements"]
     pub fn wmem_map_size(map: *mut wmem_map_t) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Compute a strong hash value for an arbitrary sequence of bytes. Use of this\n hash value should be secure against algorithmic complexity attacks, even for\n short keys. The computation uses a random seed which is generated on wmem\n initialization, so the same key will hash to different values on different\n runs of the application.\n\n @param buf The buffer of bytes (does not have to be aligned).\n @param len The length of buf to use for the hash computation.\n @return The hash value."]
     pub fn wmem_strong_hash(buf: *const u8, len: usize) -> u32;
 }
 extern "C" {
-    #[doc = " An implementation of GHashFunc using wmem_strong_hash. Prefer this over\n g_str_hash when the data comes from an untrusted source."]
-    pub fn wmem_str_hash(key: gconstpointer) -> ::std::os::raw::c_uint;
+    pub fn wmem_str_hash(key: *const ::std::os::raw::c_void) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " An implementation of GHashFunc using wmem_strong_hash. Prefer this over\n g_int64_hash when the data comes from an untrusted source."]
-    pub fn wmem_int64_hash(key: gconstpointer) -> ::std::os::raw::c_uint;
+    pub fn wmem_int64_hash(key: *const ::std::os::raw::c_void) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " An implementation of GHashFunc using wmem_strong_hash. Prefer this over\n g_double_hash when the data comes from an untrusted source."]
-    pub fn wmem_double_hash(key: gconstpointer) -> ::std::os::raw::c_uint;
+    pub fn wmem_double_hash(key: *const ::std::os::raw::c_void) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Copies a block of memory.\n\n @param allocator The allocator object to use to allocate memory to copy into.\n @param source The pointer to the memory block to copy.\n @param size The amount of memory to copy.\n @return The location of the memory copy or NULL if size is 0."]
     pub fn wmem_memdup(
         allocator: *mut wmem_allocator_t,
         source: *const ::std::os::raw::c_void,
@@ -20322,21 +20204,24 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Generic GCompareFunc implementations to compare signed/unsigned integer"]
-    pub fn wmem_compare_int(a: gconstpointer, b: gconstpointer) -> ::std::os::raw::c_int;
+    pub fn wmem_compare_int(
+        a: *const ::std::os::raw::c_void,
+        b: *const ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn wmem_compare_uint(a: gconstpointer, b: gconstpointer) -> ::std::os::raw::c_int;
+    pub fn wmem_compare_uint(
+        a: *const ::std::os::raw::c_void,
+        b: *const ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _wmem_multimap_t {
     _unused: [u8; 0],
 }
-#[doc = " @addtogroup wmem\n  @{\n    @defgroup wmem-multimap Hash Multimap\n\n    A hash multimap implementation on top of wmem_map and wmem_tree, storing\n    multiple values at each hash key in a tree indexed by a 32 bit integer.\n\n    The primary use case is a protocol with an ID used as the hash lookup\n    key that can be reused in a capture, and the frame number used as the\n    tree key. We often want to find the most recent frame that had a certain\n    ID, e.g. for request/response matching, and wmem_multimap_lookup32_le()\n    serves that purpose.\n\n    Since the tree implementation is a self-balancing red-black tree, lookup\n    time is still O(log(n)) even though elements with equivalent hash keys\n    are usually added in increasing order of frame number.\n\n    NOTE: The multimap does not yet support inserting items without\n    specifying the tree key, because the total capacity of individual trees\n    (including deleted nodes) is not tracked.\n\n    @{"]
 pub type wmem_multimap_t = _wmem_multimap_t;
 extern "C" {
-    #[doc = " Creates a multimap with the given allocator scope. When the scope is emptied,\n the map is fully destroyed. Items stored in it will not be freed unless they\n were allocated from the same scope.\n\n @param allocator The allocator scope with which to create the map.\n @param hash_func The hash function used to place inserted keys.\n @param eql_func  The equality function used to compare inserted keys.\n @return The newly-allocated map."]
     pub fn wmem_multimap_new(
         allocator: *mut wmem_allocator_t,
         hash_func: GHashFunc,
@@ -20344,7 +20229,6 @@ extern "C" {
     ) -> *mut wmem_multimap_t;
 }
 extern "C" {
-    #[doc = " Creates a multimap with two allocator scopes. The base structure lives in the\n metadata scope, and the map data lives in the data scope. Every time free_all\n occurs in the data scope the map is transparently emptied without affecting\n the location of the base / metadata structure.\n\n WARNING: None of the map (even the part in the metadata scope) can be used\n after the data scope has been *destroyed*.\n\n The primary use for this function is to create maps that reset for each new\n capture file that is loaded. This can be done by specifying wmem_epan_scope()\n as the metadata scope and wmem_file_scope() as the data scope."]
     pub fn wmem_multimap_new_autoreset(
         metadata_scope: *mut wmem_allocator_t,
         data_scope: *mut wmem_allocator_t,
@@ -20353,25 +20237,21 @@ extern "C" {
     ) -> *mut wmem_multimap_t;
 }
 extern "C" {
-    #[doc = " Retrieves a list of the keys inside the multimap\n\n @param list_allocator The allocator scope for the returned list.\n @param map The multimap to extract keys from\n @return list of keys in the multimap"]
     pub fn wmem_multimap_get_keys(
         list_allocator: *mut wmem_allocator_t,
         map: *mut wmem_multimap_t,
     ) -> *mut wmem_list_t;
 }
 extern "C" {
-    #[doc = " Return the total number of elements in the multimap.\n\n @param map The multimap to use\n @return the number of elements"]
     pub fn wmem_multimap_size(map: *mut wmem_multimap_t) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Returns the number of values in the multimap with a certain hash key.\n (Note: This is the number of current elements, so this can only be used to\n safely generate unique tree keys prior to insertion if no values have been\n removed, due to how the tree implementation works.)\n\n @param map The multimap to search in.\n @param key The primary key to lookup in the map.\n @return The number of values in the tree stored at map key, or zero if no\n tree exists at that key."]
     pub fn wmem_multimap_count(
         map: *mut wmem_multimap_t,
         key: *const ::std::os::raw::c_void,
     ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Insert a value in the multimap.\n\n @param map The multimap to insert into.\n @param key The key to insert by in the map.\n @param frame_num The key to insert by in the tree.\n @param value The value to insert.\n @return true if there was already a tree mapped at key, in which case the\n caller may safely free key. (This is not necessary if key is allocated with\n a wmem pool.)\n\n Note: as with wmem_tree, if there is already a node with the same pair\n of keys, then the existing value will simply be overwritten. This is not\n a problem if the value is wmem allocated, but if it is manually managed,\n then you must ensure that the pair is unique or do a lookup before inserting."]
     pub fn wmem_multimap_insert32(
         map: *mut wmem_multimap_t,
         key: *const ::std::os::raw::c_void,
@@ -20380,7 +20260,6 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[doc = " Lookup a value in the multimap combination with an exact match.\n\n @param map The multimap to search in.\n @param key The primary key to lookup in the map.\n @param frame_num The secondary key to lookup in the tree.\n @return The value stored at the keys if any, or NULL."]
     pub fn wmem_multimap_lookup32(
         map: *mut wmem_multimap_t,
         key: *const ::std::os::raw::c_void,
@@ -20388,7 +20267,6 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Lookup a value in the multimap with an exact match for the map key\n and the largest value less than or equal to the tree key. This is\n useful for request/response matching where IDs can be reused.\n\n @param map The multimap to search in.\n @param key The primary key to lookup in the map.\n @param frame_num The secondary key to lookup in the tree.\n @return The value stored at the primary key in the map and with the largest\n key in the tree that is less than or equal to the second key if any, or NULL."]
     pub fn wmem_multimap_lookup32_le(
         map: *mut wmem_multimap_t,
         key: *const ::std::os::raw::c_void,
@@ -20396,16 +20274,13 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Remove a value from the multimap. If no value is stored at that key pair,\n nothing happens. As with wmem_tree, this is not really a remove, but the\n value is set to NULL so that wmem_multimap_lookup32 not will find it.\n\n @param map The multimap to remove from.\n @param key The map key of the value to remove.\n @param frame_num The tree key of the value to remove.\n @return The (removed) value stored at the key if any, or NULL."]
     pub fn wmem_multimap_remove32(
         map: *mut wmem_multimap_t,
         key: *const ::std::os::raw::c_void,
         frame_num: u32,
     ) -> *mut ::std::os::raw::c_void;
 }
-#[doc = " @addtogroup wmem\n  @{\n    @defgroup wmem-queue Queue\n\n    A queue implementation on top of wmem.\n\n    @{"]
 pub type wmem_queue_t = wmem_list_t;
-#[doc = " @addtogroup wmem\n  @{\n    @defgroup wmem-stack Stack\n\n    A stack implementation on top of wmem.\n\n    @{"]
 pub type wmem_stack_t = wmem_list_t;
 extern "C" {
     pub fn wmem_stack_peek(stack: *const wmem_stack_t) -> *mut ::std::os::raw::c_void;
@@ -20413,7 +20288,6 @@ extern "C" {
 extern "C" {
     pub fn wmem_stack_pop(stack: *mut wmem_stack_t) -> *mut ::std::os::raw::c_void;
 }
-#[doc = " @addtogroup wmem\n  @{\n    @defgroup wmem-strbuf String Buffer\n\n    A string object implementation on top of wmem.\n\n    @{"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _wmem_strbuf_t {
@@ -20477,7 +20351,6 @@ fn bindgen_test_layout__wmem_strbuf_t() {
         )
     );
 }
-#[doc = " @addtogroup wmem\n  @{\n    @defgroup wmem-strbuf String Buffer\n\n    A string object implementation on top of wmem.\n\n    @{"]
 pub type wmem_strbuf_t = _wmem_strbuf_t;
 extern "C" {
     pub fn wmem_strbuf_new_sized(
@@ -20572,7 +20445,6 @@ extern "C" {
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Truncates the allocated memory down to the minimal amount, frees the header\n  structure, and returns a non-const pointer to the raw string. The\n  wmem_strbuf_t structure cannot be used after this is called. Basically a\n  destructor for when you still need the underlying C-string."]
     pub fn wmem_strbuf_finalize(strbuf: *mut wmem_strbuf_t) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
@@ -20588,7 +20460,6 @@ extern "C" {
     pub fn wmem_strbuf_utf8_make_valid(strbuf: *mut wmem_strbuf_t);
 }
 extern "C" {
-    #[doc = " @addtogroup wmem\n  @{\n    @defgroup wmem-strutl String Utilities\n\n    A collection of utility function for operating on C strings with wmem.\n\n    @{"]
     pub fn wmem_strdup(
         allocator: *mut wmem_allocator_t,
         src: *const ::std::os::raw::c_char,
@@ -20616,7 +20487,6 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Return the first occurrence of needle in haystack.\n\n @param haystack The data to search\n @param haystack_len The length of the search data\n @param needle The string to look for\n @param needle_len The length of the search string\n @return A pointer to the first occurrence of \"needle\" in\n         \"haystack\".  If \"needle\" isn't found or is NULL, or if\n         \"needle_len\" is 0, NULL is returned."]
     pub fn ws_memmem(
         haystack: *const ::std::os::raw::c_void,
         haystack_len: usize,
@@ -20624,7 +20494,6 @@ extern "C" {
         needle_len: usize,
     ) -> *const u8;
 }
-#[doc = " @addtogroup wmem\n  @{\n    @defgroup wmem-tree Red/Black Tree\n\n    Binary trees are a well-known and popular device in computer science to\n    handle storage of objects based on a search key or identity. The\n    particular binary tree style implemented here is the red/black tree, which\n    has the nice property of being self-balancing. This guarantees O(log(n))\n    time for lookups, compared to linked lists that are O(n). This means\n    red/black trees scale very well when many objects are being stored.\n\n    @{"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _wmem_tree_t {
@@ -20632,50 +20501,39 @@ pub struct _wmem_tree_t {
 }
 pub type wmem_tree_t = _wmem_tree_t;
 extern "C" {
-    #[doc = " Creates a tree with the given allocator scope. When the scope is emptied,\n the tree is fully destroyed."]
     pub fn wmem_tree_new(allocator: *mut wmem_allocator_t) -> *mut wmem_tree_t;
 }
 extern "C" {
-    #[doc = " Creates a tree with two allocator scopes. The base structure lives in the\n metadata scope, and the tree data lives in the data scope. Every time free_all\n occurs in the data scope the tree is transparently emptied without affecting\n the location of the base / metadata structure.\n\n WARNING: None of the tree (even the part in the metadata scope) can be used\n after the data scope has been *destroyed*.\n\n The primary use for this function is to create trees that reset for each new\n capture file that is loaded. This can be done by specifying wmem_epan_scope()\n as the metadata scope and wmem_file_scope() as the data scope."]
     pub fn wmem_tree_new_autoreset(
         metadata_scope: *mut wmem_allocator_t,
         data_scope: *mut wmem_allocator_t,
     ) -> *mut wmem_tree_t;
 }
 extern "C" {
-    #[doc = " Cleanup memory used by tree.  Intended for NULL scope allocated trees"]
     pub fn wmem_tree_destroy(tree: *mut wmem_tree_t, free_keys: bool, free_values: bool);
 }
 extern "C" {
-    #[doc = " Returns true if the tree is empty (has no nodes)."]
     pub fn wmem_tree_is_empty(tree: *mut wmem_tree_t) -> bool;
 }
 extern "C" {
-    #[doc = " Returns number of nodes in tree"]
     pub fn wmem_tree_count(tree: *mut wmem_tree_t) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Insert a node indexed by a uint32_t key value.\n\n Data is a pointer to the structure you want to be able to retrieve by\n searching for the same key later.\n\n NOTE: If you insert a node to a key that already exists in the tree this\n function will simply overwrite the old value. If the structures you are\n storing are allocated in a wmem pool this is not a problem as they will still\n be freed with the pool. If you are managing them manually however, you must\n either ensure the key is unique, or do a lookup before each insert."]
     pub fn wmem_tree_insert32(tree: *mut wmem_tree_t, key: u32, data: *mut ::std::os::raw::c_void);
 }
 extern "C" {
-    #[doc = " Look up a node in the tree indexed by a uint32_t integer value. Return true\n if present."]
     pub fn wmem_tree_contains32(tree: *mut wmem_tree_t, key: u32) -> bool;
 }
 extern "C" {
-    #[doc = " Look up a node in the tree indexed by a uint32_t integer value. If no node is\n found the function will return NULL."]
     pub fn wmem_tree_lookup32(tree: *mut wmem_tree_t, key: u32) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Look up a node in the tree indexed by a uint32_t integer value.\n Returns the node that has the largest key that is less than or equal\n to the search key, or NULL if no such key exists."]
     pub fn wmem_tree_lookup32_le(tree: *mut wmem_tree_t, key: u32) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Remove a node in the tree indexed by a uint32_t integer value. This is not\n really a remove, but the value is set to NULL so that wmem_tree_lookup32\n not will find it."]
     pub fn wmem_tree_remove32(tree: *mut wmem_tree_t, key: u32) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Insert a new value under a string key. Like wmem_tree_insert32 but where the\n key is a null-terminated string instead of a uint32_t. You may pass\n WMEM_TREE_STRING_NOCASE to the flags argument in order to make it store the\n key in a case-insensitive way.  (Note that \"case-insensitive\" refers\n only to the ASCII letters A-Z and a-z; it is locale-independent.\n Do not expect it to honor the rules of your language; for example, \"I\"\n will always be mapped to \"i\"."]
     pub fn wmem_tree_insert_string(
         tree: *mut wmem_tree_t,
         key: *const ::std::os::raw::c_char,
@@ -20684,7 +20542,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Lookup the value under a string key, like wmem_tree_lookup32 but where the\n keye is a null-terminated string instead of a uint32_t. See\n wmem_tree_insert_string for an explanation of flags."]
     pub fn wmem_tree_lookup_string(
         tree: *mut wmem_tree_t,
         key: *const ::std::os::raw::c_char,
@@ -20692,7 +20549,6 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Remove the value under a string key.  This is not really a remove, but the\n value is set to NULL so that wmem_tree_lookup_string not will find it.\n See wmem_tree_insert_string for an explanation of flags."]
     pub fn wmem_tree_remove_string(
         tree: *mut wmem_tree_t,
         key: *const ::std::os::raw::c_char,
@@ -20702,7 +20558,6 @@ extern "C" {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _wmem_tree_key_t {
-    #[doc = "< length in uint32_t words"]
     pub length: u32,
     pub key: *mut u32,
 }
@@ -20743,7 +20598,6 @@ fn bindgen_test_layout__wmem_tree_key_t() {
 }
 pub type wmem_tree_key_t = _wmem_tree_key_t;
 extern "C" {
-    #[doc = " Insert a node indexed by a sequence of uint32_t key values.\n\n Takes as key an array of uint32_t vectors of type wmem_tree_key_t. It will\n iterate through each key to search further down the tree until it reaches an\n element where length==0, indicating the end of the array. You MUST terminate\n the key array by {0, NULL} or this will crash.\n\n NOTE: length indicates the number of uint32_t values in the vector, not the\n number of bytes.\n\n NOTE: all the \"key\" members of the \"key\" argument MUST be aligned on\n 32-bit boundaries; otherwise, this code will crash on platforms such\n as SPARC that require aligned pointers.\n\n If you use ...32_array() calls you MUST make sure that every single node\n you add to a specific tree always has a key of exactly the same number of\n keylen words or it will crash. Or at least that every single item that sits\n behind the same top level node always has exactly the same number of words.\n\n One way to guarantee this is the way that NFS does this for the\n nfs_name_snoop_known tree which holds filehandles for both v2 and v3.\n v2 filehandles are always 32 bytes (8 words) while v3 filehandles can have\n any length (though 32 bytes are most common).\n The NFS dissector handles this by providing a uint32_t containing the length\n as the very first item in this vector :\n\n                      wmem_tree_key_t fhkey[3];\n\n                      fhlen=nns->fh_length;\n                      fhkey[0].length=1;\n                      fhkey[0].key=&fhlen;\n                      fhkey[1].length=fhlen/4;\n                      fhkey[1].key=nns->fh;\n                      fhkey[2].length=0;"]
     pub fn wmem_tree_insert32_array(
         tree: *mut wmem_tree_t,
         key: *mut wmem_tree_key_t,
@@ -20751,20 +20605,17 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Look up a node in the tree indexed by a sequence of uint32_t integer values.\n See wmem_tree_insert32_array for details on the key."]
     pub fn wmem_tree_lookup32_array(
         tree: *mut wmem_tree_t,
         key: *mut wmem_tree_key_t,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Look up a node in the tree indexed by a multi-part tree value.\n The function will return the node that has the largest key that is\n equal to or smaller than the search key, or NULL if no such key was\n found.\n\n NOTE:  The key returned will be \"less\" in key order.  The usefulness\n of the returned node must be verified prior to use.\n\n See wmem_tree_insert32_array for details on the key."]
     pub fn wmem_tree_lookup32_array_le(
         tree: *mut wmem_tree_t,
         key: *mut wmem_tree_key_t,
     ) -> *mut ::std::os::raw::c_void;
 }
-#[doc = " Function type for processing one node of a tree during a traversal. Value is\n the value of the node, userdata is whatever was passed to the traversal\n function. If the function returns true the traversal will end prematurely."]
 pub type wmem_foreach_func = ::std::option::Option<
     unsafe extern "C" fn(
         key: *const ::std::os::raw::c_void,
@@ -20772,11 +20623,9 @@ pub type wmem_foreach_func = ::std::option::Option<
         userdata: *mut ::std::os::raw::c_void,
     ) -> bool,
 >;
-#[doc = " Function type to print key/data of nodes in wmem_print_tree_verbose"]
 pub type wmem_printer_func =
     ::std::option::Option<unsafe extern "C" fn(data: *const ::std::os::raw::c_void)>;
 extern "C" {
-    #[doc = " Inorder traversal (left/parent/right) of the tree and call\n callback(value, userdata) for each value found.\n\n Returns true if the traversal was ended prematurely by the callback."]
     pub fn wmem_tree_foreach(
         tree: *mut wmem_tree_t,
         callback: wmem_foreach_func,
@@ -20847,11 +20696,9 @@ extern "C" {
     pub fn wmem_itree_new(allocator: *mut wmem_allocator_t) -> *mut wmem_itree_t;
 }
 extern "C" {
-    #[doc = " Returns true if the tree is empty (has no nodes)."]
     pub fn wmem_itree_is_empty(tree: *mut wmem_itree_t) -> bool;
 }
 extern "C" {
-    #[doc = " Inserts a range low-high indexed by \"low\" in O(log(n)).\n As in wmem_tree, if a key \"low\" already exists, it will be overwritten with the new data\n"]
     pub fn wmem_itree_insert(
         tree: *mut wmem_itree_t,
         low: u64,
@@ -20868,18 +20715,12 @@ extern "C" {
     ) -> *mut wmem_list_t;
 }
 extern "C" {
-    #[doc = " Print ranges along the tree"]
     pub fn wmem_print_itree(tree: *mut wmem_itree_t);
 }
-#[doc = "< wmem_free_all()"]
 pub const _wmem_cb_event_t_WMEM_CB_FREE_EVENT: _wmem_cb_event_t = 0;
-#[doc = "< wmem_destroy_allocator()"]
 pub const _wmem_cb_event_t_WMEM_CB_DESTROY_EVENT: _wmem_cb_event_t = 1;
-#[doc = " The events that can trigger a callback."]
 pub type _wmem_cb_event_t = ::std::os::raw::c_int;
-#[doc = " The events that can trigger a callback."]
 pub use self::_wmem_cb_event_t as wmem_cb_event_t;
-#[doc = " Function signature for registered user callbacks.\n\n allocator The allocator that triggered this callback.\n event     The event type that triggered this callback.\n user_data Whatever user_data was originally passed to the call to\n                  wmem_register_callback().\n @return          false to unregister the callback, true otherwise."]
 pub type wmem_user_cb_t = ::std::option::Option<
     unsafe extern "C" fn(
         arg1: *mut wmem_allocator_t,
@@ -20888,7 +20729,6 @@ pub type wmem_user_cb_t = ::std::option::Option<
     ) -> bool,
 >;
 extern "C" {
-    #[doc = " Register a callback function with the given allocator pool.\n\n @param allocator The allocator with which to register the callback.\n @param callback  The function to be called as the callback.\n @param user_data An arbitrary data pointer that is passed to the callback as\n                  a way to specify extra parameters or store extra data. Note\n                  that this pointer is not freed when a callback is finished,\n                  you have to do that yourself in the callback, or just\n                  allocate it in the appropriate wmem pool.\n @return          ID of this callback that can be passed back to\n                  wmem_unregister_callback()."]
     pub fn wmem_register_callback(
         allocator: *mut wmem_allocator_t,
         callback: wmem_user_cb_t,
@@ -20896,7 +20736,6 @@ extern "C" {
     ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Unregister the callback function with the given ID.\n\n @param allocator The allocator from which to unregister the callback.\n @param id        The callback id as returned from wmem_register_callback()."]
     pub fn wmem_unregister_callback(allocator: *mut wmem_allocator_t, id: ::std::os::raw::c_uint);
 }
 #[repr(C)]
@@ -20980,7 +20819,6 @@ extern "C" {
 extern "C" {
     pub fn ws_buffer_cleanup();
 }
-#[doc = " data structure to hold time values with nanosecond resolution"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct nstime_t {
@@ -21023,63 +20861,52 @@ fn bindgen_test_layout_nstime_t() {
     );
 }
 extern "C" {
-    #[doc = " set the given nstime_t to zero"]
     pub fn nstime_set_zero(nstime: *mut nstime_t);
 }
 extern "C" {
-    #[doc = " is the given nstime_t currently zero?"]
     pub fn nstime_is_zero(nstime: *const nstime_t) -> bool;
 }
 extern "C" {
-    #[doc = " set the given nstime_t to (0,maxint) to mark it as \"unset\"\n That way we can find the first frame even when a timestamp\n is zero (fix for bug 1056)"]
     pub fn nstime_set_unset(nstime: *mut nstime_t);
 }
 extern "C" {
     pub fn nstime_is_unset(nstime: *const nstime_t) -> bool;
 }
 extern "C" {
-    #[doc = " duplicate the current time\n\n a = b"]
     pub fn nstime_copy(a: *mut nstime_t, b: *const nstime_t);
 }
 extern "C" {
-    #[doc = " calculate the delta between two times (can be negative!)\n\n delta = b-a\n\n Note that it is acceptable for two or more of the arguments to point at the\n same structure."]
     pub fn nstime_delta(delta: *mut nstime_t, b: *const nstime_t, a: *const nstime_t);
 }
 extern "C" {
-    #[doc = " calculate the sum of two times\n\n sum = a+b\n\n Note that it is acceptable for two or more of the arguments to point at the\n same structure."]
     pub fn nstime_sum(sum: *mut nstime_t, a: *const nstime_t, b: *const nstime_t);
 }
 extern "C" {
-    #[doc = " compare two times are return a value similar to memcmp() or strcmp().\n\n a > b : > 0\n a = b : 0\n a < b : < 0"]
     pub fn nstime_cmp(a: *const nstime_t, b: *const nstime_t) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn nstime_hash(nstime: *const nstime_t) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " converts nstime to double, time base is milli seconds"]
     pub fn nstime_to_msec(nstime: *const nstime_t) -> f64;
 }
 extern "C" {
-    #[doc = " converts nstime to double, time base is seconds"]
     pub fn nstime_to_sec(nstime: *const nstime_t) -> f64;
 }
 extern "C" {
-    #[doc = " converts Windows FILETIME to nstime, returns true on success,\nfalse on failure"]
     pub fn filetime_to_nstime(nstime: *mut nstime_t, filetime: u64) -> bool;
 }
 extern "C" {
-    #[doc = " converts time like Windows FILETIME, but expressed in nanoseconds\nrather than tenths of microseconds, to nstime, returns true on success,\nfalse on failure"]
-    pub fn nsfiletime_to_nstime(nstime: *mut nstime_t, nsfiletime: u64) -> bool;
+    pub fn filetime_ns_to_nstime(nstime: *mut nstime_t, nsfiletime: u64) -> bool;
+}
+extern "C" {
+    pub fn filetime_1sec_to_nstime(nstime: *mut nstime_t, filetime: u64) -> bool;
 }
 pub const iso8601_fmt_e_ISO8601_DATETIME: iso8601_fmt_e = 0;
-#[doc = " e.g. 2014-07-04T12:34:56.789+00:00"]
 pub const iso8601_fmt_e_ISO8601_DATETIME_BASIC: iso8601_fmt_e = 1;
-#[doc = " ISO8601 Basic format, i.e. no - : separators"]
 pub const iso8601_fmt_e_ISO8601_DATETIME_AUTO: iso8601_fmt_e = 2;
 pub type iso8601_fmt_e = ::std::os::raw::c_int;
 extern "C" {
-    #[doc = " parse an ISO 8601 format datetime string to nstime, returns pointer\nto the first character after the last character, NULL on failure\nNote that nstime is set to unset in the case of failure"]
     pub fn iso8601_to_nstime(
         nstime: *mut nstime_t,
         ptr: *const ::std::os::raw::c_char,
@@ -21087,7 +20914,6 @@ extern "C" {
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " parse an Unix epoch timestamp format datetime string to nstime, returns\npointer to the first character after the last character, NULL on failure\nNote that nstime is set to unset in the case of failure"]
     pub fn unix_epoch_to_nstime(
         nstime: *mut nstime_t,
         ptr: *const ::std::os::raw::c_char,
@@ -21150,354 +20976,6 @@ fn bindgen_test_layout_e_in6_addr() {
     );
 }
 pub type ws_in6_addr = e_in6_addr;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ws_ip6_hdr {
-    pub ip6h_vc_flow: u32,
-    pub ip6h_plen: u16,
-    pub ip6h_nxt: u8,
-    pub ip6h_hlim: u8,
-    pub ip6h_src: ws_in6_addr,
-    pub ip6h_dst: ws_in6_addr,
-}
-#[test]
-fn bindgen_test_layout_ws_ip6_hdr() {
-    const UNINIT: ::std::mem::MaybeUninit<ws_ip6_hdr> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ws_ip6_hdr>(),
-        40usize,
-        concat!("Size of: ", stringify!(ws_ip6_hdr))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ws_ip6_hdr>(),
-        4usize,
-        concat!("Alignment of ", stringify!(ws_ip6_hdr))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6h_vc_flow) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ws_ip6_hdr),
-            "::",
-            stringify!(ip6h_vc_flow)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6h_plen) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ws_ip6_hdr),
-            "::",
-            stringify!(ip6h_plen)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6h_nxt) as usize - ptr as usize },
-        6usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ws_ip6_hdr),
-            "::",
-            stringify!(ip6h_nxt)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6h_hlim) as usize - ptr as usize },
-        7usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ws_ip6_hdr),
-            "::",
-            stringify!(ip6h_hlim)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6h_src) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ws_ip6_hdr),
-            "::",
-            stringify!(ip6h_src)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6h_dst) as usize - ptr as usize },
-        24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ws_ip6_hdr),
-            "::",
-            stringify!(ip6h_dst)
-        )
-    );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ip6_ext {
-    pub ip6e_nxt: ::std::os::raw::c_uchar,
-    pub ip6e_len: ::std::os::raw::c_uchar,
-}
-#[test]
-fn bindgen_test_layout_ip6_ext() {
-    const UNINIT: ::std::mem::MaybeUninit<ip6_ext> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ip6_ext>(),
-        2usize,
-        concat!("Size of: ", stringify!(ip6_ext))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ip6_ext>(),
-        1usize,
-        concat!("Alignment of ", stringify!(ip6_ext))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6e_nxt) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_ext),
-            "::",
-            stringify!(ip6e_nxt)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6e_len) as usize - ptr as usize },
-        1usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_ext),
-            "::",
-            stringify!(ip6e_len)
-        )
-    );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ip6_rthdr {
-    pub ip6r_nxt: u8,
-    pub ip6r_len: u8,
-    pub ip6r_type: u8,
-    pub ip6r_segleft: u8,
-}
-#[test]
-fn bindgen_test_layout_ip6_rthdr() {
-    const UNINIT: ::std::mem::MaybeUninit<ip6_rthdr> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ip6_rthdr>(),
-        4usize,
-        concat!("Size of: ", stringify!(ip6_rthdr))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ip6_rthdr>(),
-        1usize,
-        concat!("Alignment of ", stringify!(ip6_rthdr))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r_nxt) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr),
-            "::",
-            stringify!(ip6r_nxt)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r_len) as usize - ptr as usize },
-        1usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr),
-            "::",
-            stringify!(ip6r_len)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r_type) as usize - ptr as usize },
-        2usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr),
-            "::",
-            stringify!(ip6r_type)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r_segleft) as usize - ptr as usize },
-        3usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr),
-            "::",
-            stringify!(ip6r_segleft)
-        )
-    );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ip6_rthdr0 {
-    pub ip6r0_nxt: u8,
-    pub ip6r0_len: u8,
-    pub ip6r0_type: u8,
-    pub ip6r0_segleft: u8,
-    pub ip6r0_reserved: u8,
-    pub ip6r0_slmap: [u8; 3usize],
-    pub ip6r0_addr: [ws_in6_addr; 1usize],
-}
-#[test]
-fn bindgen_test_layout_ip6_rthdr0() {
-    const UNINIT: ::std::mem::MaybeUninit<ip6_rthdr0> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ip6_rthdr0>(),
-        24usize,
-        concat!("Size of: ", stringify!(ip6_rthdr0))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ip6_rthdr0>(),
-        1usize,
-        concat!("Alignment of ", stringify!(ip6_rthdr0))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r0_nxt) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr0),
-            "::",
-            stringify!(ip6r0_nxt)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r0_len) as usize - ptr as usize },
-        1usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr0),
-            "::",
-            stringify!(ip6r0_len)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r0_type) as usize - ptr as usize },
-        2usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr0),
-            "::",
-            stringify!(ip6r0_type)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r0_segleft) as usize - ptr as usize },
-        3usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr0),
-            "::",
-            stringify!(ip6r0_segleft)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r0_reserved) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr0),
-            "::",
-            stringify!(ip6r0_reserved)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r0_slmap) as usize - ptr as usize },
-        5usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr0),
-            "::",
-            stringify!(ip6r0_slmap)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6r0_addr) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_rthdr0),
-            "::",
-            stringify!(ip6r0_addr)
-        )
-    );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ip6_frag {
-    pub ip6f_nxt: u8,
-    pub ip6f_reserved: u8,
-    pub ip6f_offlg: u16,
-    pub ip6f_ident: u32,
-}
-#[test]
-fn bindgen_test_layout_ip6_frag() {
-    const UNINIT: ::std::mem::MaybeUninit<ip6_frag> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ip6_frag>(),
-        8usize,
-        concat!("Size of: ", stringify!(ip6_frag))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ip6_frag>(),
-        4usize,
-        concat!("Alignment of ", stringify!(ip6_frag))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6f_nxt) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_frag),
-            "::",
-            stringify!(ip6f_nxt)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6f_reserved) as usize - ptr as usize },
-        1usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_frag),
-            "::",
-            stringify!(ip6f_reserved)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6f_offlg) as usize - ptr as usize },
-        2usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_frag),
-            "::",
-            stringify!(ip6f_offlg)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ip6f_ident) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ip6_frag),
-            "::",
-            stringify!(ip6f_ident)
-        )
-    );
-}
 extern "C" {
     pub fn ws_inet_ntop4(
         src: *const ::std::os::raw::c_void,
@@ -21533,17 +21011,15 @@ pub const wtap_block_type_t_WTAP_BLOCK_PACKET: wtap_block_type_t = 5;
 pub const wtap_block_type_t_WTAP_BLOCK_FT_SPECIFIC_REPORT: wtap_block_type_t = 6;
 pub const wtap_block_type_t_WTAP_BLOCK_FT_SPECIFIC_EVENT: wtap_block_type_t = 7;
 pub const wtap_block_type_t_WTAP_BLOCK_SYSDIG_EVENT: wtap_block_type_t = 8;
-pub const wtap_block_type_t_WTAP_BLOCK_SYSDIG_META_EVENT: wtap_block_type_t = 9;
+pub const wtap_block_type_t_WTAP_BLOCK_META_EVENT: wtap_block_type_t = 9;
 pub const wtap_block_type_t_WTAP_BLOCK_SYSTEMD_JOURNAL_EXPORT: wtap_block_type_t = 10;
 pub const wtap_block_type_t_WTAP_BLOCK_CUSTOM: wtap_block_type_t = 11;
 pub const wtap_block_type_t_MAX_WTAP_BLOCK_TYPE_VALUE: wtap_block_type_t = 12;
 pub type wtap_block_type_t = ::std::os::raw::c_int;
-#[doc = " Holds the required data from a WTAP_BLOCK_SECTION."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtapng_section_mandatory_s {
-    #[doc = "< 64-bit value specifying the length in bytes of the\n     following section.\n     Section Length equal -1 (0xFFFFFFFFFFFFFFFF) means\n     that the size of the section is not specified\n   Note: if writing to a new file, this length will\n     be invalid if anything changes, such as the other\n     members of this struct, or the packets written."]
-    pub section_length: guint64,
+    pub section_length: u64,
 }
 #[test]
 fn bindgen_test_layout_wtapng_section_mandatory_s() {
@@ -21571,9 +21047,7 @@ fn bindgen_test_layout_wtapng_section_mandatory_s() {
         )
     );
 }
-#[doc = " Holds the required data from a WTAP_BLOCK_SECTION."]
 pub type wtapng_section_mandatory_t = wtapng_section_mandatory_s;
-#[doc = " struct holding the information to build a WTAP_BLOCK_IF_ID_AND_INFO.\n  the interface_data array holds an array of wtap_block_t\n  representing interfacs, one per interface."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtapng_iface_descriptions_s {
@@ -21605,20 +21079,15 @@ fn bindgen_test_layout_wtapng_iface_descriptions_s() {
         )
     );
 }
-#[doc = " struct holding the information to build a WTAP_BLOCK_IF_ID_AND_INFO.\n  the interface_data array holds an array of wtap_block_t\n  representing interfacs, one per interface."]
 pub type wtapng_iface_descriptions_t = wtapng_iface_descriptions_s;
-#[doc = " Holds the required data from a WTAP_BLOCK_IF_ID_AND_INFO."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtapng_if_descr_mandatory_s {
-    #[doc = "< link_type translated to wtap_encap"]
     pub wtap_encap: ::std::os::raw::c_int,
-    pub time_units_per_second: guint64,
-    #[doc = "< WTAP_TSPREC_ value for this interface"]
+    pub time_units_per_second: u64,
     pub tsprecision: ::std::os::raw::c_int,
-    pub snap_len: guint32,
-    pub num_stat_entries: guint8,
-    #[doc = "< An array holding the interface statistics from\n     pcapng ISB:s or equivalent(?)"]
+    pub snap_len: u32,
+    pub num_stat_entries: u8,
     pub interface_statistics: *mut GArray,
 }
 #[test]
@@ -21697,9 +21166,7 @@ fn bindgen_test_layout_wtapng_if_descr_mandatory_s() {
         )
     );
 }
-#[doc = " Holds the required data from a WTAP_BLOCK_IF_ID_AND_INFO."]
 pub type wtapng_if_descr_mandatory_t = wtapng_if_descr_mandatory_s;
-#[doc = " Holds the required data from a WTAP_BLOCK_NAME_RESOLUTION."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtapng_nrb_mandatory_s {
@@ -21742,15 +21209,13 @@ fn bindgen_test_layout_wtapng_nrb_mandatory_s() {
         )
     );
 }
-#[doc = " Holds the required data from a WTAP_BLOCK_NAME_RESOLUTION."]
 pub type wtapng_nrb_mandatory_t = wtapng_nrb_mandatory_s;
-#[doc = " Holds the required data from a WTAP_BLOCK_IF_STATISTICS."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtapng_if_stats_mandatory_s {
-    pub interface_id: guint32,
-    pub ts_high: guint32,
-    pub ts_low: guint32,
+    pub interface_id: u32,
+    pub ts_high: u32,
+    pub ts_low: u32,
 }
 #[test]
 fn bindgen_test_layout_wtapng_if_stats_mandatory_s() {
@@ -21798,17 +21263,13 @@ fn bindgen_test_layout_wtapng_if_stats_mandatory_s() {
         )
     );
 }
-#[doc = " Holds the required data from a WTAP_BLOCK_IF_STATISTICS."]
 pub type wtapng_if_stats_mandatory_t = wtapng_if_stats_mandatory_s;
-#[doc = " Holds the required data from a WTAP_BLOCK_DECRYPTION_SECRETS."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtapng_dsb_mandatory_s {
-    pub secrets_type: guint32,
-    #[doc = " Type of secrets stored in data (see secrets-types.h)"]
-    pub secrets_len: guint32,
-    #[doc = " Length of the secrets data in bytes"]
-    pub secrets_data: *mut guint8,
+    pub secrets_type: u32,
+    pub secrets_len: u32,
+    pub secrets_data: *mut u8,
 }
 #[test]
 fn bindgen_test_layout_wtapng_dsb_mandatory_s() {
@@ -21856,41 +21317,37 @@ fn bindgen_test_layout_wtapng_dsb_mandatory_s() {
         )
     );
 }
-#[doc = " Holds the required data from a WTAP_BLOCK_DECRYPTION_SECRETS."]
 pub type wtapng_dsb_mandatory_t = wtapng_dsb_mandatory_s;
-#[doc = " Holds the required data from a WTAP_BLOCK_SYSDIG_META_EVENT."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct wtapng_sysdig_mev_mandatory_s {
-    pub mev_type: u32,
-    #[doc = " pcapng block type of the event, e.g. BLOCK_TYPE_SYSDIG_MI"]
-    pub mev_data_len: u32,
-    #[doc = " Length of the mev data in bytes"]
+pub struct wtapng_meta_event_mandatory_s {
+    pub mev_block_type: u32,
+    pub mev_data_len: ::std::os::raw::c_uint,
     pub mev_data: *mut u8,
 }
 #[test]
-fn bindgen_test_layout_wtapng_sysdig_mev_mandatory_s() {
-    const UNINIT: ::std::mem::MaybeUninit<wtapng_sysdig_mev_mandatory_s> =
+fn bindgen_test_layout_wtapng_meta_event_mandatory_s() {
+    const UNINIT: ::std::mem::MaybeUninit<wtapng_meta_event_mandatory_s> =
         ::std::mem::MaybeUninit::uninit();
     let ptr = UNINIT.as_ptr();
     assert_eq!(
-        ::std::mem::size_of::<wtapng_sysdig_mev_mandatory_s>(),
+        ::std::mem::size_of::<wtapng_meta_event_mandatory_s>(),
         16usize,
-        concat!("Size of: ", stringify!(wtapng_sysdig_mev_mandatory_s))
+        concat!("Size of: ", stringify!(wtapng_meta_event_mandatory_s))
     );
     assert_eq!(
-        ::std::mem::align_of::<wtapng_sysdig_mev_mandatory_s>(),
+        ::std::mem::align_of::<wtapng_meta_event_mandatory_s>(),
         8usize,
-        concat!("Alignment of ", stringify!(wtapng_sysdig_mev_mandatory_s))
+        concat!("Alignment of ", stringify!(wtapng_meta_event_mandatory_s))
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).mev_type) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).mev_block_type) as usize - ptr as usize },
         0usize,
         concat!(
             "Offset of field: ",
-            stringify!(wtapng_sysdig_mev_mandatory_s),
+            stringify!(wtapng_meta_event_mandatory_s),
             "::",
-            stringify!(mev_type)
+            stringify!(mev_block_type)
         )
     );
     assert_eq!(
@@ -21898,7 +21355,7 @@ fn bindgen_test_layout_wtapng_sysdig_mev_mandatory_s() {
         4usize,
         concat!(
             "Offset of field: ",
-            stringify!(wtapng_sysdig_mev_mandatory_s),
+            stringify!(wtapng_meta_event_mandatory_s),
             "::",
             stringify!(mev_data_len)
         )
@@ -21908,19 +21365,17 @@ fn bindgen_test_layout_wtapng_sysdig_mev_mandatory_s() {
         8usize,
         concat!(
             "Offset of field: ",
-            stringify!(wtapng_sysdig_mev_mandatory_s),
+            stringify!(wtapng_meta_event_mandatory_s),
             "::",
             stringify!(mev_data)
         )
     );
 }
-#[doc = " Holds the required data from a WTAP_BLOCK_SYSDIG_META_EVENT."]
-pub type wtapng_sysdig_mev_mandatory_t = wtapng_sysdig_mev_mandatory_s;
-#[doc = " Holds the required data from a WTAP_BLOCK_FT_SPECIFIC_REPORT."]
+pub type wtapng_meta_event_mandatory_t = wtapng_meta_event_mandatory_s;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtapng_ft_specific_mandatory_s {
-    pub record_type: guint,
+    pub record_type: ::std::os::raw::c_uint,
 }
 #[test]
 fn bindgen_test_layout_wtapng_ft_specific_mandatory_s() {
@@ -21948,7 +21403,6 @@ fn bindgen_test_layout_wtapng_ft_specific_mandatory_s() {
         )
     );
 }
-#[doc = " Holds the required data from a WTAP_BLOCK_FT_SPECIFIC_REPORT."]
 pub type wtapng_ft_specific_mandatory_t = wtapng_ft_specific_mandatory_s;
 pub const wtap_opttype_e_WTAP_OPTTYPE_UINT8: wtap_opttype_e = 0;
 pub const wtap_opttype_e_WTAP_OPTTYPE_UINT32: wtap_opttype_e = 1;
@@ -21976,7 +21430,7 @@ pub type wtap_opttype_return_val = ::std::os::raw::c_int;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct custom_opt_s {
-    pub pen: guint32,
+    pub pen: u32,
     pub data: custom_opt_s__bindgen_ty_1,
 }
 #[repr(C)]
@@ -21988,8 +21442,8 @@ pub union custom_opt_s__bindgen_ty_1 {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct custom_opt_s__bindgen_ty_1_generic_custom_opt_data {
-    pub custom_data_len: gsize,
-    pub custom_data: *mut gchar,
+    pub custom_data_len: usize,
+    pub custom_data: *mut ::std::os::raw::c_char,
 }
 #[test]
 fn bindgen_test_layout_custom_opt_s__bindgen_ty_1_generic_custom_opt_data() {
@@ -22036,10 +21490,10 @@ fn bindgen_test_layout_custom_opt_s__bindgen_ty_1_generic_custom_opt_data() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct custom_opt_s__bindgen_ty_1_nflx_custom_opt_data {
-    pub type_: guint32,
-    pub custom_data_len: gsize,
-    pub custom_data: *mut gchar,
-    pub use_little_endian: gboolean,
+    pub type_: u32,
+    pub custom_data_len: usize,
+    pub custom_data: *mut ::std::os::raw::c_char,
+    pub use_little_endian: bool,
 }
 #[test]
 fn bindgen_test_layout_custom_opt_s__bindgen_ty_1_nflx_custom_opt_data() {
@@ -22178,10 +21632,10 @@ pub type custom_opt_t = custom_opt_s;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct nflx_custom_opt_s {
-    pub nflx_use_little_endian: gboolean,
-    pub nflx_type: guint32,
-    pub nflx_custom_data_len: gsize,
-    pub nflx_custom_data: *mut gchar,
+    pub nflx_use_little_endian: bool,
+    pub nflx_type: u32,
+    pub nflx_custom_data_len: usize,
+    pub nflx_custom_data: *mut ::std::os::raw::c_char,
 }
 #[test]
 fn bindgen_test_layout_nflx_custom_opt_s() {
@@ -22242,10 +21696,10 @@ pub type nflx_custom_opt_t = nflx_custom_opt_s;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtap_bpf_insn_s {
-    pub code: guint16,
-    pub jt: guint8,
-    pub jf: guint8,
-    pub k: guint32,
+    pub code: u16,
+    pub jt: u8,
+    pub jf: u8,
+    pub k: u32,
 }
 #[test]
 fn bindgen_test_layout_wtap_bpf_insn_s() {
@@ -22315,17 +21769,13 @@ pub struct if_filter_opt_s {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union if_filter_opt_s__bindgen_ty_1 {
-    #[doc = "< pcap filter string"]
-    pub filter_str: *mut gchar,
-    #[doc = "< BPF program"]
+    pub filter_str: *mut ::std::os::raw::c_char,
     pub bpf_prog: if_filter_opt_s__bindgen_ty_1_wtap_bpf_insns,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct if_filter_opt_s__bindgen_ty_1_wtap_bpf_insns {
-    #[doc = "< number of BPF instructions"]
-    pub bpf_prog_len: guint,
-    #[doc = "< BPF instructions"]
+    pub bpf_prog_len: ::std::os::raw::c_uint,
     pub bpf_prog: *mut wtap_bpf_insn_t,
 }
 #[test]
@@ -22456,8 +21906,8 @@ pub struct packet_verdict_opt_s {
 #[derive(Copy, Clone)]
 pub union packet_verdict_opt_s__bindgen_ty_1 {
     pub verdict_bytes: *mut GByteArray,
-    pub verdict_linux_ebpf_tc: guint64,
-    pub verdict_linux_ebpf_xdp: guint64,
+    pub verdict_linux_ebpf_tc: u64,
+    pub verdict_linux_ebpf_xdp: u64,
 }
 #[test]
 fn bindgen_test_layout_packet_verdict_opt_s__bindgen_ty_1() {
@@ -22547,7 +21997,7 @@ pub type packet_verdict_opt_t = packet_verdict_opt_s;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct packet_hash_opt_s {
-    pub type_: guint8,
+    pub type_: u8,
     pub hash_bytes: *mut GByteArray,
 }
 #[test]
@@ -22589,12 +22039,12 @@ pub type packet_hash_opt_t = packet_hash_opt_s;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union wtap_optval_t {
-    pub uint8val: guint8,
-    pub uint32val: guint32,
-    pub uint64val: guint64,
-    pub int8val: gint8,
-    pub int32val: gint32,
-    pub int64val: gint64,
+    pub uint8val: u8,
+    pub uint32val: u32,
+    pub uint64val: u64,
+    pub int8val: i8,
+    pub int32val: i32,
+    pub int64val: i64,
     pub ipv4val: ws_in4_addr,
     pub ipv6val: ws_in6_addr,
     pub stringval: *mut ::std::os::raw::c_char,
@@ -22762,9 +22212,7 @@ fn bindgen_test_layout_wtap_optval_t() {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct wtap_option_t {
-    #[doc = "< option code for the option"]
-    pub option_id: guint,
-    #[doc = "< value"]
+    pub option_id: ::std::os::raw::c_uint,
     pub value: wtap_optval_t,
 }
 #[test]
@@ -22805,21 +22253,21 @@ fn bindgen_test_layout_wtap_option_t() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct nflx_dumpinfo {
-    pub tlh_version: guint32,
-    pub tlh_type: guint32,
-    pub tlh_length: guint64,
-    pub tlh_ie_fport: guint16,
-    pub tlh_ie_lport: guint16,
-    pub tlh_ie_faddr_addr32: [guint32; 4usize],
-    pub tlh_ie_laddr_addr32: [guint32; 4usize],
-    pub tlh_ie_zoneid: guint32,
-    pub tlh_offset_tv_sec: guint64,
-    pub tlh_offset_tv_usec: guint64,
+    pub tlh_version: u32,
+    pub tlh_type: u32,
+    pub tlh_length: u64,
+    pub tlh_ie_fport: u16,
+    pub tlh_ie_lport: u16,
+    pub tlh_ie_faddr_addr32: [u32; 4usize],
+    pub tlh_ie_laddr_addr32: [u32; 4usize],
+    pub tlh_ie_zoneid: u32,
+    pub tlh_offset_tv_sec: u64,
+    pub tlh_offset_tv_usec: u64,
     pub tlh_id: [::std::os::raw::c_char; 64usize],
     pub tlh_reason: [::std::os::raw::c_char; 32usize],
     pub tlh_tag: [::std::os::raw::c_char; 32usize],
-    pub tlh_af: guint8,
-    pub _pad: [guint8; 7usize],
+    pub tlh_af: u8,
+    pub _pad: [u8; 7usize],
 }
 #[test]
 fn bindgen_test_layout_nflx_dumpinfo() {
@@ -22989,77 +22437,77 @@ fn bindgen_test_layout_nflx_dumpinfo() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct nflx_tcpinfo {
-    pub tlb_tv_sec: guint64,
-    pub tlb_tv_usec: guint64,
-    pub tlb_ticks: guint32,
-    pub tlb_sn: guint32,
-    pub tlb_stackid: guint8,
-    pub tlb_eventid: guint8,
-    pub tlb_eventflags: guint16,
-    pub tlb_errno: gint32,
-    pub tlb_rxbuf_tls_sb_acc: guint32,
-    pub tlb_rxbuf_tls_sb_ccc: guint32,
-    pub tlb_rxbuf_tls_sb_spare: guint32,
-    pub tlb_txbuf_tls_sb_acc: guint32,
-    pub tlb_txbuf_tls_sb_ccc: guint32,
-    pub tlb_txbuf_tls_sb_spare: guint32,
-    pub tlb_state: gint32,
-    pub tlb_starttime: guint32,
-    pub tlb_iss: guint32,
-    pub tlb_flags: guint32,
-    pub tlb_snd_una: guint32,
-    pub tlb_snd_max: guint32,
-    pub tlb_snd_cwnd: guint32,
-    pub tlb_snd_nxt: guint32,
-    pub tlb_snd_recover: guint32,
-    pub tlb_snd_wnd: guint32,
-    pub tlb_snd_ssthresh: guint32,
-    pub tlb_srtt: guint32,
-    pub tlb_rttvar: guint32,
-    pub tlb_rcv_up: guint32,
-    pub tlb_rcv_adv: guint32,
-    pub tlb_flags2: guint32,
-    pub tlb_rcv_nxt: guint32,
-    pub tlb_rcv_wnd: guint32,
-    pub tlb_dupacks: guint32,
-    pub tlb_segqlen: gint32,
-    pub tlb_snd_numholes: gint32,
-    pub tlb_flex1: guint32,
-    pub tlb_flex2: guint32,
-    pub tlb_fbyte_in: guint32,
-    pub tlb_fbyte_out: guint32,
+    pub tlb_tv_sec: u64,
+    pub tlb_tv_usec: u64,
+    pub tlb_ticks: u32,
+    pub tlb_sn: u32,
+    pub tlb_stackid: u8,
+    pub tlb_eventid: u8,
+    pub tlb_eventflags: u16,
+    pub tlb_errno: i32,
+    pub tlb_rxbuf_tls_sb_acc: u32,
+    pub tlb_rxbuf_tls_sb_ccc: u32,
+    pub tlb_rxbuf_tls_sb_spare: u32,
+    pub tlb_txbuf_tls_sb_acc: u32,
+    pub tlb_txbuf_tls_sb_ccc: u32,
+    pub tlb_txbuf_tls_sb_spare: u32,
+    pub tlb_state: i32,
+    pub tlb_starttime: u32,
+    pub tlb_iss: u32,
+    pub tlb_flags: u32,
+    pub tlb_snd_una: u32,
+    pub tlb_snd_max: u32,
+    pub tlb_snd_cwnd: u32,
+    pub tlb_snd_nxt: u32,
+    pub tlb_snd_recover: u32,
+    pub tlb_snd_wnd: u32,
+    pub tlb_snd_ssthresh: u32,
+    pub tlb_srtt: u32,
+    pub tlb_rttvar: u32,
+    pub tlb_rcv_up: u32,
+    pub tlb_rcv_adv: u32,
+    pub tlb_flags2: u32,
+    pub tlb_rcv_nxt: u32,
+    pub tlb_rcv_wnd: u32,
+    pub tlb_dupacks: u32,
+    pub tlb_segqlen: i32,
+    pub tlb_snd_numholes: i32,
+    pub tlb_flex1: u32,
+    pub tlb_flex2: u32,
+    pub tlb_fbyte_in: u32,
+    pub tlb_fbyte_out: u32,
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
-    pub _pad: [guint8; 3usize],
-    pub tlb_stackinfo_bbr_cur_del_rate: guint64,
-    pub tlb_stackinfo_bbr_delRate: guint64,
-    pub tlb_stackinfo_bbr_rttProp: guint64,
-    pub tlb_stackinfo_bbr_bw_inuse: guint64,
-    pub tlb_stackinfo_bbr_inflight: guint32,
-    pub tlb_stackinfo_bbr_applimited: guint32,
-    pub tlb_stackinfo_bbr_delivered: guint32,
-    pub tlb_stackinfo_bbr_timeStamp: guint32,
-    pub tlb_stackinfo_bbr_epoch: guint32,
-    pub tlb_stackinfo_bbr_lt_epoch: guint32,
-    pub tlb_stackinfo_bbr_pkts_out: guint32,
-    pub tlb_stackinfo_bbr_flex1: guint32,
-    pub tlb_stackinfo_bbr_flex2: guint32,
-    pub tlb_stackinfo_bbr_flex3: guint32,
-    pub tlb_stackinfo_bbr_flex4: guint32,
-    pub tlb_stackinfo_bbr_flex5: guint32,
-    pub tlb_stackinfo_bbr_flex6: guint32,
-    pub tlb_stackinfo_bbr_lost: guint32,
-    pub tlb_stackinfo_bbr_pacing_gain: guint16,
-    pub tlb_stackinfo_bbr_cwnd_gain: guint16,
-    pub tlb_stackinfo_bbr_flex7: guint16,
-    pub tlb_stackinfo_bbr_bbr_state: guint8,
-    pub tlb_stackinfo_bbr_bbr_substate: guint8,
-    pub tlb_stackinfo_bbr_inhpts: guint8,
-    pub tlb_stackinfo_bbr_ininput: guint8,
-    pub tlb_stackinfo_bbr_use_lt_bw: guint8,
-    pub tlb_stackinfo_bbr_flex8: guint8,
-    pub tlb_stackinfo_bbr_pkt_epoch: guint32,
-    pub tlb_len: guint32,
+    pub _pad: [u8; 3usize],
+    pub tlb_stackinfo_bbr_cur_del_rate: u64,
+    pub tlb_stackinfo_bbr_delRate: u64,
+    pub tlb_stackinfo_bbr_rttProp: u64,
+    pub tlb_stackinfo_bbr_bw_inuse: u64,
+    pub tlb_stackinfo_bbr_inflight: u32,
+    pub tlb_stackinfo_bbr_applimited: u32,
+    pub tlb_stackinfo_bbr_delivered: u32,
+    pub tlb_stackinfo_bbr_timeStamp: u32,
+    pub tlb_stackinfo_bbr_epoch: u32,
+    pub tlb_stackinfo_bbr_lt_epoch: u32,
+    pub tlb_stackinfo_bbr_pkts_out: u32,
+    pub tlb_stackinfo_bbr_flex1: u32,
+    pub tlb_stackinfo_bbr_flex2: u32,
+    pub tlb_stackinfo_bbr_flex3: u32,
+    pub tlb_stackinfo_bbr_flex4: u32,
+    pub tlb_stackinfo_bbr_flex5: u32,
+    pub tlb_stackinfo_bbr_flex6: u32,
+    pub tlb_stackinfo_bbr_lost: u32,
+    pub tlb_stackinfo_bbr_pacing_gain: u16,
+    pub tlb_stackinfo_bbr_cwnd_gain: u16,
+    pub tlb_stackinfo_bbr_flex7: u16,
+    pub tlb_stackinfo_bbr_bbr_state: u8,
+    pub tlb_stackinfo_bbr_bbr_substate: u8,
+    pub tlb_stackinfo_bbr_inhpts: u8,
+    pub tlb_stackinfo_bbr_ininput: u8,
+    pub tlb_stackinfo_bbr_use_lt_bw: u8,
+    pub tlb_stackinfo_bbr_flex8: u8,
+    pub tlb_stackinfo_bbr_pkt_epoch: u32,
+    pub tlb_len: u32,
 }
 #[test]
 fn bindgen_test_layout_nflx_tcpinfo() {
@@ -23776,22 +23224,22 @@ fn bindgen_test_layout_nflx_tcpinfo() {
 }
 impl nflx_tcpinfo {
     #[inline]
-    pub fn tlb_snd_scale(&self) -> guint8 {
+    pub fn tlb_snd_scale(&self) -> u8 {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 4u8) as u8) }
     }
     #[inline]
-    pub fn set_tlb_snd_scale(&mut self, val: guint8) {
+    pub fn set_tlb_snd_scale(&mut self, val: u8) {
         unsafe {
             let val: u8 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 4u8, val as u64)
         }
     }
     #[inline]
-    pub fn tlb_rcv_scale(&self) -> guint8 {
+    pub fn tlb_rcv_scale(&self) -> u8 {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 4u8) as u8) }
     }
     #[inline]
-    pub fn set_tlb_rcv_scale(&mut self, val: guint8) {
+    pub fn set_tlb_rcv_scale(&mut self, val: u8) {
         unsafe {
             let val: u8 = ::std::mem::transmute(val);
             self._bitfield_1.set(4usize, 4u8, val as u64)
@@ -23799,8 +23247,8 @@ impl nflx_tcpinfo {
     }
     #[inline]
     pub fn new_bitfield_1(
-        tlb_snd_scale: guint8,
-        tlb_rcv_scale: guint8,
+        tlb_snd_scale: u8,
+        tlb_rcv_scale: u8,
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 4u8, {
@@ -23819,437 +23267,390 @@ pub type wtap_mand_free_func = ::std::option::Option<unsafe extern "C" fn(block:
 pub type wtap_mand_copy_func =
     ::std::option::Option<unsafe extern "C" fn(dest_block: wtap_block_t, src_block: wtap_block_t)>;
 extern "C" {
-    #[doc = " Initialize block types.\n\n This is currently just a placeholder as nothing needs to be\n initialized yet.  Should handle \"registration\" when code is\n refactored to do so."]
     pub fn wtap_opttypes_initialize();
 }
 extern "C" {
-    #[doc = " Create a block by type\n\n Return a newly allocated block with default options provided\n\n @param[in] block_type Block type to be created\n @return Newly allocated block"]
     pub fn wtap_block_create(block_type: wtap_block_type_t) -> wtap_block_t;
 }
 extern "C" {
-    #[doc = " Increase reference count of a block\n\n Call when taking a copy of a block\n\n @param[in] block Block add ref to\n @return The block"]
     pub fn wtap_block_ref(block: wtap_block_t) -> wtap_block_t;
 }
 extern "C" {
-    #[doc = " Decrease reference count of a block\n\n Needs to be called on any block once you're done with it\n\n @param[in] block Block to be deref'd"]
     pub fn wtap_block_unref(block: wtap_block_t);
 }
 extern "C" {
-    #[doc = " Free an array of blocks\n\n Needs to be called to clean up blocks allocated\n through GArray (for multiple blocks of same type)\n Includes freeing the GArray\n\n @param[in] block_array Array of blocks to be freed"]
     pub fn wtap_block_array_free(block_array: *mut GArray);
 }
 extern "C" {
-    #[doc = " Provide type of a block\n\n @param[in] block Block from which to retrieve mandatory data\n @return Block type."]
+    pub fn wtap_block_array_unref(block_array: *mut GArray);
+}
+extern "C" {
+    pub fn wtap_block_array_ref(block_array: *mut GArray);
+}
+extern "C" {
     pub fn wtap_block_get_type(block: wtap_block_t) -> wtap_block_type_t;
 }
 extern "C" {
-    #[doc = " Provide mandatory data of a block\n\n @param[in] block Block from which to retrieve mandatory data\n @return Block mandatory data.  Structure varies based on block type"]
     pub fn wtap_block_get_mandatory_data(block: wtap_block_t) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Count the number of times the given option appears in the block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @return guint - the number of times the option was found"]
-    pub fn wtap_block_count_option(block: wtap_block_t, option_id: guint) -> guint;
+    pub fn wtap_block_count_option(
+        block: wtap_block_t,
+        option_id: ::std::os::raw::c_uint,
+    ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Add UINT8 option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_uint8_option(
         block: wtap_block_t,
-        option_id: guint,
-        value: guint8,
+        option_id: ::std::os::raw::c_uint,
+        value: u8,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set UINT8 option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_uint8_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: guint8,
+        option_id: ::std::os::raw::c_uint,
+        value: u8,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get UINT8 option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_uint8_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: *mut guint8,
+        option_id: ::std::os::raw::c_uint,
+        value: *mut u8,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add UINT32 option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_uint32_option(
         block: wtap_block_t,
-        option_id: guint,
-        value: guint32,
+        option_id: ::std::os::raw::c_uint,
+        value: u32,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set UINT32 option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_uint32_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: guint32,
+        option_id: ::std::os::raw::c_uint,
+        value: u32,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get UINT32 option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_uint32_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: *mut guint32,
+        option_id: ::std::os::raw::c_uint,
+        value: *mut u32,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add UINT64 option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_uint64_option(
         block: wtap_block_t,
-        option_id: guint,
-        value: guint64,
+        option_id: ::std::os::raw::c_uint,
+        value: u64,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set UINT64 option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_uint64_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: guint64,
+        option_id: ::std::os::raw::c_uint,
+        value: u64,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get UINT64 option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_uint64_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: *mut guint64,
+        option_id: ::std::os::raw::c_uint,
+        value: *mut u64,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add INT8 option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_int8_option(
         block: wtap_block_t,
-        option_id: guint,
-        value: gint8,
+        option_id: ::std::os::raw::c_uint,
+        value: i8,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set INT8 option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_int8_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: gint8,
+        option_id: ::std::os::raw::c_uint,
+        value: i8,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get INT8 option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_int8_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: *mut gint8,
+        option_id: ::std::os::raw::c_uint,
+        value: *mut i8,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add INT32 option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_int32_option(
         block: wtap_block_t,
-        option_id: guint,
-        value: gint32,
+        option_id: ::std::os::raw::c_uint,
+        value: i32,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set INT32 option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_int32_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: gint32,
+        option_id: ::std::os::raw::c_uint,
+        value: i32,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get INT32 option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_int32_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: *mut gint32,
+        option_id: ::std::os::raw::c_uint,
+        value: *mut i32,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add INT64 option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_int64_option(
         block: wtap_block_t,
-        option_id: guint,
-        value: gint64,
+        option_id: ::std::os::raw::c_uint,
+        value: i64,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set INT64 option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_int64_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: gint64,
+        option_id: ::std::os::raw::c_uint,
+        value: i64,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get INT64 option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_int64_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: *mut gint64,
+        option_id: ::std::os::raw::c_uint,
+        value: *mut i64,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add IPv4 address option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_ipv4_option(
         block: wtap_block_t,
-        option_id: guint,
-        value: guint32,
+        option_id: ::std::os::raw::c_uint,
+        value: u32,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set IPv4 option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_ipv4_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: guint32,
+        option_id: ::std::os::raw::c_uint,
+        value: u32,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get IPv4 option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_ipv4_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: *mut guint32,
+        option_id: ::std::os::raw::c_uint,
+        value: *mut u32,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add IPv6 address option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_ipv6_option(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut ws_in6_addr,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set IPv6 option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_ipv6_option_value(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut ws_in6_addr,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get IPv6 option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_ipv6_option_value(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut ws_in6_addr,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add a string option to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @param[in] value_length Maximum length of string to copy.\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_string_option(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *const ::std::os::raw::c_char,
-        value_length: gsize,
+        value_length: usize,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add a string option to a block taking ownership of the null-terminated string.\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_string_option_owned(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut ::std::os::raw::c_char,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add a string option to a block with a printf-formatted string as its value\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] format printf-like format string\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_string_option_format(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set string option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @param[in] value_length Maximum length of string to copy.\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_string_option_value(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *const ::std::os::raw::c_char,
-        value_length: gsize,
+        value_length: usize,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set string option value for the nth instance of a particular option\n in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] idx Instance number of option with that ID\n @param[in] value New value of option\n @param[in] value_length Maximum length of string to copy.\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_nth_string_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        idx: guint,
+        option_id: ::std::os::raw::c_uint,
+        idx: ::std::os::raw::c_uint,
         value: *const ::std::os::raw::c_char,
-        value_length: gsize,
+        value_length: usize,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set string option value in a block to a printf-formatted string\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] format printf-like format string\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_string_option_value_format(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set string option value for the nth instance of a particular option\n in a block to a printf-formatted string\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] idx Instance number of option with that ID\n @param[in] format printf-like format string\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_nth_string_option_value_format(
         block: wtap_block_t,
-        option_id: guint,
-        idx: guint,
+        option_id: ::std::os::raw::c_uint,
+        idx: ::std::os::raw::c_uint,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get string option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_string_option_value(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut *mut ::std::os::raw::c_char,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get string option value for the nth instance of a particular option\n in a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[in] idx Instance number of option with that ID\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_nth_string_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        idx: guint,
+        option_id: ::std::os::raw::c_uint,
+        idx: ::std::os::raw::c_uint,
         value: *mut *mut ::std::os::raw::c_char,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add a bytes option to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option to copy\n @param[in] value_length Number of bytes to copy\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_bytes_option(
         block: wtap_block_t,
-        option_id: guint,
-        value: *const guint8,
-        value_length: gsize,
+        option_id: ::std::os::raw::c_uint,
+        value: *const u8,
+        value_length: usize,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add a bytes option to a block, borrowing the value from a GBytes\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option as a GBytes\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_bytes_option_borrow(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut GBytes,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set bytes option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @param[in] value_length Number of bytes to copy.\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_bytes_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        value: *const guint8,
-        value_length: gsize,
+        option_id: ::std::os::raw::c_uint,
+        value: *const u8,
+        value_length: usize,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set bytes option value for nth instance of a particular option in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] idx Instance number of option with that ID\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_nth_bytes_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        idx: guint,
+        option_id: ::std::os::raw::c_uint,
+        idx: ::std::os::raw::c_uint,
         value: *mut GBytes,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get bytes option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise\n @note You should call g_bytes_ref() on value if you plan to keep it around\n (and then g_bytes_unref() when you're done with it)."]
     pub fn wtap_block_get_bytes_option_value(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut *mut GBytes,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get bytes option value for nth instance of a particular option in a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[in] idx Instance number of option with that ID\n @param[out] value Returned value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise\n @note You should call g_bytes_ref() on value if you plan to keep it around\n (and then g_bytes_unref() when you're done with it)."]
     pub fn wtap_block_get_nth_bytes_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        idx: guint,
+        option_id: ::std::os::raw::c_uint,
+        idx: ::std::os::raw::c_uint,
         value: *mut *mut GBytes,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add an NFLX custom option to a block\n\n @param[in] block Block to which to add the option\n @param[in] nflx_type NFLX option type\n @param[in] nflx_custom_data pointer to the data\n @param[in] nflx_custom_data_len length of custom_data\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_nflx_custom_option(
         block: wtap_block_t,
-        nflx_type: guint32,
+        nflx_type: u32,
         nflx_custom_data: *const ::std::os::raw::c_char,
-        nflx_custom_data_len: gsize,
+        nflx_custom_data_len: usize,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get an NFLX custom option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] nflx_type type of the option\n @param[out] nflx_custom_data Returned value of NFLX custom option value\n @param[in] nflx_custom_data_len size of buffer provided in nflx_custom_data\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_nflx_custom_option(
         block: wtap_block_t,
-        nflx_type: guint32,
+        nflx_type: u32,
         nflx_custom_data: *mut ::std::os::raw::c_char,
-        nflx_custom_data_len: gsize,
+        nflx_custom_data_len: usize,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add a custom option to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] pen PEN\n @param[in] custom_data pointer to the data\n @param[in] custom_data_len length of custom_data\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_custom_option(
         block: wtap_block_t,
-        option_id: guint,
-        pen: guint32,
+        option_id: ::std::os::raw::c_uint,
+        pen: u32,
         custom_data: *const ::std::os::raw::c_char,
-        custom_data_len: gsize,
+        custom_data_len: usize,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add an if_filter option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_if_filter_option(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut if_filter_opt_t,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set an if_filter option value in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_if_filter_option_value(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut if_filter_opt_t,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get an if_filter option value from a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[out] value Returned value of option value\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_if_filter_option_value(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut if_filter_opt_t,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Add a packet_verdict option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_packet_verdict_option(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut packet_verdict_opt_t,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Set packet_verdict option value for the nth instsance of a particular\n option in a block\n\n @param[in] block Block in which to set the option value\n @param[in] option_id Identifier value for option\n @param[in] idx Instance number of option with that ID\n @param[in] value New value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_set_nth_packet_verdict_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        idx: guint,
+        option_id: ::std::os::raw::c_uint,
+        idx: ::std::os::raw::c_uint,
         value: *mut packet_verdict_opt_t,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Get packet_verdict option value for the nth instance of a particular\n option in a block\n\n @param[in] block Block from which to get the option value\n @param[in] option_id Identifier value for option\n @param[in] idx Instance number of option with that ID\n @param[out] value Returned value of option value\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_get_nth_packet_verdict_option_value(
         block: wtap_block_t,
-        option_id: guint,
-        idx: guint,
+        option_id: ::std::os::raw::c_uint,
+        idx: ::std::os::raw::c_uint,
         value: *mut packet_verdict_opt_t,
     ) -> wtap_opttype_return_val;
 }
@@ -24257,10 +23658,9 @@ extern "C" {
     pub fn wtap_packet_verdict_free(verdict: *mut packet_verdict_opt_t);
 }
 extern "C" {
-    #[doc = " Add a packet_hash option value to a block\n\n @param[in] block Block to which to add the option\n @param[in] option_id Identifier value for option\n @param[in] value Value of option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_add_packet_hash_option(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         value: *mut packet_hash_opt_t,
     ) -> wtap_opttype_return_val;
 }
@@ -24268,52 +23668,47 @@ extern "C" {
     pub fn wtap_packet_hash_free(hash: *mut packet_hash_opt_t);
 }
 extern "C" {
-    #[doc = " Remove an option from a block\n\n @param[in] block Block from which to remove the option\n @param[in] option_id Identifier value for option\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_remove_option(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Remove the nth instance of an option from a block\n\n @param[in] block Block from which to remove the option instance\n @param[in] option_id Identifier value for option\n @param[in] idx Instance number of option with that ID\n @return wtap_opttype_return_val - WTAP_OPTTYPE_SUCCESS if successful,\n error code otherwise"]
     pub fn wtap_block_remove_nth_option_instance(
         block: wtap_block_t,
-        option_id: guint,
-        idx: guint,
+        option_id: ::std::os::raw::c_uint,
+        idx: ::std::os::raw::c_uint,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    #[doc = " Copy a block to another.\n\n Any options that are in the destination but not the source are not removed.\n Options that are just in source will be added to destination\n\n @param[in] dest_block Block to be copied to\n @param[in] src_block Block to be copied from"]
     pub fn wtap_block_copy(dest_block: wtap_block_t, src_block: wtap_block_t);
 }
 extern "C" {
-    #[doc = " Make a copy of a block.\n\n @param[in] block Block to be copied from\n @return Newly allocated copy of that block"]
     pub fn wtap_block_make_copy(block: wtap_block_t) -> wtap_block_t;
 }
 pub type wtap_block_foreach_func = ::std::option::Option<
     unsafe extern "C" fn(
         block: wtap_block_t,
-        option_id: guint,
+        option_id: ::std::os::raw::c_uint,
         option_type: wtap_opttype_e,
         option: *mut wtap_optval_t,
         user_data: *mut ::std::os::raw::c_void,
-    ) -> gboolean,
+    ) -> bool,
 >;
 extern "C" {
     pub fn wtap_block_foreach_option(
         block: wtap_block_t,
         func: wtap_block_foreach_func,
         user_data: *mut ::std::os::raw::c_void,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Cleanup the internal structures"]
     pub fn wtap_opttypes_cleanup();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct eth_phdr {
-    pub fcs_len: gint,
+    pub fcs_len: ::std::os::raw::c_int,
 }
 #[test]
 fn bindgen_test_layout_eth_phdr() {
@@ -24343,7 +23738,7 @@ fn bindgen_test_layout_eth_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct dte_dce_phdr {
-    pub flags: guint8,
+    pub flags: u8,
 }
 #[test]
 fn bindgen_test_layout_dte_dce_phdr() {
@@ -24373,8 +23768,8 @@ fn bindgen_test_layout_dte_dce_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct isdn_phdr {
-    pub uton: gboolean,
-    pub channel: guint8,
+    pub uton: bool,
+    pub channel: u8,
 }
 #[test]
 fn bindgen_test_layout_isdn_phdr() {
@@ -24382,12 +23777,12 @@ fn bindgen_test_layout_isdn_phdr() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<isdn_phdr>(),
-        8usize,
+        2usize,
         concat!("Size of: ", stringify!(isdn_phdr))
     );
     assert_eq!(
         ::std::mem::align_of::<isdn_phdr>(),
-        4usize,
+        1usize,
         concat!("Alignment of ", stringify!(isdn_phdr))
     );
     assert_eq!(
@@ -24402,7 +23797,7 @@ fn bindgen_test_layout_isdn_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).channel) as usize - ptr as usize },
-        4usize,
+        1usize,
         concat!(
             "Offset of field: ",
             stringify!(isdn_phdr),
@@ -24414,18 +23809,18 @@ fn bindgen_test_layout_isdn_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct atm_phdr {
-    pub flags: guint32,
-    pub aal: guint8,
-    pub type_: guint8,
-    pub subtype: guint8,
-    pub vpi: guint16,
-    pub vci: guint16,
-    pub aal2_cid: guint8,
-    pub channel: guint16,
-    pub cells: guint16,
-    pub aal5t_u2u: guint16,
-    pub aal5t_len: guint16,
-    pub aal5t_chksum: guint32,
+    pub flags: u32,
+    pub aal: u8,
+    pub type_: u8,
+    pub subtype: u8,
+    pub vpi: u16,
+    pub vci: u16,
+    pub aal2_cid: u8,
+    pub channel: u16,
+    pub cells: u16,
+    pub aal5t_u2u: u16,
+    pub aal5t_len: u16,
+    pub aal5t_chksum: u32,
 }
 #[test]
 fn bindgen_test_layout_atm_phdr() {
@@ -24565,12 +23960,12 @@ fn bindgen_test_layout_atm_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ascend_phdr {
-    pub type_: guint16,
+    pub type_: u16,
     pub user: [::std::os::raw::c_char; 64usize],
-    pub sess: guint32,
+    pub sess: u32,
     pub call_num: [::std::os::raw::c_char; 64usize],
-    pub chunk: guint32,
-    pub task: guint32,
+    pub chunk: u32,
+    pub task: u32,
 }
 #[test]
 fn bindgen_test_layout_ascend_phdr() {
@@ -24650,7 +24045,7 @@ fn bindgen_test_layout_ascend_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct p2p_phdr {
-    pub sent: gboolean,
+    pub sent: bool,
 }
 #[test]
 fn bindgen_test_layout_p2p_phdr() {
@@ -24658,12 +24053,12 @@ fn bindgen_test_layout_p2p_phdr() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<p2p_phdr>(),
-        4usize,
+        1usize,
         concat!("Size of: ", stringify!(p2p_phdr))
     );
     assert_eq!(
         ::std::mem::align_of::<p2p_phdr>(),
-        4usize,
+        1usize,
         concat!("Alignment of ", stringify!(p2p_phdr))
     );
     assert_eq!(
@@ -24684,9 +24079,9 @@ pub struct ieee_802_11_fhss {
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
     pub __bindgen_padding_0: [u8; 3usize],
-    pub hop_set: guint8,
-    pub hop_pattern: guint8,
-    pub hop_index: guint8,
+    pub hop_set: u8,
+    pub hop_pattern: u8,
+    pub hop_index: u8,
 }
 #[test]
 fn bindgen_test_layout_ieee_802_11_fhss() {
@@ -24735,33 +24130,33 @@ fn bindgen_test_layout_ieee_802_11_fhss() {
 }
 impl ieee_802_11_fhss {
     #[inline]
-    pub fn has_hop_set(&self) -> guint {
+    pub fn has_hop_set(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_hop_set(&mut self, val: guint) {
+    pub fn set_has_hop_set(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_hop_pattern(&self) -> guint {
+    pub fn has_hop_pattern(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_hop_pattern(&mut self, val: guint) {
+    pub fn set_has_hop_pattern(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_hop_index(&self) -> guint {
+    pub fn has_hop_index(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_hop_index(&mut self, val: guint) {
+    pub fn set_has_hop_index(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
@@ -24769,9 +24164,9 @@ impl ieee_802_11_fhss {
     }
     #[inline]
     pub fn new_bitfield_1(
-        has_hop_set: guint,
-        has_hop_pattern: guint,
-        has_hop_index: guint,
+        has_hop_set: ::std::os::raw::c_uint,
+        has_hop_pattern: ::std::os::raw::c_uint,
+        has_hop_index: ::std::os::raw::c_uint,
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
@@ -24790,11 +24185,13 @@ impl ieee_802_11_fhss {
     }
 }
 #[repr(C)]
+#[repr(align(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct ieee_802_11b {
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
-    pub short_preamble: gboolean,
+    pub __bindgen_padding_0: [u8; 3usize],
+    pub short_preamble: bool,
 }
 #[test]
 fn bindgen_test_layout_ieee_802_11b() {
@@ -24823,18 +24220,20 @@ fn bindgen_test_layout_ieee_802_11b() {
 }
 impl ieee_802_11b {
     #[inline]
-    pub fn has_short_preamble(&self) -> guint {
+    pub fn has_short_preamble(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_short_preamble(&mut self, val: guint) {
+    pub fn set_has_short_preamble(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn new_bitfield_1(has_short_preamble: guint) -> __BindgenBitfieldUnit<[u8; 1usize]> {
+    pub fn new_bitfield_1(
+        has_short_preamble: ::std::os::raw::c_uint,
+    ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
             let has_short_preamble: u32 = unsafe { ::std::mem::transmute(has_short_preamble) };
@@ -24866,44 +24265,44 @@ fn bindgen_test_layout_ieee_802_11a() {
 }
 impl ieee_802_11a {
     #[inline]
-    pub fn has_channel_type(&self) -> guint {
+    pub fn has_channel_type(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_channel_type(&mut self, val: guint) {
+    pub fn set_has_channel_type(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_turbo_type(&self) -> guint {
+    pub fn has_turbo_type(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_turbo_type(&mut self, val: guint) {
+    pub fn set_has_turbo_type(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn channel_type(&self) -> guint {
+    pub fn channel_type(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 2u8) as u32) }
     }
     #[inline]
-    pub fn set_channel_type(&mut self, val: guint) {
+    pub fn set_channel_type(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(2usize, 2u8, val as u64)
         }
     }
     #[inline]
-    pub fn turbo_type(&self) -> guint {
+    pub fn turbo_type(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 2u8) as u32) }
     }
     #[inline]
-    pub fn set_turbo_type(&mut self, val: guint) {
+    pub fn set_turbo_type(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(4usize, 2u8, val as u64)
@@ -24911,10 +24310,10 @@ impl ieee_802_11a {
     }
     #[inline]
     pub fn new_bitfield_1(
-        has_channel_type: guint,
-        has_turbo_type: guint,
-        channel_type: guint,
-        turbo_type: guint,
+        has_channel_type: ::std::os::raw::c_uint,
+        has_turbo_type: ::std::os::raw::c_uint,
+        channel_type: ::std::os::raw::c_uint,
+        turbo_type: ::std::os::raw::c_uint,
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
@@ -24941,7 +24340,7 @@ impl ieee_802_11a {
 pub struct ieee_802_11g {
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
-    pub mode: guint32,
+    pub mode: u32,
 }
 #[test]
 fn bindgen_test_layout_ieee_802_11g() {
@@ -24970,18 +24369,18 @@ fn bindgen_test_layout_ieee_802_11g() {
 }
 impl ieee_802_11g {
     #[inline]
-    pub fn has_mode(&self) -> guint {
+    pub fn has_mode(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_mode(&mut self, val: guint) {
+    pub fn set_has_mode(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn new_bitfield_1(has_mode: guint) -> __BindgenBitfieldUnit<[u8; 1usize]> {
+    pub fn new_bitfield_1(has_mode: ::std::os::raw::c_uint) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
             let has_mode: u32 = unsafe { ::std::mem::transmute(has_mode) };
@@ -24996,11 +24395,11 @@ pub struct ieee_802_11n {
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
     pub __bindgen_padding_0: u16,
-    pub mcs_index: guint16,
-    pub bandwidth: guint,
+    pub mcs_index: u16,
+    pub bandwidth: ::std::os::raw::c_uint,
     pub _bitfield_align_2: [u8; 0],
     pub _bitfield_2: __BindgenBitfieldUnit<[u8; 1usize]>,
-    pub ness: guint,
+    pub ness: ::std::os::raw::c_uint,
 }
 #[test]
 fn bindgen_test_layout_ieee_802_11n() {
@@ -25049,77 +24448,77 @@ fn bindgen_test_layout_ieee_802_11n() {
 }
 impl ieee_802_11n {
     #[inline]
-    pub fn has_mcs_index(&self) -> guint {
+    pub fn has_mcs_index(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_mcs_index(&mut self, val: guint) {
+    pub fn set_has_mcs_index(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_bandwidth(&self) -> guint {
+    pub fn has_bandwidth(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_bandwidth(&mut self, val: guint) {
+    pub fn set_has_bandwidth(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_short_gi(&self) -> guint {
+    pub fn has_short_gi(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_short_gi(&mut self, val: guint) {
+    pub fn set_has_short_gi(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_greenfield(&self) -> guint {
+    pub fn has_greenfield(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_greenfield(&mut self, val: guint) {
+    pub fn set_has_greenfield(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(3usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_fec(&self) -> guint {
+    pub fn has_fec(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_fec(&mut self, val: guint) {
+    pub fn set_has_fec(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(4usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_stbc_streams(&self) -> guint {
+    pub fn has_stbc_streams(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(5usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_stbc_streams(&mut self, val: guint) {
+    pub fn set_has_stbc_streams(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(5usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_ness(&self) -> guint {
+    pub fn has_ness(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(6usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_ness(&mut self, val: guint) {
+    pub fn set_has_ness(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(6usize, 1u8, val as u64)
@@ -25127,13 +24526,13 @@ impl ieee_802_11n {
     }
     #[inline]
     pub fn new_bitfield_1(
-        has_mcs_index: guint,
-        has_bandwidth: guint,
-        has_short_gi: guint,
-        has_greenfield: guint,
-        has_fec: guint,
-        has_stbc_streams: guint,
-        has_ness: guint,
+        has_mcs_index: ::std::os::raw::c_uint,
+        has_bandwidth: ::std::os::raw::c_uint,
+        has_short_gi: ::std::os::raw::c_uint,
+        has_greenfield: ::std::os::raw::c_uint,
+        has_fec: ::std::os::raw::c_uint,
+        has_stbc_streams: ::std::os::raw::c_uint,
+        has_ness: ::std::os::raw::c_uint,
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
@@ -25167,44 +24566,44 @@ impl ieee_802_11n {
         __bindgen_bitfield_unit
     }
     #[inline]
-    pub fn short_gi(&self) -> guint {
+    pub fn short_gi(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_short_gi(&mut self, val: guint) {
+    pub fn set_short_gi(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn greenfield(&self) -> guint {
+    pub fn greenfield(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(1usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_greenfield(&mut self, val: guint) {
+    pub fn set_greenfield(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn fec(&self) -> guint {
+    pub fn fec(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(2usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_fec(&mut self, val: guint) {
+    pub fn set_fec(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn stbc_streams(&self) -> guint {
+    pub fn stbc_streams(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(3usize, 2u8) as u32) }
     }
     #[inline]
-    pub fn set_stbc_streams(&mut self, val: guint) {
+    pub fn set_stbc_streams(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(3usize, 2u8, val as u64)
@@ -25212,10 +24611,10 @@ impl ieee_802_11n {
     }
     #[inline]
     pub fn new_bitfield_2(
-        short_gi: guint,
-        greenfield: guint,
-        fec: guint,
-        stbc_streams: guint,
+        short_gi: ::std::os::raw::c_uint,
+        greenfield: ::std::os::raw::c_uint,
+        fec: ::std::os::raw::c_uint,
+        stbc_streams: ::std::os::raw::c_uint,
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
@@ -25244,12 +24643,12 @@ pub struct ieee_802_11ac {
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 2usize]>,
     pub __bindgen_padding_0: [u8; 2usize],
-    pub bandwidth: guint8,
-    pub mcs: [guint8; 4usize],
-    pub nss: [guint8; 4usize],
-    pub fec: guint8,
-    pub group_id: guint8,
-    pub partial_aid: guint16,
+    pub bandwidth: u8,
+    pub mcs: [u8; 4usize],
+    pub nss: [u8; 4usize],
+    pub fec: u8,
+    pub group_id: u8,
+    pub partial_aid: u16,
 }
 #[test]
 fn bindgen_test_layout_ieee_802_11ac() {
@@ -25328,176 +24727,176 @@ fn bindgen_test_layout_ieee_802_11ac() {
 }
 impl ieee_802_11ac {
     #[inline]
-    pub fn has_stbc(&self) -> guint {
+    pub fn has_stbc(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_stbc(&mut self, val: guint) {
+    pub fn set_has_stbc(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_txop_ps_not_allowed(&self) -> guint {
+    pub fn has_txop_ps_not_allowed(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_txop_ps_not_allowed(&mut self, val: guint) {
+    pub fn set_has_txop_ps_not_allowed(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_short_gi(&self) -> guint {
+    pub fn has_short_gi(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_short_gi(&mut self, val: guint) {
+    pub fn set_has_short_gi(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_short_gi_nsym_disambig(&self) -> guint {
+    pub fn has_short_gi_nsym_disambig(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_short_gi_nsym_disambig(&mut self, val: guint) {
+    pub fn set_has_short_gi_nsym_disambig(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(3usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_ldpc_extra_ofdm_symbol(&self) -> guint {
+    pub fn has_ldpc_extra_ofdm_symbol(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_ldpc_extra_ofdm_symbol(&mut self, val: guint) {
+    pub fn set_has_ldpc_extra_ofdm_symbol(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(4usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_beamformed(&self) -> guint {
+    pub fn has_beamformed(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(5usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_beamformed(&mut self, val: guint) {
+    pub fn set_has_beamformed(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(5usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_bandwidth(&self) -> guint {
+    pub fn has_bandwidth(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(6usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_bandwidth(&mut self, val: guint) {
+    pub fn set_has_bandwidth(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(6usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_fec(&self) -> guint {
+    pub fn has_fec(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(7usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_fec(&mut self, val: guint) {
+    pub fn set_has_fec(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(7usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_group_id(&self) -> guint {
+    pub fn has_group_id(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(8usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_group_id(&mut self, val: guint) {
+    pub fn set_has_group_id(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(8usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_partial_aid(&self) -> guint {
+    pub fn has_partial_aid(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(9usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_partial_aid(&mut self, val: guint) {
+    pub fn set_has_partial_aid(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(9usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn stbc(&self) -> guint {
+    pub fn stbc(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(10usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_stbc(&mut self, val: guint) {
+    pub fn set_stbc(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(10usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn txop_ps_not_allowed(&self) -> guint {
+    pub fn txop_ps_not_allowed(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(11usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_txop_ps_not_allowed(&mut self, val: guint) {
+    pub fn set_txop_ps_not_allowed(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(11usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn short_gi(&self) -> guint {
+    pub fn short_gi(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(12usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_short_gi(&mut self, val: guint) {
+    pub fn set_short_gi(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(12usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn short_gi_nsym_disambig(&self) -> guint {
+    pub fn short_gi_nsym_disambig(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(13usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_short_gi_nsym_disambig(&mut self, val: guint) {
+    pub fn set_short_gi_nsym_disambig(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(13usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn ldpc_extra_ofdm_symbol(&self) -> guint {
+    pub fn ldpc_extra_ofdm_symbol(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(14usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_ldpc_extra_ofdm_symbol(&mut self, val: guint) {
+    pub fn set_ldpc_extra_ofdm_symbol(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(14usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn beamformed(&self) -> guint {
+    pub fn beamformed(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(15usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_beamformed(&mut self, val: guint) {
+    pub fn set_beamformed(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(15usize, 1u8, val as u64)
@@ -25505,22 +24904,22 @@ impl ieee_802_11ac {
     }
     #[inline]
     pub fn new_bitfield_1(
-        has_stbc: guint,
-        has_txop_ps_not_allowed: guint,
-        has_short_gi: guint,
-        has_short_gi_nsym_disambig: guint,
-        has_ldpc_extra_ofdm_symbol: guint,
-        has_beamformed: guint,
-        has_bandwidth: guint,
-        has_fec: guint,
-        has_group_id: guint,
-        has_partial_aid: guint,
-        stbc: guint,
-        txop_ps_not_allowed: guint,
-        short_gi: guint,
-        short_gi_nsym_disambig: guint,
-        ldpc_extra_ofdm_symbol: guint,
-        beamformed: guint,
+        has_stbc: ::std::os::raw::c_uint,
+        has_txop_ps_not_allowed: ::std::os::raw::c_uint,
+        has_short_gi: ::std::os::raw::c_uint,
+        has_short_gi_nsym_disambig: ::std::os::raw::c_uint,
+        has_ldpc_extra_ofdm_symbol: ::std::os::raw::c_uint,
+        has_beamformed: ::std::os::raw::c_uint,
+        has_bandwidth: ::std::os::raw::c_uint,
+        has_fec: ::std::os::raw::c_uint,
+        has_group_id: ::std::os::raw::c_uint,
+        has_partial_aid: ::std::os::raw::c_uint,
+        stbc: ::std::os::raw::c_uint,
+        txop_ps_not_allowed: ::std::os::raw::c_uint,
+        short_gi: ::std::os::raw::c_uint,
+        short_gi_nsym_disambig: ::std::os::raw::c_uint,
+        ldpc_extra_ofdm_symbol: ::std::os::raw::c_uint,
+        beamformed: ::std::os::raw::c_uint,
     ) -> __BindgenBitfieldUnit<[u8; 2usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 2usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
@@ -25602,7 +25001,7 @@ pub struct ieee_802_11ad {
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
     pub __bindgen_padding_0: [u8; 3usize],
-    pub mcs: guint8,
+    pub mcs: u8,
 }
 #[test]
 fn bindgen_test_layout_ieee_802_11ad() {
@@ -25631,18 +25030,20 @@ fn bindgen_test_layout_ieee_802_11ad() {
 }
 impl ieee_802_11ad {
     #[inline]
-    pub fn has_mcs_index(&self) -> guint {
+    pub fn has_mcs_index(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_mcs_index(&mut self, val: guint) {
+    pub fn set_has_mcs_index(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn new_bitfield_1(has_mcs_index: guint) -> __BindgenBitfieldUnit<[u8; 1usize]> {
+    pub fn new_bitfield_1(
+        has_mcs_index: ::std::os::raw::c_uint,
+    ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
             let has_mcs_index: u32 = unsafe { ::std::mem::transmute(has_mcs_index) };
@@ -25674,77 +25075,77 @@ fn bindgen_test_layout_ieee_802_11ax() {
 }
 impl ieee_802_11ax {
     #[inline]
-    pub fn has_mcs_index(&self) -> guint {
+    pub fn has_mcs_index(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_mcs_index(&mut self, val: guint) {
+    pub fn set_has_mcs_index(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_bwru(&self) -> guint {
+    pub fn has_bwru(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_bwru(&mut self, val: guint) {
+    pub fn set_has_bwru(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_gi(&self) -> guint {
+    pub fn has_gi(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_gi(&mut self, val: guint) {
+    pub fn set_has_gi(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn nsts(&self) -> guint8 {
+    pub fn nsts(&self) -> u8 {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 4u8) as u8) }
     }
     #[inline]
-    pub fn set_nsts(&mut self, val: guint8) {
+    pub fn set_nsts(&mut self, val: u8) {
         unsafe {
             let val: u8 = ::std::mem::transmute(val);
             self._bitfield_1.set(3usize, 4u8, val as u64)
         }
     }
     #[inline]
-    pub fn mcs(&self) -> guint8 {
+    pub fn mcs(&self) -> u8 {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(8usize, 4u8) as u8) }
     }
     #[inline]
-    pub fn set_mcs(&mut self, val: guint8) {
+    pub fn set_mcs(&mut self, val: u8) {
         unsafe {
             let val: u8 = ::std::mem::transmute(val);
             self._bitfield_1.set(8usize, 4u8, val as u64)
         }
     }
     #[inline]
-    pub fn bwru(&self) -> guint8 {
+    pub fn bwru(&self) -> u8 {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(12usize, 4u8) as u8) }
     }
     #[inline]
-    pub fn set_bwru(&mut self, val: guint8) {
+    pub fn set_bwru(&mut self, val: u8) {
         unsafe {
             let val: u8 = ::std::mem::transmute(val);
             self._bitfield_1.set(12usize, 4u8, val as u64)
         }
     }
     #[inline]
-    pub fn gi(&self) -> guint8 {
+    pub fn gi(&self) -> u8 {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(16usize, 2u8) as u8) }
     }
     #[inline]
-    pub fn set_gi(&mut self, val: guint8) {
+    pub fn set_gi(&mut self, val: u8) {
         unsafe {
             let val: u8 = ::std::mem::transmute(val);
             self._bitfield_1.set(16usize, 2u8, val as u64)
@@ -25752,13 +25153,13 @@ impl ieee_802_11ax {
     }
     #[inline]
     pub fn new_bitfield_1(
-        has_mcs_index: guint,
-        has_bwru: guint,
-        has_gi: guint,
-        nsts: guint8,
-        mcs: guint8,
-        bwru: guint8,
-        gi: guint8,
+        has_mcs_index: ::std::os::raw::c_uint,
+        has_bwru: ::std::os::raw::c_uint,
+        has_gi: ::std::os::raw::c_uint,
+        nsts: u8,
+        mcs: u8,
+        bwru: u8,
+        gi: u8,
     ) -> __BindgenBitfieldUnit<[u8; 3usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 3usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
@@ -25793,6 +25194,422 @@ impl ieee_802_11ax {
     }
 }
 #[repr(C)]
+#[repr(align(4))]
+#[derive(Debug, Copy, Clone)]
+pub struct ieee_802_11be_user_info {
+    pub _bitfield_align_1: [u16; 0],
+    pub _bitfield_1: __BindgenBitfieldUnit<[u8; 4usize]>,
+}
+#[test]
+fn bindgen_test_layout_ieee_802_11be_user_info() {
+    assert_eq!(
+        ::std::mem::size_of::<ieee_802_11be_user_info>(),
+        4usize,
+        concat!("Size of: ", stringify!(ieee_802_11be_user_info))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ieee_802_11be_user_info>(),
+        4usize,
+        concat!("Alignment of ", stringify!(ieee_802_11be_user_info))
+    );
+}
+impl ieee_802_11be_user_info {
+    #[inline]
+    pub fn sta_id_known(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_sta_id_known(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(0usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn mcs_known(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_mcs_known(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(1usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn coding_known(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_coding_known(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(2usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn rsv_known(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_rsv_known(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(3usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn nsts_known(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_nsts_known(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(4usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn bf_known(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(5usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_bf_known(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(5usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn spatial_config_known(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(6usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_spatial_config_known(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(6usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn data_for_this_user(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(7usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_data_for_this_user(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(7usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn sta_id(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(8usize, 11u8) as u32) }
+    }
+    #[inline]
+    pub fn set_sta_id(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(8usize, 11u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn ldpc_coding(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(19usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_ldpc_coding(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(19usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn mcs(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(20usize, 4u8) as u32) }
+    }
+    #[inline]
+    pub fn set_mcs(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(20usize, 4u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn nsts(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(24usize, 4u8) as u32) }
+    }
+    #[inline]
+    pub fn set_nsts(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(24usize, 4u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn rsv(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(28usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_rsv(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(28usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn beamform(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(29usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_beamform(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(29usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn rsv2(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(30usize, 2u8) as u32) }
+    }
+    #[inline]
+    pub fn set_rsv2(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(30usize, 2u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn new_bitfield_1(
+        sta_id_known: ::std::os::raw::c_uint,
+        mcs_known: ::std::os::raw::c_uint,
+        coding_known: ::std::os::raw::c_uint,
+        rsv_known: ::std::os::raw::c_uint,
+        nsts_known: ::std::os::raw::c_uint,
+        bf_known: ::std::os::raw::c_uint,
+        spatial_config_known: ::std::os::raw::c_uint,
+        data_for_this_user: ::std::os::raw::c_uint,
+        sta_id: ::std::os::raw::c_uint,
+        ldpc_coding: ::std::os::raw::c_uint,
+        mcs: ::std::os::raw::c_uint,
+        nsts: ::std::os::raw::c_uint,
+        rsv: ::std::os::raw::c_uint,
+        beamform: ::std::os::raw::c_uint,
+        rsv2: ::std::os::raw::c_uint,
+    ) -> __BindgenBitfieldUnit<[u8; 4usize]> {
+        let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 4usize]> = Default::default();
+        __bindgen_bitfield_unit.set(0usize, 1u8, {
+            let sta_id_known: u32 = unsafe { ::std::mem::transmute(sta_id_known) };
+            sta_id_known as u64
+        });
+        __bindgen_bitfield_unit.set(1usize, 1u8, {
+            let mcs_known: u32 = unsafe { ::std::mem::transmute(mcs_known) };
+            mcs_known as u64
+        });
+        __bindgen_bitfield_unit.set(2usize, 1u8, {
+            let coding_known: u32 = unsafe { ::std::mem::transmute(coding_known) };
+            coding_known as u64
+        });
+        __bindgen_bitfield_unit.set(3usize, 1u8, {
+            let rsv_known: u32 = unsafe { ::std::mem::transmute(rsv_known) };
+            rsv_known as u64
+        });
+        __bindgen_bitfield_unit.set(4usize, 1u8, {
+            let nsts_known: u32 = unsafe { ::std::mem::transmute(nsts_known) };
+            nsts_known as u64
+        });
+        __bindgen_bitfield_unit.set(5usize, 1u8, {
+            let bf_known: u32 = unsafe { ::std::mem::transmute(bf_known) };
+            bf_known as u64
+        });
+        __bindgen_bitfield_unit.set(6usize, 1u8, {
+            let spatial_config_known: u32 = unsafe { ::std::mem::transmute(spatial_config_known) };
+            spatial_config_known as u64
+        });
+        __bindgen_bitfield_unit.set(7usize, 1u8, {
+            let data_for_this_user: u32 = unsafe { ::std::mem::transmute(data_for_this_user) };
+            data_for_this_user as u64
+        });
+        __bindgen_bitfield_unit.set(8usize, 11u8, {
+            let sta_id: u32 = unsafe { ::std::mem::transmute(sta_id) };
+            sta_id as u64
+        });
+        __bindgen_bitfield_unit.set(19usize, 1u8, {
+            let ldpc_coding: u32 = unsafe { ::std::mem::transmute(ldpc_coding) };
+            ldpc_coding as u64
+        });
+        __bindgen_bitfield_unit.set(20usize, 4u8, {
+            let mcs: u32 = unsafe { ::std::mem::transmute(mcs) };
+            mcs as u64
+        });
+        __bindgen_bitfield_unit.set(24usize, 4u8, {
+            let nsts: u32 = unsafe { ::std::mem::transmute(nsts) };
+            nsts as u64
+        });
+        __bindgen_bitfield_unit.set(28usize, 1u8, {
+            let rsv: u32 = unsafe { ::std::mem::transmute(rsv) };
+            rsv as u64
+        });
+        __bindgen_bitfield_unit.set(29usize, 1u8, {
+            let beamform: u32 = unsafe { ::std::mem::transmute(beamform) };
+            beamform as u64
+        });
+        __bindgen_bitfield_unit.set(30usize, 2u8, {
+            let rsv2: u32 = unsafe { ::std::mem::transmute(rsv2) };
+            rsv2 as u64
+        });
+        __bindgen_bitfield_unit
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ieee_802_11be {
+    pub _bitfield_align_1: [u8; 0],
+    pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
+    pub __bindgen_padding_0: [u8; 3usize],
+    pub bandwidth: u8,
+    pub _bitfield_align_2: [u8; 0],
+    pub _bitfield_2: __BindgenBitfieldUnit<[u8; 1usize]>,
+    pub num_users: u8,
+    pub user: [ieee_802_11be_user_info; 4usize],
+}
+#[test]
+fn bindgen_test_layout_ieee_802_11be() {
+    const UNINIT: ::std::mem::MaybeUninit<ieee_802_11be> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<ieee_802_11be>(),
+        24usize,
+        concat!("Size of: ", stringify!(ieee_802_11be))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ieee_802_11be>(),
+        4usize,
+        concat!("Alignment of ", stringify!(ieee_802_11be))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).bandwidth) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ieee_802_11be),
+            "::",
+            stringify!(bandwidth)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).num_users) as usize - ptr as usize },
+        6usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ieee_802_11be),
+            "::",
+            stringify!(num_users)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).user) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ieee_802_11be),
+            "::",
+            stringify!(user)
+        )
+    );
+}
+impl ieee_802_11be {
+    #[inline]
+    pub fn has_ru_mru_size(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_has_ru_mru_size(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(0usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn has_gi(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_has_gi(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(1usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn has_bandwidth(&self) -> ::std::os::raw::c_uint {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
+    }
+    #[inline]
+    pub fn set_has_bandwidth(&mut self, val: ::std::os::raw::c_uint) {
+        unsafe {
+            let val: u32 = ::std::mem::transmute(val);
+            self._bitfield_1.set(2usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn new_bitfield_1(
+        has_ru_mru_size: ::std::os::raw::c_uint,
+        has_gi: ::std::os::raw::c_uint,
+        has_bandwidth: ::std::os::raw::c_uint,
+    ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
+        let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
+        __bindgen_bitfield_unit.set(0usize, 1u8, {
+            let has_ru_mru_size: u32 = unsafe { ::std::mem::transmute(has_ru_mru_size) };
+            has_ru_mru_size as u64
+        });
+        __bindgen_bitfield_unit.set(1usize, 1u8, {
+            let has_gi: u32 = unsafe { ::std::mem::transmute(has_gi) };
+            has_gi as u64
+        });
+        __bindgen_bitfield_unit.set(2usize, 1u8, {
+            let has_bandwidth: u32 = unsafe { ::std::mem::transmute(has_bandwidth) };
+            has_bandwidth as u64
+        });
+        __bindgen_bitfield_unit
+    }
+    #[inline]
+    pub fn ru_mru_size(&self) -> u8 {
+        unsafe { ::std::mem::transmute(self._bitfield_2.get(0usize, 4u8) as u8) }
+    }
+    #[inline]
+    pub fn set_ru_mru_size(&mut self, val: u8) {
+        unsafe {
+            let val: u8 = ::std::mem::transmute(val);
+            self._bitfield_2.set(0usize, 4u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn gi(&self) -> u8 {
+        unsafe { ::std::mem::transmute(self._bitfield_2.get(4usize, 2u8) as u8) }
+    }
+    #[inline]
+    pub fn set_gi(&mut self, val: u8) {
+        unsafe {
+            let val: u8 = ::std::mem::transmute(val);
+            self._bitfield_2.set(4usize, 2u8, val as u64)
+        }
+    }
+    #[inline]
+    pub fn new_bitfield_2(ru_mru_size: u8, gi: u8) -> __BindgenBitfieldUnit<[u8; 1usize]> {
+        let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
+        __bindgen_bitfield_unit.set(0usize, 4u8, {
+            let ru_mru_size: u8 = unsafe { ::std::mem::transmute(ru_mru_size) };
+            ru_mru_size as u64
+        });
+        __bindgen_bitfield_unit.set(4usize, 2u8, {
+            let gi: u8 = unsafe { ::std::mem::transmute(gi) };
+            gi as u64
+        });
+        __bindgen_bitfield_unit
+    }
+}
+#[repr(C)]
 #[derive(Copy, Clone)]
 pub union ieee_802_11_phy_info {
     pub info_11_fhss: ieee_802_11_fhss,
@@ -25803,6 +25620,7 @@ pub union ieee_802_11_phy_info {
     pub info_11ac: ieee_802_11ac,
     pub info_11ad: ieee_802_11ad,
     pub info_11ax: ieee_802_11ax,
+    pub info_11be: ieee_802_11be,
 }
 #[test]
 fn bindgen_test_layout_ieee_802_11_phy_info() {
@@ -25810,7 +25628,7 @@ fn bindgen_test_layout_ieee_802_11_phy_info() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<ieee_802_11_phy_info>(),
-        20usize,
+        24usize,
         concat!("Size of: ", stringify!(ieee_802_11_phy_info))
     );
     assert_eq!(
@@ -25898,31 +25716,41 @@ fn bindgen_test_layout_ieee_802_11_phy_info() {
             stringify!(info_11ax)
         )
     );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).info_11be) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ieee_802_11_phy_info),
+            "::",
+            stringify!(info_11be)
+        )
+    );
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct ieee_802_11_phdr {
-    pub fcs_len: gint,
+    pub fcs_len: ::std::os::raw::c_int,
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
-    pub phy: guint,
+    pub phy: ::std::os::raw::c_uint,
     pub phy_info: ieee_802_11_phy_info,
     pub _bitfield_align_2: [u8; 0],
     pub _bitfield_2: __BindgenBitfieldUnit<[u8; 2usize]>,
     pub __bindgen_padding_0: u16,
-    pub channel: guint16,
-    pub frequency: guint32,
-    pub data_rate: guint16,
-    pub signal_percent: guint8,
-    pub noise_percent: guint8,
-    pub signal_dbm: gint8,
-    pub noise_dbm: gint8,
-    pub signal_db: guint8,
-    pub noise_db: guint8,
-    pub tsf_timestamp: guint64,
-    pub aggregate_flags: guint32,
-    pub aggregate_id: guint32,
-    pub zero_length_psdu_type: guint8,
+    pub channel: u16,
+    pub frequency: u32,
+    pub data_rate: u16,
+    pub signal_percent: u8,
+    pub noise_percent: u8,
+    pub signal_dbm: i8,
+    pub noise_dbm: i8,
+    pub signal_db: u8,
+    pub noise_db: u8,
+    pub tsf_timestamp: u64,
+    pub aggregate_flags: u32,
+    pub aggregate_id: u32,
+    pub zero_length_psdu_type: u8,
 }
 #[test]
 fn bindgen_test_layout_ieee_802_11_phdr() {
@@ -25970,7 +25798,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).channel) as usize - ptr as usize },
-        36usize,
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -25980,7 +25808,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).frequency) as usize - ptr as usize },
-        40usize,
+        44usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -25990,7 +25818,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).data_rate) as usize - ptr as usize },
-        44usize,
+        48usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -26000,7 +25828,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).signal_percent) as usize - ptr as usize },
-        46usize,
+        50usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -26010,7 +25838,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).noise_percent) as usize - ptr as usize },
-        47usize,
+        51usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -26020,7 +25848,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).signal_dbm) as usize - ptr as usize },
-        48usize,
+        52usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -26030,7 +25858,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).noise_dbm) as usize - ptr as usize },
-        49usize,
+        53usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -26040,7 +25868,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).signal_db) as usize - ptr as usize },
-        50usize,
+        54usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -26050,7 +25878,7 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).noise_db) as usize - ptr as usize },
-        51usize,
+        55usize,
         concat!(
             "Offset of field: ",
             stringify!(ieee_802_11_phdr),
@@ -26101,33 +25929,33 @@ fn bindgen_test_layout_ieee_802_11_phdr() {
 }
 impl ieee_802_11_phdr {
     #[inline]
-    pub fn decrypted(&self) -> guint {
+    pub fn decrypted(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_decrypted(&mut self, val: guint) {
+    pub fn set_decrypted(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn datapad(&self) -> guint {
+    pub fn datapad(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_datapad(&mut self, val: guint) {
+    pub fn set_datapad(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn no_a_msdus(&self) -> guint {
+    pub fn no_a_msdus(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_no_a_msdus(&mut self, val: guint) {
+    pub fn set_no_a_msdus(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
@@ -26135,9 +25963,9 @@ impl ieee_802_11_phdr {
     }
     #[inline]
     pub fn new_bitfield_1(
-        decrypted: guint,
-        datapad: guint,
-        no_a_msdus: guint,
+        decrypted: ::std::os::raw::c_uint,
+        datapad: ::std::os::raw::c_uint,
+        no_a_msdus: ::std::os::raw::c_uint,
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
@@ -26155,132 +25983,132 @@ impl ieee_802_11_phdr {
         __bindgen_bitfield_unit
     }
     #[inline]
-    pub fn has_channel(&self) -> guint {
+    pub fn has_channel(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_channel(&mut self, val: guint) {
+    pub fn set_has_channel(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_frequency(&self) -> guint {
+    pub fn has_frequency(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(1usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_frequency(&mut self, val: guint) {
+    pub fn set_has_frequency(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_data_rate(&self) -> guint {
+    pub fn has_data_rate(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(2usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_data_rate(&mut self, val: guint) {
+    pub fn set_has_data_rate(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_signal_percent(&self) -> guint {
+    pub fn has_signal_percent(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(3usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_signal_percent(&mut self, val: guint) {
+    pub fn set_has_signal_percent(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(3usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_noise_percent(&self) -> guint {
+    pub fn has_noise_percent(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(4usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_noise_percent(&mut self, val: guint) {
+    pub fn set_has_noise_percent(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(4usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_signal_dbm(&self) -> guint {
+    pub fn has_signal_dbm(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(5usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_signal_dbm(&mut self, val: guint) {
+    pub fn set_has_signal_dbm(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(5usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_noise_dbm(&self) -> guint {
+    pub fn has_noise_dbm(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(6usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_noise_dbm(&mut self, val: guint) {
+    pub fn set_has_noise_dbm(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(6usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_signal_db(&self) -> guint {
+    pub fn has_signal_db(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(7usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_signal_db(&mut self, val: guint) {
+    pub fn set_has_signal_db(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(7usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_noise_db(&self) -> guint {
+    pub fn has_noise_db(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(8usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_noise_db(&mut self, val: guint) {
+    pub fn set_has_noise_db(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(8usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_tsf_timestamp(&self) -> guint {
+    pub fn has_tsf_timestamp(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(9usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_tsf_timestamp(&mut self, val: guint) {
+    pub fn set_has_tsf_timestamp(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(9usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_aggregate_info(&self) -> guint {
+    pub fn has_aggregate_info(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(10usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_aggregate_info(&mut self, val: guint) {
+    pub fn set_has_aggregate_info(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(10usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn has_zero_length_psdu_type(&self) -> guint {
+    pub fn has_zero_length_psdu_type(&self) -> ::std::os::raw::c_uint {
         unsafe { ::std::mem::transmute(self._bitfield_2.get(11usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_has_zero_length_psdu_type(&mut self, val: guint) {
+    pub fn set_has_zero_length_psdu_type(&mut self, val: ::std::os::raw::c_uint) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_2.set(11usize, 1u8, val as u64)
@@ -26288,18 +26116,18 @@ impl ieee_802_11_phdr {
     }
     #[inline]
     pub fn new_bitfield_2(
-        has_channel: guint,
-        has_frequency: guint,
-        has_data_rate: guint,
-        has_signal_percent: guint,
-        has_noise_percent: guint,
-        has_signal_dbm: guint,
-        has_noise_dbm: guint,
-        has_signal_db: guint,
-        has_noise_db: guint,
-        has_tsf_timestamp: guint,
-        has_aggregate_info: guint,
-        has_zero_length_psdu_type: guint,
+        has_channel: ::std::os::raw::c_uint,
+        has_frequency: ::std::os::raw::c_uint,
+        has_data_rate: ::std::os::raw::c_uint,
+        has_signal_percent: ::std::os::raw::c_uint,
+        has_noise_percent: ::std::os::raw::c_uint,
+        has_signal_dbm: ::std::os::raw::c_uint,
+        has_noise_dbm: ::std::os::raw::c_uint,
+        has_signal_db: ::std::os::raw::c_uint,
+        has_noise_db: ::std::os::raw::c_uint,
+        has_tsf_timestamp: ::std::os::raw::c_uint,
+        has_aggregate_info: ::std::os::raw::c_uint,
+        has_zero_length_psdu_type: ::std::os::raw::c_uint,
     ) -> __BindgenBitfieldUnit<[u8; 2usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 2usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
@@ -26357,14 +26185,14 @@ impl ieee_802_11_phdr {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct cosine_phdr {
-    pub encap: guint8,
-    pub direction: guint8,
+    pub encap: u8,
+    pub direction: u8,
     pub if_name: [::std::os::raw::c_char; 128usize],
-    pub pro: guint16,
-    pub off: guint16,
-    pub pri: guint16,
-    pub rm: guint16,
-    pub err: guint16,
+    pub pro: u16,
+    pub off: u16,
+    pub pri: u16,
+    pub rm: u16,
+    pub err: u16,
 }
 #[test]
 fn bindgen_test_layout_cosine_phdr() {
@@ -26464,7 +26292,7 @@ fn bindgen_test_layout_cosine_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct irda_phdr {
-    pub pkttype: guint16,
+    pub pkttype: u16,
 }
 #[test]
 fn bindgen_test_layout_irda_phdr() {
@@ -26494,11 +26322,11 @@ fn bindgen_test_layout_irda_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct nettl_phdr {
-    pub subsys: guint16,
-    pub devid: guint32,
-    pub kind: guint32,
-    pub pid: gint32,
-    pub uid: guint32,
+    pub subsys: u16,
+    pub devid: u32,
+    pub kind: u32,
+    pub pid: i32,
+    pub uid: u32,
 }
 #[test]
 fn bindgen_test_layout_nettl_phdr() {
@@ -26568,9 +26396,9 @@ fn bindgen_test_layout_nettl_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct mtp2_phdr {
-    pub sent: guint8,
-    pub annex_a_used: guint8,
-    pub link_number: guint16,
+    pub sent: u8,
+    pub annex_a_used: u8,
+    pub link_number: u16,
 }
 #[test]
 fn bindgen_test_layout_mtp2_phdr() {
@@ -26621,14 +26449,14 @@ fn bindgen_test_layout_mtp2_phdr() {
 #[derive(Copy, Clone)]
 pub union k12_input_info_t {
     pub atm: k12_input_info_t__bindgen_ty_1,
-    pub ds0mask: guint32,
+    pub ds0mask: u32,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct k12_input_info_t__bindgen_ty_1 {
-    pub vp: guint16,
-    pub vc: guint16,
-    pub cid: guint16,
+    pub vp: u16,
+    pub vc: u16,
+    pub cid: u16,
 }
 #[test]
 fn bindgen_test_layout_k12_input_info_t__bindgen_ty_1() {
@@ -26714,13 +26542,13 @@ fn bindgen_test_layout_k12_input_info_t() {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct k12_phdr {
-    pub input: guint32,
-    pub input_name: *const gchar,
-    pub stack_file: *const gchar,
-    pub input_type: guint32,
+    pub input: u32,
+    pub input_name: *const ::std::os::raw::c_char,
+    pub stack_file: *const ::std::os::raw::c_char,
+    pub input_type: u32,
     pub input_info: k12_input_info_t,
-    pub extra_info: *mut guint8,
-    pub extra_length: guint32,
+    pub extra_info: *mut u8,
+    pub extra_length: u32,
     pub stuff: *mut ::std::os::raw::c_void,
 }
 #[test]
@@ -26821,8 +26649,8 @@ fn bindgen_test_layout_k12_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct lapd_phdr {
-    pub pkttype: guint16,
-    pub we_network: guint8,
+    pub pkttype: u16,
+    pub we_network: u8,
 }
 #[test]
 fn bindgen_test_layout_lapd_phdr() {
@@ -26868,7 +26696,7 @@ pub struct wtap {
 #[derive(Copy, Clone)]
 pub struct catapult_dct2000_phdr {
     pub inner_pseudo_header: catapult_dct2000_phdr__bindgen_ty_1,
-    pub seek_off: gint64,
+    pub seek_off: i64,
     pub wth: *mut wtap,
 }
 #[repr(C)]
@@ -26976,12 +26804,12 @@ fn bindgen_test_layout_catapult_dct2000_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct erf_phdr {
-    pub ts: guint64,
-    pub type_: guint8,
-    pub flags: guint8,
-    pub rlen: guint16,
-    pub lctr: guint16,
-    pub wlen: guint16,
+    pub ts: u64,
+    pub type_: u8,
+    pub flags: u8,
+    pub rlen: u16,
+    pub lctr: u16,
+    pub wlen: u16,
 }
 #[test]
 fn bindgen_test_layout_erf_phdr() {
@@ -27061,7 +26889,7 @@ fn bindgen_test_layout_erf_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct erf_ehdr {
-    pub ehdr: guint64,
+    pub ehdr: u64,
 }
 #[test]
 fn bindgen_test_layout_erf_ehdr() {
@@ -27091,8 +26919,8 @@ fn bindgen_test_layout_erf_ehdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtap_erf_eth_hdr {
-    pub offset: guint8,
-    pub pad: guint8,
+    pub offset: u8,
+    pub pad: u8,
 }
 #[test]
 fn bindgen_test_layout_wtap_erf_eth_hdr() {
@@ -27140,8 +26968,8 @@ pub struct erf_mc_phdr {
 #[derive(Copy, Clone)]
 pub union erf_mc_phdr__bindgen_ty_1 {
     pub eth_hdr: wtap_erf_eth_hdr,
-    pub mc_hdr: guint32,
-    pub aal2_hdr: guint32,
+    pub mc_hdr: u32,
+    pub aal2_hdr: u32,
 }
 #[test]
 fn bindgen_test_layout_erf_mc_phdr__bindgen_ty_1() {
@@ -27237,11 +27065,11 @@ fn bindgen_test_layout_erf_mc_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct sita_phdr {
-    pub sita_flags: guint8,
-    pub sita_signals: guint8,
-    pub sita_errors1: guint8,
-    pub sita_errors2: guint8,
-    pub sita_proto: guint8,
+    pub sita_flags: u8,
+    pub sita_signals: u8,
+    pub sita_errors1: u8,
+    pub sita_errors2: u8,
+    pub sita_proto: u8,
 }
 #[test]
 fn bindgen_test_layout_sita_phdr() {
@@ -27311,8 +27139,8 @@ fn bindgen_test_layout_sita_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct bthci_phdr {
-    pub sent: gboolean,
-    pub channel: guint32,
+    pub sent: bool,
+    pub channel: u32,
 }
 #[test]
 fn bindgen_test_layout_bthci_phdr() {
@@ -27352,8 +27180,8 @@ fn bindgen_test_layout_bthci_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct btmon_phdr {
-    pub adapter_id: guint16,
-    pub opcode: guint16,
+    pub adapter_id: u16,
+    pub opcode: u16,
 }
 #[test]
 fn bindgen_test_layout_btmon_phdr() {
@@ -27393,7 +27221,7 @@ fn bindgen_test_layout_btmon_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct l1event_phdr {
-    pub uton: gboolean,
+    pub uton: bool,
 }
 #[test]
 fn bindgen_test_layout_l1event_phdr() {
@@ -27401,12 +27229,12 @@ fn bindgen_test_layout_l1event_phdr() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<l1event_phdr>(),
-        4usize,
+        1usize,
         concat!("Size of: ", stringify!(l1event_phdr))
     );
     assert_eq!(
         ::std::mem::align_of::<l1event_phdr>(),
-        4usize,
+        1usize,
         concat!("Alignment of ", stringify!(l1event_phdr))
     );
     assert_eq!(
@@ -27423,9 +27251,9 @@ fn bindgen_test_layout_l1event_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct i2c_phdr {
-    pub is_event: guint8,
-    pub bus: guint8,
-    pub flags: guint32,
+    pub is_event: u8,
+    pub bus: u8,
+    pub flags: u32,
 }
 #[test]
 fn bindgen_test_layout_i2c_phdr() {
@@ -27475,13 +27303,13 @@ fn bindgen_test_layout_i2c_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct gsm_um_phdr {
-    pub uplink: gboolean,
-    pub channel: guint8,
-    pub bsic: guint8,
-    pub arfcn: guint16,
-    pub tdma_frame: guint32,
-    pub error: guint8,
-    pub timeshift: guint16,
+    pub uplink: bool,
+    pub channel: u8,
+    pub bsic: u8,
+    pub arfcn: u16,
+    pub tdma_frame: u32,
+    pub error: u8,
+    pub timeshift: u16,
 }
 #[test]
 fn bindgen_test_layout_gsm_um_phdr() {
@@ -27509,7 +27337,7 @@ fn bindgen_test_layout_gsm_um_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).channel) as usize - ptr as usize },
-        4usize,
+        1usize,
         concat!(
             "Offset of field: ",
             stringify!(gsm_um_phdr),
@@ -27519,7 +27347,7 @@ fn bindgen_test_layout_gsm_um_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).bsic) as usize - ptr as usize },
-        5usize,
+        2usize,
         concat!(
             "Offset of field: ",
             stringify!(gsm_um_phdr),
@@ -27529,7 +27357,7 @@ fn bindgen_test_layout_gsm_um_phdr() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).arfcn) as usize - ptr as usize },
-        6usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(gsm_um_phdr),
@@ -27571,25 +27399,25 @@ fn bindgen_test_layout_gsm_um_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct nstr_phdr {
-    pub rec_offset: gint64,
-    pub rec_len: gint32,
-    pub nicno_offset: guint8,
-    pub nicno_len: guint8,
-    pub dir_offset: guint8,
-    pub dir_len: guint8,
-    pub eth_offset: guint16,
-    pub pcb_offset: guint8,
-    pub l_pcb_offset: guint8,
-    pub rec_type: guint8,
-    pub vlantag_offset: guint8,
-    pub coreid_offset: guint8,
-    pub srcnodeid_offset: guint8,
-    pub destnodeid_offset: guint8,
-    pub clflags_offset: guint8,
-    pub src_vmname_len_offset: guint8,
-    pub dst_vmname_len_offset: guint8,
-    pub ns_activity_offset: guint8,
-    pub data_offset: guint8,
+    pub rec_offset: i64,
+    pub rec_len: i32,
+    pub nicno_offset: u8,
+    pub nicno_len: u8,
+    pub dir_offset: u8,
+    pub dir_len: u8,
+    pub eth_offset: u16,
+    pub pcb_offset: u8,
+    pub l_pcb_offset: u8,
+    pub rec_type: u8,
+    pub vlantag_offset: u8,
+    pub coreid_offset: u8,
+    pub srcnodeid_offset: u8,
+    pub destnodeid_offset: u8,
+    pub clflags_offset: u8,
+    pub src_vmname_len_offset: u8,
+    pub dst_vmname_len_offset: u8,
+    pub ns_activity_offset: u8,
+    pub data_offset: u8,
 }
 #[test]
 fn bindgen_test_layout_nstr_phdr() {
@@ -27800,7 +27628,7 @@ fn bindgen_test_layout_nstr_phdr() {
 #[derive(Debug, Copy, Clone)]
 pub struct nokia_phdr {
     pub eth: eth_phdr,
-    pub stuff: [guint8; 4usize],
+    pub stuff: [u8; 4usize],
 }
 #[test]
 fn bindgen_test_layout_nokia_phdr() {
@@ -27840,8 +27668,8 @@ fn bindgen_test_layout_nokia_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct llcp_phdr {
-    pub adapter: guint8,
-    pub flags: guint8,
+    pub adapter: u8,
+    pub flags: u8,
 }
 #[test]
 fn bindgen_test_layout_llcp_phdr() {
@@ -27881,7 +27709,7 @@ fn bindgen_test_layout_llcp_phdr() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct logcat_phdr {
-    pub version: gint,
+    pub version: ::std::os::raw::c_int,
 }
 #[test]
 fn bindgen_test_layout_logcat_phdr() {
@@ -27911,10 +27739,10 @@ fn bindgen_test_layout_logcat_phdr() {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct netmon_phdr {
-    pub title: *mut guint8,
-    pub descLength: guint32,
-    pub description: *mut guint8,
-    pub sub_encap: guint,
+    pub title: *mut u8,
+    pub descLength: u32,
+    pub description: *mut u8,
+    pub sub_encap: ::std::os::raw::c_uint,
     pub subheader: netmon_phdr_sub_wtap_pseudo_header,
 }
 #[repr(C)]
@@ -28387,10 +28215,10 @@ fn bindgen_test_layout_wtap_pseudo_header() {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct wtap_packet_header {
-    pub caplen: guint32,
-    pub len: guint32,
+    pub caplen: u32,
+    pub len: u32,
     pub pkt_encap: ::std::os::raw::c_int,
-    pub interface_id: guint32,
+    pub interface_id: u32,
     pub pseudo_header: wtap_pseudo_header,
 }
 #[test]
@@ -28461,8 +28289,8 @@ fn bindgen_test_layout_wtap_packet_header() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtap_ft_specific_header {
-    pub record_type: guint,
-    pub record_len: guint32,
+    pub record_type: ::std::os::raw::c_uint,
+    pub record_len: u32,
 }
 #[test]
 fn bindgen_test_layout_wtap_ft_specific_header() {
@@ -28503,15 +28331,16 @@ fn bindgen_test_layout_wtap_ft_specific_header() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtap_syscall_header {
-    pub record_type: guint,
+    pub pathname: *const ::std::os::raw::c_char,
+    pub record_type: ::std::os::raw::c_uint,
     pub byte_order: ::std::os::raw::c_int,
-    pub timestamp: guint64,
-    pub thread_id: guint64,
-    pub event_len: guint32,
-    pub event_filelen: guint32,
-    pub event_type: guint16,
-    pub nparams: guint32,
-    pub cpu_id: guint16,
+    pub timestamp: u64,
+    pub thread_id: u64,
+    pub event_len: u32,
+    pub event_filelen: u32,
+    pub event_type: u16,
+    pub nparams: u32,
+    pub cpu_id: u16,
 }
 #[test]
 fn bindgen_test_layout_wtap_syscall_header() {
@@ -28519,7 +28348,7 @@ fn bindgen_test_layout_wtap_syscall_header() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<wtap_syscall_header>(),
-        48usize,
+        56usize,
         concat!("Size of: ", stringify!(wtap_syscall_header))
     );
     assert_eq!(
@@ -28528,8 +28357,18 @@ fn bindgen_test_layout_wtap_syscall_header() {
         concat!("Alignment of ", stringify!(wtap_syscall_header))
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).record_type) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).pathname) as usize - ptr as usize },
         0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_syscall_header),
+            "::",
+            stringify!(pathname)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).record_type) as usize - ptr as usize },
+        8usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -28539,7 +28378,7 @@ fn bindgen_test_layout_wtap_syscall_header() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).byte_order) as usize - ptr as usize },
-        4usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -28549,7 +28388,7 @@ fn bindgen_test_layout_wtap_syscall_header() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).timestamp) as usize - ptr as usize },
-        8usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -28559,7 +28398,7 @@ fn bindgen_test_layout_wtap_syscall_header() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).thread_id) as usize - ptr as usize },
-        16usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -28569,7 +28408,7 @@ fn bindgen_test_layout_wtap_syscall_header() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).event_len) as usize - ptr as usize },
-        24usize,
+        32usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -28579,7 +28418,7 @@ fn bindgen_test_layout_wtap_syscall_header() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).event_filelen) as usize - ptr as usize },
-        28usize,
+        36usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -28589,7 +28428,7 @@ fn bindgen_test_layout_wtap_syscall_header() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).event_type) as usize - ptr as usize },
-        32usize,
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -28599,7 +28438,7 @@ fn bindgen_test_layout_wtap_syscall_header() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).nparams) as usize - ptr as usize },
-        36usize,
+        44usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -28609,7 +28448,7 @@ fn bindgen_test_layout_wtap_syscall_header() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).cpu_id) as usize - ptr as usize },
-        40usize,
+        48usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -28621,7 +28460,7 @@ fn bindgen_test_layout_wtap_syscall_header() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtap_systemd_journal_export_header {
-    pub record_len: guint32,
+    pub record_len: u32,
 }
 #[test]
 fn bindgen_test_layout_wtap_systemd_journal_export_header() {
@@ -28655,9 +28494,9 @@ fn bindgen_test_layout_wtap_systemd_journal_export_header() {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct wtap_custom_block_header {
-    pub length: guint32,
-    pub pen: guint32,
-    pub copy_allowed: gboolean,
+    pub length: u32,
+    pub pen: u32,
+    pub copy_allowed: bool,
     pub custom_data_header: wtap_custom_block_header__bindgen_ty_1,
 }
 #[repr(C)]
@@ -28668,8 +28507,8 @@ pub union wtap_custom_block_header__bindgen_ty_1 {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtap_custom_block_header__bindgen_ty_1_nflx {
-    pub type_: guint32,
-    pub skipped: guint32,
+    pub type_: u32,
+    pub skipped: u32,
 }
 #[test]
 fn bindgen_test_layout_wtap_custom_block_header__bindgen_ty_1_nflx() {
@@ -28804,16 +28643,16 @@ fn bindgen_test_layout_wtap_custom_block_header() {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct wtap_rec {
-    pub rec_type: guint,
-    pub presence_flags: guint32,
-    pub section_number: guint,
+    pub rec_type: ::std::os::raw::c_uint,
+    pub presence_flags: u32,
+    pub section_number: ::std::os::raw::c_uint,
     pub ts: nstime_t,
     pub tsprec: ::std::os::raw::c_int,
     pub ts_rel_cap: nstime_t,
-    pub ts_rel_cap_valid: gboolean,
+    pub ts_rel_cap_valid: bool,
     pub rec_header: wtap_rec__bindgen_ty_1,
     pub block: wtap_block_t,
-    pub block_was_modified: gboolean,
+    pub block_was_modified: bool,
     pub options_buf: Buffer,
 }
 #[repr(C)]
@@ -29021,10 +28860,11 @@ fn bindgen_test_layout_wtap_rec() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct hashipv4 {
-    pub addr: guint,
-    pub flags: guint8,
-    pub ip: [gchar; 16usize],
-    pub name: [gchar; 64usize],
+    pub addr: ::std::os::raw::c_uint,
+    pub flags: u8,
+    pub ip: [::std::os::raw::c_char; 16usize],
+    pub name: [::std::os::raw::c_char; 64usize],
+    pub cidr_addr: [::std::os::raw::c_char; 19usize],
 }
 #[test]
 fn bindgen_test_layout_hashipv4() {
@@ -29032,7 +28872,7 @@ fn bindgen_test_layout_hashipv4() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<hashipv4>(),
-        88usize,
+        104usize,
         concat!("Size of: ", stringify!(hashipv4))
     );
     assert_eq!(
@@ -29080,15 +28920,25 @@ fn bindgen_test_layout_hashipv4() {
             stringify!(name)
         )
     );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).cidr_addr) as usize - ptr as usize },
+        85usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hashipv4),
+            "::",
+            stringify!(cidr_addr)
+        )
+    );
 }
 pub type hashipv4_t = hashipv4;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct hashipv6 {
-    pub addr: [guint8; 16usize],
-    pub flags: guint8,
-    pub ip6: [gchar; 46usize],
-    pub name: [gchar; 64usize],
+    pub addr: [u8; 16usize],
+    pub flags: u8,
+    pub ip6: [::std::os::raw::c_char; 46usize],
+    pub name: [::std::os::raw::c_char; 64usize],
 }
 #[test]
 fn bindgen_test_layout_hashipv6() {
@@ -29146,13 +28996,10 @@ fn bindgen_test_layout_hashipv6() {
     );
 }
 pub type hashipv6_t = hashipv6;
-#[doc = " A struct with lists of resolved addresses.\n  Used when writing name resolutions blocks (NRB)"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct addrinfo_lists {
-    #[doc = "< A list of resolved hashipv4_t"]
     pub ipv4_addr_list: *mut GList,
-    #[doc = "< A list of resolved hashipv6_t"]
     pub ipv6_addr_list: *mut GList,
 }
 #[test]
@@ -29190,32 +29037,21 @@ fn bindgen_test_layout_addrinfo_lists() {
         )
     );
 }
-#[doc = " A struct with lists of resolved addresses.\n  Used when writing name resolutions blocks (NRB)"]
 pub type addrinfo_lists_t = addrinfo_lists;
-#[doc = " Parameters for various wtap_dump_* functions, specifying per-file\n information. The structure itself is no longer used after returning\n from wtap_dump_*, but its pointer fields must remain valid until\n wtap_dump_close is called.\n\n @note The shb_hdr and idb_inf arguments will be used until\n     wtap_dump_close() is called, but will not be free'd by the dumper. If\n     you created them, you must free them yourself after wtap_dump_close().\n     dsbs_initial will be freed by wtap_dump_close(),\n     dsbs_growing typically refers to another wth->dsbs.\n     nrbs_growing typically refers to another wth->nrbs.\n\n @see wtap_dump_params_init, wtap_dump_params_cleanup."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtap_dump_params {
-    #[doc = "< Per-file packet encapsulation, or WTAP_ENCAP_PER_PACKET"]
     pub encap: ::std::os::raw::c_int,
-    #[doc = "< Per-file snapshot length (what if it's per-interface?)"]
     pub snaplen: ::std::os::raw::c_int,
-    #[doc = "< Per-file time stamp precision"]
     pub tsprec: ::std::os::raw::c_int,
-    #[doc = "< The section header block(s) information, or NULL."]
     pub shb_hdrs: *mut GArray,
-    #[doc = "< The interface description information, or NULL."]
+    pub shb_iface_to_global: *const GArray,
     pub idb_inf: *mut wtapng_iface_descriptions_t,
-    #[doc = "< NRBs that will be written while writing packets, or NULL.\nThis array may grow since the dumper was opened and will subsequently\nbe written before newer packets are written in wtap_dump."]
     pub nrbs_growing: *const GArray,
-    #[doc = "< The initial Decryption Secrets Block(s) to be written, or NULL."]
     pub dsbs_initial: *mut GArray,
-    #[doc = "< DSBs that will be written while writing packets, or NULL.\nThis array may grow since the dumper was opened and will subsequently\nbe written before newer packets are written in wtap_dump."]
     pub dsbs_growing: *const GArray,
-    #[doc = "< Meta events that will be written while writing packets, or NULL.\nThis array may grow since the dumper was opened and will subsequently\nbe written before newer packets are written in wtap_dump."]
-    pub sysdig_mev_growing: *const GArray,
-    #[doc = "< XXX - don't copy IDBs; this should eventually always be the case."]
-    pub dont_copy_idbs: gboolean,
+    pub mevs_growing: *const GArray,
+    pub dont_copy_idbs: bool,
 }
 #[test]
 fn bindgen_test_layout_wtap_dump_params() {
@@ -29223,7 +29059,7 @@ fn bindgen_test_layout_wtap_dump_params() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<wtap_dump_params>(),
-        72usize,
+        80usize,
         concat!("Size of: ", stringify!(wtap_dump_params))
     );
     assert_eq!(
@@ -29272,8 +29108,18 @@ fn bindgen_test_layout_wtap_dump_params() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).idb_inf) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).shb_iface_to_global) as usize - ptr as usize },
         24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_dump_params),
+            "::",
+            stringify!(shb_iface_to_global)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).idb_inf) as usize - ptr as usize },
+        32usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -29283,7 +29129,7 @@ fn bindgen_test_layout_wtap_dump_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).nrbs_growing) as usize - ptr as usize },
-        32usize,
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -29293,7 +29139,7 @@ fn bindgen_test_layout_wtap_dump_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).dsbs_initial) as usize - ptr as usize },
-        40usize,
+        48usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -29303,7 +29149,7 @@ fn bindgen_test_layout_wtap_dump_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).dsbs_growing) as usize - ptr as usize },
-        48usize,
+        56usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -29312,18 +29158,18 @@ fn bindgen_test_layout_wtap_dump_params() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).sysdig_mev_growing) as usize - ptr as usize },
-        56usize,
+        unsafe { ::std::ptr::addr_of!((*ptr).mevs_growing) as usize - ptr as usize },
+        64usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
             "::",
-            stringify!(sysdig_mev_growing)
+            stringify!(mevs_growing)
         )
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).dont_copy_idbs) as usize - ptr as usize },
-        64usize,
+        72usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -29394,7 +29240,7 @@ pub type wtap_wslua_file_info_t = wtap_wslua_file_info;
 #[derive(Debug, Copy, Clone)]
 pub struct file_extension_info {
     pub name: *const ::std::os::raw::c_char,
-    pub is_capture_file: gboolean,
+    pub is_capture_file: bool,
     pub extensions: *const ::std::os::raw::c_char,
 }
 #[test]
@@ -29469,7 +29315,7 @@ pub struct open_info {
     pub type_: wtap_open_type,
     pub open_routine: wtap_open_routine_t,
     pub extensions: *const ::std::os::raw::c_char,
-    pub extensions_set: *mut *mut gchar,
+    pub extensions_set: *mut *mut ::std::os::raw::c_char,
     pub wslua_data: *mut ::std::os::raw::c_void,
 }
 #[test]
@@ -29557,7 +29403,7 @@ pub type option_support_t = ::std::os::raw::c_int;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct supported_option_type {
-    pub opt: guint,
+    pub opt: ::std::os::raw::c_uint,
     pub support: option_support_t,
 }
 #[test]
@@ -29666,33 +29512,23 @@ fn bindgen_test_layout_supported_block_type() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct file_type_subtype_info {
-    #[doc = " The file type description."]
     pub description: *const ::std::os::raw::c_char,
-    #[doc = " The file type name, used to look up file types by name, e.g.\n looking up a file type specified as a command-line argument."]
     pub name: *const ::std::os::raw::c_char,
-    #[doc = " The default file extension, used to save this type.\n Should be NULL if no default extension is known."]
     pub default_file_extension: *const ::std::os::raw::c_char,
-    #[doc = " A semicolon-separated list of additional file extensions\n used for this type.\n Should be NULL if no extensions, or no extensions other\n than the default extension, are known."]
     pub additional_file_extensions: *const ::std::os::raw::c_char,
-    #[doc = " When writing this file format, is seeking required?"]
-    pub writing_must_seek: gboolean,
-    #[doc = " Number of block types supported."]
+    pub writing_must_seek: bool,
     pub num_supported_blocks: usize,
-    #[doc = " Table of block types supported."]
     pub supported_blocks: *const supported_block_type,
-    #[doc = " Can this type write this encapsulation format?\n Should be NULL is this file type doesn't have write support."]
     pub can_write_encap: ::std::option::Option<
         unsafe extern "C" fn(arg1: ::std::os::raw::c_int) -> ::std::os::raw::c_int,
     >,
-    #[doc = " The function to open the capture file for writing.\n Should be NULL if this file type doesn't have write support."]
     pub dump_open: ::std::option::Option<
         unsafe extern "C" fn(
             arg1: *mut wtap_dumper,
             arg2: *mut ::std::os::raw::c_int,
-            arg3: *mut *mut gchar,
-        ) -> ::std::os::raw::c_int,
+            arg3: *mut *mut ::std::os::raw::c_char,
+        ) -> bool,
     >,
-    #[doc = " If can_write_encap returned WTAP_ERR_CHECK_WSLUA, then this is used instead.\n This should be NULL for everyone except Lua-based file writers."]
     pub wslua_info: *mut wtap_wslua_file_info_t,
 }
 #[test]
@@ -29812,26 +29648,26 @@ fn bindgen_test_layout_file_type_subtype_info() {
     );
 }
 extern "C" {
-    #[doc = " @brief Initialize the Wiretap library.\n\n @param load_wiretap_plugins Load Wiretap plugins when initializing library."]
-    pub fn wtap_init(load_wiretap_plugins: gboolean);
+    pub fn wtap_init(load_wiretap_plugins: bool);
 }
 extern "C" {
-    #[doc = " On failure, \"wtap_open_offline()\" returns NULL, and puts into the\n \"int\" pointed to by its second argument:\n\n @param filename Name of the file to open\n @param type WTAP_TYPE_AUTO for automatic recognize file format or explicit choose format type\n @param[out] err a positive \"errno\" value if the capture file can't be opened;\n a negative number, indicating the type of error, on other failures.\n @param[out] err_info for some errors, a string giving more details of\n the error\n @param do_random TRUE if random access to the file will be done,\n FALSE if not"]
     pub fn wtap_open_offline(
         filename: *const ::std::os::raw::c_char,
         type_: ::std::os::raw::c_uint,
         err: *mut ::std::os::raw::c_int,
-        err_info: *mut *mut gchar,
-        do_random: gboolean,
+        err_info: *mut *mut ::std::os::raw::c_char,
+        do_random: bool,
     ) -> *mut wtap;
 }
 extern "C" {
-    #[doc = " If we were compiled with zlib and we're at EOF, unset EOF so that\n wtap_read/gzread has a chance to succeed. This is necessary if\n we're tailing a file."]
     pub fn wtap_cleareof(wth: *mut wtap);
 }
-#[doc = " Set callback functions to add new hostnames. Currently pcapng-only.\n MUST match add_ipv4_name and add_ipv6_name in addr_resolv.c."]
 pub type wtap_new_ipv4_callback_t = ::std::option::Option<
-    unsafe extern "C" fn(addr: guint, name: *const gchar, static_entry: gboolean),
+    unsafe extern "C" fn(
+        addr: ::std::os::raw::c_uint,
+        name: *const ::std::os::raw::c_char,
+        static_entry: bool,
+    ),
 >;
 extern "C" {
     pub fn wtap_set_cb_new_ipv4(wth: *mut wtap, add_new_ipv4: wtap_new_ipv4_callback_t);
@@ -29839,75 +29675,70 @@ extern "C" {
 pub type wtap_new_ipv6_callback_t = ::std::option::Option<
     unsafe extern "C" fn(
         addrp: *const ::std::os::raw::c_void,
-        name: *const gchar,
-        static_entry: gboolean,
+        name: *const ::std::os::raw::c_char,
+        static_entry: bool,
     ),
 >;
 extern "C" {
     pub fn wtap_set_cb_new_ipv6(wth: *mut wtap, add_new_ipv6: wtap_new_ipv6_callback_t);
 }
-#[doc = " Set callback function to receive new decryption secrets for a particular\n secrets type (as defined in secrets-types.h). Currently pcapng-only."]
 pub type wtap_new_secrets_callback_t = ::std::option::Option<
     unsafe extern "C" fn(
-        secrets_type: guint32,
+        secrets_type: u32,
         secrets: *const ::std::os::raw::c_void,
-        size: guint,
+        size: ::std::os::raw::c_uint,
     ),
 >;
 extern "C" {
     pub fn wtap_set_cb_new_secrets(wth: *mut wtap, add_new_secrets: wtap_new_secrets_callback_t);
 }
-#[doc = " Set callback function to receive new sysdig meta events. Currently pcapng-only."]
-pub type wtap_new_sysdig_meta_event_callback_t = ::std::option::Option<
-    unsafe extern "C" fn(mev_type: u32, mev_data: *const u8, mev_data_size: ::std::os::raw::c_uint),
->;
 extern "C" {
-    pub fn wtap_set_cb_new_sysdig_meta_event(
-        wth: *mut wtap,
-        add_new_sysdig_meta_event: wtap_new_sysdig_meta_event_callback_t,
-    );
-}
-extern "C" {
-    #[doc = " Read the next record in the file, filling in *phdr and *buf.\n\n @wth a wtap * returned by a call that opened a file for reading.\n @rec a pointer to a wtap_rec, filled in with information about the\n record.\n @buf a pointer to a Buffer, filled in with data from the record.\n @param err a positive \"errno\" value, or a negative number indicating\n the type of error, if the read failed.\n @param err_info for some errors, a string giving more details of\n the error\n @param offset a pointer to a gint64, set to the offset in the file\n that should be used on calls to wtap_seek_read() to reread that record,\n if the read succeeded.\n @return TRUE on success, FALSE on failure."]
     pub fn wtap_read(
         wth: *mut wtap,
         rec: *mut wtap_rec,
         buf: *mut Buffer,
         err: *mut ::std::os::raw::c_int,
-        err_info: *mut *mut gchar,
-        offset: *mut gint64,
-    ) -> gboolean;
+        err_info: *mut *mut ::std::os::raw::c_char,
+        offset: *mut i64,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Read the record at a specified offset in a capture file, filling in\n *phdr and *buf.\n\n @wth a wtap * returned by a call that opened a file for random-access\n reading.\n @seek_off a gint64 giving an offset value returned by a previous\n wtap_read() call.\n @rec a pointer to a struct wtap_rec, filled in with information\n about the record.\n @buf a pointer to a Buffer, filled in with data from the record.\n @param err a positive \"errno\" value, or a negative number indicating\n the type of error, if the read failed.\n @param err_info for some errors, a string giving more details of\n the error\n @return TRUE on success, FALSE on failure."]
     pub fn wtap_seek_read(
         wth: *mut wtap,
-        seek_off: gint64,
+        seek_off: i64,
         rec: *mut wtap_rec,
         buf: *mut Buffer,
         err: *mut ::std::os::raw::c_int,
-        err_info: *mut *mut gchar,
-    ) -> gboolean;
+        err_info: *mut *mut ::std::os::raw::c_char,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " initialize a wtap_rec structure"]
     pub fn wtap_rec_init(rec: *mut wtap_rec);
 }
 extern "C" {
-    #[doc = " Re-initialize a wtap_rec structure"]
     pub fn wtap_rec_reset(rec: *mut wtap_rec);
 }
 extern "C" {
-    #[doc = " clean up a wtap_rec structure, freeing what wtap_rec_init() allocated"]
     pub fn wtap_rec_cleanup(rec: *mut wtap_rec);
 }
 pub const wtap_compression_type_WTAP_UNCOMPRESSED: wtap_compression_type = 0;
 pub const wtap_compression_type_WTAP_GZIP_COMPRESSED: wtap_compression_type = 1;
 pub const wtap_compression_type_WTAP_ZSTD_COMPRESSED: wtap_compression_type = 2;
 pub const wtap_compression_type_WTAP_LZ4_COMPRESSED: wtap_compression_type = 3;
+pub const wtap_compression_type_WTAP_UNKNOWN_COMPRESSION: wtap_compression_type = 4;
 pub type wtap_compression_type = ::std::os::raw::c_int;
 extern "C" {
     pub fn wtap_get_compression_type(wth: *mut wtap) -> wtap_compression_type;
+}
+extern "C" {
+    pub fn wtap_name_to_compression_type(
+        name: *const ::std::os::raw::c_char,
+    ) -> wtap_compression_type;
+}
+extern "C" {
+    pub fn wtap_extension_to_compression_type(
+        ext: *const ::std::os::raw::c_char,
+    ) -> wtap_compression_type;
 }
 extern "C" {
     pub fn wtap_compression_type_description(
@@ -29923,14 +29754,19 @@ extern "C" {
     pub fn wtap_get_all_compression_type_extensions_list() -> *mut GSList;
 }
 extern "C" {
-    #[doc = " Return an approximation of the amount of data we've read sequentially\n from the file so far."]
-    pub fn wtap_read_so_far(wth: *mut wtap) -> gint64;
+    pub fn wtap_get_all_output_compression_type_names_list() -> *mut GSList;
 }
 extern "C" {
-    pub fn wtap_file_size(wth: *mut wtap, err: *mut ::std::os::raw::c_int) -> gint64;
+    pub fn wtap_can_write_compression_type(compression_type: wtap_compression_type) -> bool;
 }
 extern "C" {
-    pub fn wtap_snapshot_length(wth: *mut wtap) -> guint;
+    pub fn wtap_read_so_far(wth: *mut wtap) -> i64;
+}
+extern "C" {
+    pub fn wtap_file_size(wth: *mut wtap, err: *mut ::std::os::raw::c_int) -> i64;
+}
+extern "C" {
+    pub fn wtap_snapshot_length(wth: *mut wtap) -> ::std::os::raw::c_uint;
 }
 extern "C" {
     pub fn wtap_file_type_subtype(wth: *mut wtap) -> ::std::os::raw::c_int;
@@ -29942,121 +29778,109 @@ extern "C" {
     pub fn wtap_file_tsprec(wth: *mut wtap) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " @brief Gets number of section header blocks.\n @details Returns the number of existing SHBs.\n\n @param wth The wiretap session.\n @return The number of existing section headers."]
-    pub fn wtap_file_get_num_shbs(wth: *mut wtap) -> guint;
+    pub fn wtap_file_get_num_shbs(wth: *mut wtap) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " @brief Gets existing section header block, not for new file.\n @details Returns the pointer to an existing SHB, without creating a\n          new one. This should only be used for accessing info, not\n          for creating a new file based on existing SHB info. Use\n          wtap_file_get_shb_for_new_file() for that.\n\n @param wth The wiretap session.\n @param shb_num The ordinal number (0-based) of the section header\n in the file\n @return The specified existing section header, which must NOT be g_free'd."]
-    pub fn wtap_file_get_shb(wth: *mut wtap, shb_num: guint) -> wtap_block_t;
+    pub fn wtap_file_get_shb(wth: *mut wtap, shb_num: ::std::os::raw::c_uint) -> wtap_block_t;
 }
 extern "C" {
-    #[doc = " @brief Sets or replaces the section header comment.\n @details The passed-in comment string is set to be the comment\n          for the section header block. The passed-in string's\n          ownership will be owned by the block, so it should be\n          duplicated before passing into this function.\n\n @param wth The wiretap session.\n @param comment The comment string."]
-    pub fn wtap_write_shb_comment(wth: *mut wtap, comment: *mut gchar);
+    pub fn wtap_write_shb_comment(wth: *mut wtap, comment: *mut ::std::os::raw::c_char);
 }
 extern "C" {
-    #[doc = " @brief Gets existing interface descriptions.\n @details Returns a new struct containing a pointer to the existing\n          description, without creating new descriptions internally.\n @note The returned pointer must be g_free'd, but its internal\n       interface_data must not.\n\n @param wth The wiretap session.\n @return A new struct of the existing section descriptions, which must be g_free'd."]
+    pub fn wtap_file_get_shb_global_interface_id(
+        wth: *mut wtap,
+        shb_num: ::std::os::raw::c_uint,
+        interface_id: u32,
+    ) -> ::std::os::raw::c_uint;
+}
+extern "C" {
     pub fn wtap_file_get_idb_info(wth: *mut wtap) -> *mut wtapng_iface_descriptions_t;
 }
 extern "C" {
-    #[doc = " @brief Gets next interface description.\n\n @details This returns the first unfetched wtap_block_t from the set\n of interface descriptions.  Returns NULL if there are no more\n unfetched interface descriptions; a subsequent call after\n wtap_read() returns, either with a new record or an EOF, may return\n another interface description."]
     pub fn wtap_get_next_interface_description(wth: *mut wtap) -> wtap_block_t;
 }
 extern "C" {
-    #[doc = " @brief Free's a interface description block and all of its members.\n\n @details This free's all of the interface descriptions inside the passed-in\n     struct, including their members (e.g., comments); and then free's the\n     passed-in struct as well.\n\n @warning Do not use this for the struct returned by\n     wtap_file_get_idb_info(), as that one did not create the internal\n     interface descriptions; for that case you can simply g_free() the new\n     struct."]
     pub fn wtap_free_idb_info(idb_info: *mut wtapng_iface_descriptions_t);
 }
 extern "C" {
-    #[doc = " @brief Gets a debug string of an interface description.\n @details Returns a newly allocated string of debug information about\n          the given interface descrption, useful for debugging.\n @note The returned pointer must be g_free'd.\n\n @param if_descr The interface description.\n @param indent Number of spaces to indent each line by.\n @param line_end A string to append to each line (e.g., \"\\n\" or \", \").\n @return A newly allocated gcahr array string, which must be g_free'd."]
     pub fn wtap_get_debug_if_descr(
         if_descr: wtap_block_t,
         indent: ::std::os::raw::c_int,
         line_end: *const ::std::os::raw::c_char,
-    ) -> *mut gchar;
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " @brief Gets existing name resolution block, not for new file.\n @details Returns the pointer to the existing NRB, without creating a\n          new one. This should only be used for accessing info, not\n          for creating a new file based on existing NRB info. Use\n          wtap_file_get_nrb_for_new_file() for that.\n\n @param wth The wiretap session.\n @return The existing section header, which must NOT be g_free'd.\n\n XXX - need to be updated to handle multiple NRBs."]
     pub fn wtap_file_get_nrb(wth: *mut wtap) -> wtap_block_t;
 }
 extern "C" {
-    #[doc = " @brief Adds a Decryption Secrets Block to the open wiretap session.\n @details The passed-in DSB is added to the DSBs for the current\n          session.\n\n @param wth The wiretap session.\n @param dsb The Decryption Secrets Block to add"]
+    pub fn wtap_file_get_num_dsbs(wth: *mut wtap) -> ::std::os::raw::c_uint;
+}
+extern "C" {
+    pub fn wtap_file_get_dsb(wth: *mut wtap, dsb_num: ::std::os::raw::c_uint) -> wtap_block_t;
+}
+extern "C" {
     pub fn wtap_file_add_decryption_secrets(wth: *mut wtap, dsb: wtap_block_t);
 }
 extern "C" {
-    #[doc = " Remove any decryption secret information from the per-file information;\n used if we're stripping decryption secrets while the file is open\n\n @param wth The wiretap session from which to remove the\n decryption secrets.\n @return TRUE if any DSBs were removed"]
-    pub fn wtap_file_discard_decryption_secrets(wth: *mut wtap) -> gboolean;
+    pub fn wtap_file_discard_decryption_secrets(wth: *mut wtap) -> bool;
 }
 extern "C" {
-    #[doc = " close the file descriptors for the current file"]
     pub fn wtap_fdclose(wth: *mut wtap);
 }
 extern "C" {
-    #[doc = " reopen the random file descriptor for the current file"]
     pub fn wtap_fdreopen(
         wth: *mut wtap,
         filename: *const ::std::os::raw::c_char,
         err: *mut ::std::os::raw::c_int,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Close only the sequential side, freeing up memory it uses."]
     pub fn wtap_sequential_close(wth: *mut wtap);
 }
 extern "C" {
-    #[doc = " Closes any open file handles and frees the memory associated with wth."]
     pub fn wtap_close(wth: *mut wtap);
 }
 extern "C" {
-    #[doc = " dump packets into a capture file"]
-    pub fn wtap_dump_can_open(filetype: ::std::os::raw::c_int) -> gboolean;
+    pub fn wtap_dump_can_open(filetype: ::std::os::raw::c_int) -> bool;
 }
 extern "C" {
-    #[doc = " Given a GArray of WTAP_ENCAP_ types, return the per-file encapsulation\n type that would be needed to write out a file with those types."]
     pub fn wtap_dump_required_file_encap_type(file_encaps: *const GArray) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Return TRUE if we can write this encapsulation type in this\n capture file type/subtype, FALSE if not."]
     pub fn wtap_dump_can_write_encap(
         file_type_subtype: ::std::os::raw::c_int,
         encap: ::std::os::raw::c_int,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Return TRUE if we can write this capture file type/subtype out in\n compressed form, FALSE if not."]
-    pub fn wtap_dump_can_compress(file_type_subtype: ::std::os::raw::c_int) -> gboolean;
+    pub fn wtap_dump_can_compress(file_type_subtype: ::std::os::raw::c_int) -> bool;
 }
 extern "C" {
-    #[doc = " Initialize the per-file information based on an existing file. Its\n contents must be freed according to the requirements of wtap_dump_params.\n If wth does not remain valid for the duration of the session, dsbs_growing\n MUST be cleared after this function.\n\n @param params The parameters for wtap_dump_* to initialize.\n @param wth The wiretap session."]
     pub fn wtap_dump_params_init(params: *mut wtap_dump_params, wth: *mut wtap);
 }
 extern "C" {
-    #[doc = " Initialize the per-file information based on an existing file, but\n don't copy over the interface information. Its contents must be freed\n according to the requirements of wtap_dump_params.\n If wth does not remain valid for the duration of the session, dsbs_growing\n MUST be cleared after this function.\n\n XXX - this should eventually become wtap_dump_params_init(), with all\n programs writing capture files copying IDBs over by hand, so that they\n handle IDBs in the middle of the file.\n\n @param params The parameters for wtap_dump_* to initialize.\n @param wth The wiretap session."]
     pub fn wtap_dump_params_init_no_idbs(params: *mut wtap_dump_params, wth: *mut wtap);
 }
 extern "C" {
-    #[doc = " Remove any name resolution information from the per-file information;\n used if we're stripping name resolution as we write the file.\n\n @param params The parameters for wtap_dump_* from which to remove the\n name resolution.."]
     pub fn wtap_dump_params_discard_name_resolution(params: *mut wtap_dump_params);
 }
 extern "C" {
-    #[doc = " Remove any decryption secret information from the per-file information;\n used if we're stripping decryption secrets as we write the file.\n\n @param params The parameters for wtap_dump_* from which to remove the\n decryption secrets.."]
     pub fn wtap_dump_params_discard_decryption_secrets(params: *mut wtap_dump_params);
 }
 extern "C" {
-    #[doc = " Free memory associated with the wtap_dump_params when it is no longer in\n use by wtap_dumper.\n\n @param params The parameters as initialized by wtap_dump_params_init."]
     pub fn wtap_dump_params_cleanup(params: *mut wtap_dump_params);
 }
 extern "C" {
-    #[doc = " @brief Opens a new capture file for writing.\n\n @param filename The new file's name.\n @param file_type_subtype The WTAP_FILE_TYPE_SUBTYPE_XXX file type.\n @param compression_type Type of compression to use when writing, if any\n @param params The per-file information for this file.\n @param[out] err Will be set to an error code on failure.\n @param[out] err_info for some errors, a string giving more details of\n the error\n @return The newly created dumper object, or NULL on failure."]
     pub fn wtap_dump_open(
         filename: *const ::std::os::raw::c_char,
         file_type_subtype: ::std::os::raw::c_int,
         compression_type: wtap_compression_type,
         params: *const wtap_dump_params,
         err: *mut ::std::os::raw::c_int,
-        err_info: *mut *mut gchar,
+        err_info: *mut *mut ::std::os::raw::c_char,
     ) -> *mut wtap_dumper;
 }
 extern "C" {
-    #[doc = " @brief Creates a dumper for a temporary file.\n\n @param tmpdir Directory in which to create the temporary file.\n @param filenamep Points to a pointer that's set to point to the\n        pathname of the temporary file; it's allocated with g_malloc()\n @param pfx A string to be used as the prefix for the temporary file name\n @param file_type_subtype The WTAP_FILE_TYPE_SUBTYPE_XXX file type.\n @param compression_type Type of compression to use when writing, if any\n @param params The per-file information for this file.\n @param[out] err Will be set to an error code on failure.\n @param[out] err_info for some errors, a string giving more details of\n the error\n @return The newly created dumper object, or NULL on failure."]
     pub fn wtap_dump_open_tempfile(
         tmpdir: *const ::std::os::raw::c_char,
         filenamep: *mut *mut ::std::os::raw::c_char,
@@ -30065,28 +29889,26 @@ extern "C" {
         compression_type: wtap_compression_type,
         params: *const wtap_dump_params,
         err: *mut ::std::os::raw::c_int,
-        err_info: *mut *mut gchar,
+        err_info: *mut *mut ::std::os::raw::c_char,
     ) -> *mut wtap_dumper;
 }
 extern "C" {
-    #[doc = " @brief Creates a dumper for an existing file descriptor.\n\n @param fd The file descriptor for which the dumper should be created.\n @param file_type_subtype The WTAP_FILE_TYPE_SUBTYPE_XXX file type.\n @param compression_type Type of compression to use when writing, if any\n @param params The per-file information for this file.\n @param[out] err Will be set to an error code on failure.\n @param[out] err_info for some errors, a string giving more details of\n the error\n @return The newly created dumper object, or NULL on failure."]
     pub fn wtap_dump_fdopen(
         fd: ::std::os::raw::c_int,
         file_type_subtype: ::std::os::raw::c_int,
         compression_type: wtap_compression_type,
         params: *const wtap_dump_params,
         err: *mut ::std::os::raw::c_int,
-        err_info: *mut *mut gchar,
+        err_info: *mut *mut ::std::os::raw::c_char,
     ) -> *mut wtap_dumper;
 }
 extern "C" {
-    #[doc = " @brief Creates a dumper for the standard output.\n\n @param file_type_subtype The WTAP_FILE_TYPE_SUBTYPE_XXX file type.\n @param compression_type Type of compression to use when writing, if any\n @param params The per-file information for this file.\n @param[out] err Will be set to an error code on failure.\n @param[out] err_info for some errors, a string giving more details of\n the error\n @return The newly created dumper object, or NULL on failure."]
     pub fn wtap_dump_open_stdout(
         file_type_subtype: ::std::os::raw::c_int,
         compression_type: wtap_compression_type,
         params: *const wtap_dump_params,
         err: *mut ::std::os::raw::c_int,
-        err_info: *mut *mut gchar,
+        err_info: *mut *mut ::std::os::raw::c_char,
     ) -> *mut wtap_dumper;
 }
 extern "C" {
@@ -30094,29 +29916,29 @@ extern "C" {
         wdh: *mut wtap_dumper,
         idb: wtap_block_t,
         err: *mut ::std::os::raw::c_int,
-        err_info: *mut *mut gchar,
-    ) -> gboolean;
+        err_info: *mut *mut ::std::os::raw::c_char,
+    ) -> bool;
 }
 extern "C" {
     pub fn wtap_dump(
         arg1: *mut wtap_dumper,
         arg2: *const wtap_rec,
-        arg3: *const guint8,
+        arg3: *const u8,
         err: *mut ::std::os::raw::c_int,
-        err_info: *mut *mut gchar,
-    ) -> gboolean;
+        err_info: *mut *mut ::std::os::raw::c_char,
+    ) -> bool;
 }
 extern "C" {
-    pub fn wtap_dump_flush(arg1: *mut wtap_dumper, arg2: *mut ::std::os::raw::c_int) -> gboolean;
+    pub fn wtap_dump_flush(arg1: *mut wtap_dumper, arg2: *mut ::std::os::raw::c_int) -> bool;
 }
 extern "C" {
     pub fn wtap_dump_file_type_subtype(wdh: *mut wtap_dumper) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn wtap_get_bytes_dumped(arg1: *mut wtap_dumper) -> gint64;
+    pub fn wtap_get_bytes_dumped(arg1: *mut wtap_dumper) -> i64;
 }
 extern "C" {
-    pub fn wtap_set_bytes_dumped(wdh: *mut wtap_dumper, bytes_dumped: gint64);
+    pub fn wtap_set_bytes_dumped(wdh: *mut wtap_dumper, bytes_dumped: i64);
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -30124,13 +29946,13 @@ pub struct addrinfo {
     _unused: [u8; 0],
 }
 extern "C" {
-    pub fn wtap_addrinfo_list_empty(addrinfo_lists: *mut addrinfo_lists_t) -> gboolean;
+    pub fn wtap_addrinfo_list_empty(addrinfo_lists: *mut addrinfo_lists_t) -> bool;
 }
 extern "C" {
     pub fn wtap_dump_set_addrinfo_list(
         wdh: *mut wtap_dumper,
         addrinfo_lists: *mut addrinfo_lists_t,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
     pub fn wtap_dump_discard_name_resolution(wdh: *mut wtap_dumper);
@@ -30139,64 +29961,52 @@ extern "C" {
     pub fn wtap_dump_discard_decryption_secrets(wdh: *mut wtap_dumper);
 }
 extern "C" {
-    #[doc = " Closes open file handles and frees memory associated with wdh. Note that\n shb_hdr and idb_inf are not freed by this routine.\n\n @param wdh handle for the file we're closing.\n @param[out] needs_reload if not null, points to a gboolean that will\n    be set to TRUE if a full reload of the file would be required if\n    this was done as part of a \"Save\" or \"Save As\" operation, FALSE\n    if no full reload would be required.\n @param[out] err points to an int that will be set to an error code\n    on failure.\n @param[out] err_info for some errors, points to a gchar * that will\n    be set to a string giving more details of the error.\n\n @return TRUE on success, FALSE on failure."]
     pub fn wtap_dump_close(
         wdh: *mut wtap_dumper,
-        needs_reload: *mut gboolean,
+        needs_reload: *mut bool,
         err: *mut ::std::os::raw::c_int,
-        err_info: *mut *mut gchar,
-    ) -> gboolean;
+        err_info: *mut *mut ::std::os::raw::c_char,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Return TRUE if we can write a file out with the given GArray of file\n encapsulations and the given bitmask of comment types."]
-    pub fn wtap_dump_can_write(
-        file_encaps: *const GArray,
-        required_comment_types: guint32,
-    ) -> gboolean;
+    pub fn wtap_dump_can_write(file_encaps: *const GArray, required_comment_types: u32) -> bool;
 }
 extern "C" {
-    #[doc = " Generates arbitrary packet data in \"exported PDU\" format\n and appends it to buf.\n For filetype readers to transform non-packetized data.\n Calls ws_buffer_asssure_space() for you and handles padding\n to 4-byte boundary.\n\n @param[in,out] buf   Buffer into which to write field\n @param epdu_tag      tag ID of field to create\n @param data          data to be written\n @param data_len      length of data"]
     pub fn wtap_buffer_append_epdu_tag(
         buf: *mut Buffer,
-        epdu_tag: guint16,
-        data: *const guint8,
-        data_len: guint16,
+        epdu_tag: u16,
+        data: *const u8,
+        data_len: u16,
     );
 }
 extern "C" {
-    #[doc = " Generates packet data for an unsigned integer in \"exported PDU\" format.\n For filetype readers to transform non-packetized data.\n\n @param[in,out] buf   Buffer into which to write field\n @param epdu_tag      tag ID of field to create\n @param val           integer value to write to buf"]
-    pub fn wtap_buffer_append_epdu_uint(buf: *mut Buffer, epdu_tag: guint16, val: guint32);
+    pub fn wtap_buffer_append_epdu_uint(buf: *mut Buffer, epdu_tag: u16, val: u32);
 }
 extern "C" {
-    #[doc = " Generates packet data for a string in \"exported PDU\" format.\n For filetype readers to transform non-packetized data.\n\n @param[in,out] buf   Buffer into which to write field\n @param epdu_tag      tag ID of field to create\n @param val           string value to write to buf"]
     pub fn wtap_buffer_append_epdu_string(
         buf: *mut Buffer,
-        epdu_tag: guint16,
+        epdu_tag: u16,
         val: *const ::std::os::raw::c_char,
     );
 }
 extern "C" {
-    #[doc = " Close off a set of \"exported PDUs\" added to the buffer.\n For filetype readers to transform non-packetized data.\n\n @param[in,out] buf   Buffer into which to write field\n\n @return Total length of buf populated to date"]
-    pub fn wtap_buffer_append_epdu_end(buf: *mut Buffer) -> gint;
+    pub fn wtap_buffer_append_epdu_end(buf: *mut Buffer) -> ::std::os::raw::c_int;
 }
 pub const ft_sort_order_FT_SORT_BY_NAME: ft_sort_order = 0;
 pub const ft_sort_order_FT_SORT_BY_DESCRIPTION: ft_sort_order = 1;
 pub type ft_sort_order = ::std::os::raw::c_int;
 extern "C" {
-    #[doc = " Get a GArray of file type/subtype values for file types/subtypes\n that can be used to save a file of a given type with a given GArray of\n WTAP_ENCAP_ types and the given bitmask of comment types."]
     pub fn wtap_get_savable_file_types_subtypes_for_file(
         file_type_subtype: ::std::os::raw::c_int,
         file_encaps: *const GArray,
-        required_comment_types: guint32,
+        required_comment_types: u32,
         sort_order: ft_sort_order,
     ) -> *mut GArray;
 }
 extern "C" {
-    #[doc = " Get a GArray of all writable file type/subtype values."]
     pub fn wtap_get_writable_file_types_subtypes(sort_order: ft_sort_order) -> *mut GArray;
 }
 extern "C" {
-    #[doc = " various file type/subtype functions"]
     pub fn wtap_file_type_subtype_description(
         file_type_subtype: ::std::os::raw::c_int,
     ) -> *const ::std::os::raw::c_char;
@@ -30221,18 +30031,16 @@ extern "C" {
     pub fn wtap_pcapng_file_type_subtype() -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Return an indication of whether this capture file format supports\n the block in question."]
     pub fn wtap_file_type_subtype_supports_block(
         file_type_subtype: ::std::os::raw::c_int,
         type_: wtap_block_type_t,
     ) -> block_support_t;
 }
 extern "C" {
-    #[doc = " Return an indication of whether this capture file format supports\n the option in queston for the block in question."]
     pub fn wtap_file_type_subtype_supports_option(
         file_type_subtype: ::std::os::raw::c_int,
         type_: wtap_block_type_t,
-        opttype: guint,
+        opttype: ::std::os::raw::c_uint,
     ) -> option_support_t;
 }
 extern "C" {
@@ -30252,7 +30060,7 @@ extern "C" {
 extern "C" {
     pub fn wtap_get_file_extensions_list(
         file_type_subtype: ::std::os::raw::c_int,
-        include_compressed: gboolean,
+        include_compressed: bool,
     ) -> *mut GSList;
 }
 extern "C" {
@@ -30271,23 +30079,22 @@ extern "C" {
     pub fn wtap_strerror(err: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " get available number of file types and encapsulations"]
     pub fn wtap_get_num_file_type_extensions() -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn wtap_get_num_encap_types() -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " get information for file type extension"]
     pub fn wtap_get_file_extension_type_name(
         extension_type: ::std::os::raw::c_int,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn wtap_get_file_extension_type_extensions(extension_type: guint) -> *mut GSList;
+    pub fn wtap_get_file_extension_type_extensions(
+        extension_type: ::std::os::raw::c_uint,
+    ) -> *mut GSList;
 }
 extern "C" {
-    #[doc = " dynamically register new file types and encapsulations"]
     pub fn wtap_register_file_type_extension(ei: *const file_extension_info);
 }
 #[repr(C)]
@@ -30324,20 +30131,19 @@ extern "C" {
     pub fn wtap_register_plugin(plug: *const wtap_plugin);
 }
 extern "C" {
-    #[doc = " Returns_\n     0 if plugins can be loaded for libwiretap (file type).\n     1 if plugins are not supported by the platform.\n    -1 if plugins were disabled in the build configuration."]
     pub fn wtap_plugins_supported() -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn wtap_register_open_info(oi: *mut open_info, first_routine: gboolean);
+    pub fn wtap_register_open_info(oi: *mut open_info, first_routine: bool);
 }
 extern "C" {
-    pub fn wtap_has_open_info(name: *const gchar) -> gboolean;
+    pub fn wtap_has_open_info(name: *const ::std::os::raw::c_char) -> bool;
 }
 extern "C" {
-    pub fn wtap_uses_lua_filehandler(wth: *const wtap) -> gboolean;
+    pub fn wtap_uses_lua_filehandler(wth: *const wtap) -> bool;
 }
 extern "C" {
-    pub fn wtap_deregister_open_info(name: *const gchar);
+    pub fn wtap_deregister_open_info(name: *const ::std::os::raw::c_char);
 }
 extern "C" {
     pub fn open_info_name_to_type(name: *const ::std::os::raw::c_char) -> ::std::os::raw::c_uint;
@@ -30357,15 +30163,12 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Cleanup the internal library structures"]
     pub fn wtap_cleanup();
 }
 extern "C" {
-    #[doc = " @brief Fetch the current epan scope.\n\n Allocated memory is freed when wmem_leave_epan_scope() is called, which is normally at program exit."]
     pub fn wmem_epan_scope() -> *mut wmem_allocator_t;
 }
 extern "C" {
-    #[doc = " @brief Fetch the current packet scope.\n\n Allocated memory is freed when wmem_leave_packet_scope() is called, which is normally at the end of packet dissection.\n N.B. Please use pinfo->pool in new code when possible. See\n <https://www.wireshark.org/lists/wireshark-dev/202107/msg00052.html>"]
     pub fn wmem_packet_scope() -> *mut wmem_allocator_t;
 }
 extern "C" {
@@ -30375,7 +30178,6 @@ extern "C" {
     pub fn wmem_leave_packet_scope();
 }
 extern "C" {
-    #[doc = " @brief Fetch the current file scope.\n\n Allocated memory is freed when wmem_leave_file_scope() is called, which is normally when a capture file is closed."]
     pub fn wmem_file_scope() -> *mut wmem_allocator_t;
 }
 extern "C" {
@@ -30392,52 +30194,11 @@ extern "C" {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct ipv4_addr_and_mask {
-    pub addr: guint32,
-    pub nmask: guint32,
-}
-#[test]
-fn bindgen_test_layout_ipv4_addr_and_mask() {
-    const UNINIT: ::std::mem::MaybeUninit<ipv4_addr_and_mask> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ipv4_addr_and_mask>(),
-        8usize,
-        concat!("Size of: ", stringify!(ipv4_addr_and_mask))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ipv4_addr_and_mask>(),
-        4usize,
-        concat!("Alignment of ", stringify!(ipv4_addr_and_mask))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).addr) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ipv4_addr_and_mask),
-            "::",
-            stringify!(addr)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).nmask) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ipv4_addr_and_mask),
-            "::",
-            stringify!(nmask)
-        )
-    );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
 pub struct _e_guid_t {
-    pub data1: guint32,
-    pub data2: guint16,
-    pub data3: guint16,
-    pub data4: [guint8; 8usize],
+    pub data1: u32,
+    pub data2: u16,
+    pub data3: u16,
+    pub data4: [u8; 8usize],
 }
 #[test]
 fn bindgen_test_layout__e_guid_t() {
@@ -30499,66 +30260,29 @@ extern "C" {
     pub fn guids_init();
 }
 extern "C" {
-    pub fn guids_add_guid(guid: *const e_guid_t, name: *const gchar);
+    pub fn guids_add_guid(guid: *const e_guid_t, name: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    pub fn guids_get_guid_name(guid: *const e_guid_t, scope: *mut wmem_allocator_t)
-        -> *const gchar;
+    pub fn guids_delete_guid(guid: *const e_guid_t);
+}
+extern "C" {
+    pub fn guids_get_guid_name(
+        guid: *const e_guid_t,
+        scope: *mut wmem_allocator_t,
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn guids_resolve_guid_to_str(
         guid: *const e_guid_t,
         scope: *mut wmem_allocator_t,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn guid_cmp(g1: *const e_guid_t, g2: *const e_guid_t) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn guid_hash(guid: *const e_guid_t) -> guint;
+    pub fn guid_hash(guid: *const e_guid_t) -> ::std::os::raw::c_uint;
 }
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ipv6_addr_and_prefix {
-    pub addr: ws_in6_addr,
-    pub prefix: guint32,
-}
-#[test]
-fn bindgen_test_layout_ipv6_addr_and_prefix() {
-    const UNINIT: ::std::mem::MaybeUninit<ipv6_addr_and_prefix> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ipv6_addr_and_prefix>(),
-        20usize,
-        concat!("Size of: ", stringify!(ipv6_addr_and_prefix))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ipv6_addr_and_prefix>(),
-        4usize,
-        concat!("Alignment of ", stringify!(ipv6_addr_and_prefix))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).addr) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ipv6_addr_and_prefix),
-            "::",
-            stringify!(addr)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).prefix) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ipv6_addr_and_prefix),
-            "::",
-            stringify!(prefix)
-        )
-    );
-}
-#[doc = " The pattern object used for ws_mempbrk_exec()."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ws_mempbrk_pattern {
@@ -30590,14 +30314,12 @@ fn bindgen_test_layout_ws_mempbrk_pattern() {
     );
 }
 extern "C" {
-    #[doc = " Compile the pattern for the needles to find using ws_mempbrk_exec()."]
     pub fn ws_mempbrk_compile(
         pattern: *mut ws_mempbrk_pattern,
         needles: *const ::std::os::raw::c_char,
     );
 }
 extern "C" {
-    #[doc = " Scan for the needles specified by the compiled pattern."]
     pub fn ws_mempbrk_exec(
         haystack: *const u8,
         haystacklen: usize,
@@ -30605,30 +30327,34 @@ extern "C" {
         found_needle: *mut ::std::os::raw::c_uchar,
     ) -> *const u8;
 }
-#[doc = " \"testy, virtual(-izable) buffer\".  They are testy in that they get mad when\n an attempt is made to access data beyond the bounds of their array. In that\n case, they throw an exception.\n\n They are virtualizable in that new tvbuff's can be made from other tvbuffs,\n while only the original tvbuff may have data. That is, the new tvbuff has\n virtual data."]
+extern "C" {
+    pub fn ws_memrpbrk_exec(
+        haystack: *const u8,
+        haystacklen: usize,
+        pattern: *const ws_mempbrk_pattern,
+        found_needle: *mut ::std::os::raw::c_uchar,
+    ) -> *const u8;
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct tvbuff {
     _unused: [u8; 0],
 }
 pub type tvbuff_t = tvbuff;
-#[doc = " A \"real\" tvbuff contains a guint8* that points to real data.\n The data is allocated and contiguous.\n\n A \"subset\" tvbuff has a backing tvbuff. It is a \"window\" through\n which the program sees only a portion of the backing tvbuff.\n\n A \"composite\" tvbuff combines multiple tvbuffs sequentially to\n produce a larger byte array.\n\n tvbuff's of any type can be used as the backing-tvbuff of a\n \"subset\" tvbuff or as a member of a \"composite\" tvbuff.\n \"composite\" tvbuffs can have member-tvbuffs of different types.\n\n Once a tvbuff is create/initialized/finalized, the tvbuff is read-only.\n That is, it cannot point to any other data. A new tvbuff must be created if\n you want a tvbuff that points to other data.\n\n tvbuff's are normally chained together to allow efficient de-allocation of\n tvbuff's."]
 pub type tvbuff_free_cb_t =
     ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void)>;
 extern "C" {
-    #[doc = " Extracts 'number of bits' starting at 'bit offset'.\n Returns a pointer to a newly initialized g_malloc'd REAL_DATA\n tvbuff with the bits octet aligned.\n Bits are counted from MSB (0) to LSB (7) within octets."]
     pub fn tvb_new_octet_aligned(
         tvb: *mut tvbuff_t,
-        bit_offset: guint32,
-        no_of_bits: gint32,
+        bit_offset: u32,
+        no_of_bits: i32,
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Extracts 'number of bits' starting at 'bit offset'.\n Bits are counted from LSB (0) to MSB (7) within octets."]
     pub fn tvb_new_octet_right_aligned(
         tvb: *mut tvbuff_t,
-        bit_offset: guint32,
-        no_of_bits: gint32,
+        bit_offset: u32,
+        no_of_bits: i32,
     ) -> *mut tvbuff_t;
 }
 extern "C" {
@@ -30638,648 +30364,755 @@ extern "C" {
     pub fn tvb_clone(tvb: *mut tvbuff_t) -> *mut tvbuff_t;
 }
 extern "C" {
-    pub fn tvb_clone_offset_len(tvb: *mut tvbuff_t, offset: guint, len: guint) -> *mut tvbuff_t;
+    pub fn tvb_clone_offset_len(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_uint,
+        len: ::std::os::raw::c_uint,
+    ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Free a tvbuff_t and all tvbuffs chained from it\n The tvbuff must be 'the 'head' (initial) tvb of a chain or\n must not be in a chain.\n If specified, a callback to free the tvbuff data will be invoked\n for each tvbuff free'd"]
     pub fn tvb_free(tvb: *mut tvbuff_t);
 }
 extern "C" {
-    #[doc = " Free the tvbuff_t and all tvbuffs chained from it.\n The tvbuff must be 'the 'head' (initial) tvb of a chain or\n must not be in a chain.\n If specified, a callback to free the tvbuff data will be invoked\n for each tvbuff free'd"]
     pub fn tvb_free_chain(tvb: *mut tvbuff_t);
 }
 extern "C" {
-    #[doc = " Set a callback function to call when a tvbuff is actually freed\n One argument is passed to that callback --- a void* that points\n to the real data. Obviously, this only applies to a\n \"real\" tvbuff."]
     pub fn tvb_set_free_cb(tvb: *mut tvbuff_t, func: tvbuff_free_cb_t);
 }
 extern "C" {
-    #[doc = " Attach a \"real\" tvbuff to a parent tvbuff. This connection is used\n during a tvb_free_chain()... the \"child\" \"real\" tvbuff acts as if it\n is part of the chain-of-creation of the parent tvbuff, although it\n isn't. This is useful if you need to take the data from some tvbuff,\n run some operation on it, like decryption or decompression, and make\n a new tvbuff from it, yet want the new tvbuff to be part of the chain.\n The reality is that the new tvbuff *is* part of the \"chain of creation\",\n but in a way that these tvbuff routines are ignorant of. Use this\n function to make the tvbuff routines knowledgable of this fact."]
     pub fn tvb_set_child_real_data_tvbuff(parent: *mut tvbuff_t, child: *mut tvbuff_t);
 }
 extern "C" {
     pub fn tvb_new_child_real_data(
         parent: *mut tvbuff_t,
-        data: *const guint8,
-        length: guint,
-        reported_length: gint,
+        data: *const u8,
+        length: ::std::os::raw::c_uint,
+        reported_length: ::std::os::raw::c_int,
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Create a tvbuff backed by existing data. Can throw ReportedBoundsError.\n Normally, a callback to free the data should be registered using\n tvb_set_free_cb(); when this tvbuff is freed, then your callback will be\n called, and at that time you can free your original data."]
     pub fn tvb_new_real_data(
-        data: *const guint8,
-        length: guint,
-        reported_length: gint,
+        data: *const u8,
+        length: ::std::os::raw::c_uint,
+        reported_length: ::std::os::raw::c_int,
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Create a tvbuff that's a subset of another tvbuff, with the captured\n length explicitly given. You probably want tvb_new_subset_length() or\n tvb_new_subset_remaining() instead.\n\n @param backing The backing tvbuff onto which the new tvbuff is a view\n @param backing_offset If positive, is the offset from the beginning of\n the backing tvbuff at which the new tvbuff's data begins, and, if\n negative, is the offset from the end of the backing tvbuff at which\n the new tvbuff's data begins.\n @param backing_length The length of the data to include in the new\n tvbuff, starting with the byte at 'backing_offset'; if -1, it\n means \"to the end of the backing tvbuff\".  It can be 0, although\n the usefulness of the buffer would be rather limited.  The length\n actually included will be no more than the reported length.\n @param reported_length The reported length of the new tvbuff; if -1, it\n means \"the reported length to the end of the backing tvbuff\".  It can\n be 0, although the usefulness of the buffer would be rather limited.\n\n @return A tvbuff that is a subset of the backing tvbuff beginning at\n backing_offset (which is offset 0 in the subset) and with the given\n reported_length, with captured length no more than backing_length.\n\n @note In most cases use tvb_new_subset_length() (or equivalently, pass -1\n as 'backing_length') or tvb_new_subset_remaining() instead.  Use this when\n the backing tvbuff includes bytes at the end that must not be included in\n the subset regardless of the reported length, such as an FCS or padding.\n In such cases it may still be simpler to call tvb_new_subset_length()\n twice, once to remove the trailing bytes and once to select the chosen\n payload bytes.\n\n @warning Will throw BoundsError if 'backing_offset'/'length'\n is beyond the bounds of the backing tvbuff.\n Can throw ReportedBoundsError."]
     pub fn tvb_new_subset_length_caplen(
         backing: *mut tvbuff_t,
-        backing_offset: gint,
-        backing_length: gint,
-        reported_length: gint,
+        backing_offset: ::std::os::raw::c_int,
+        backing_length: ::std::os::raw::c_int,
+        reported_length: ::std::os::raw::c_int,
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Similar to tvb_new_subset_length_caplen() but with captured length calculated\n to fit within the existing captured length and the specified\n reported length.\n Can throw ReportedBoundsError."]
     pub fn tvb_new_subset_length(
         backing: *mut tvbuff_t,
-        backing_offset: gint,
-        reported_length: gint,
+        backing_offset: ::std::os::raw::c_int,
+        reported_length: ::std::os::raw::c_int,
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Similar to tvb_new_subset_length_caplen() but with backing_length and reported_length set\n to -1.  Can throw ReportedBoundsError."]
-    pub fn tvb_new_subset_remaining(backing: *mut tvbuff_t, backing_offset: gint) -> *mut tvbuff_t;
+    pub fn tvb_new_subset_remaining(
+        backing: *mut tvbuff_t,
+        backing_offset: ::std::os::raw::c_int,
+    ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Append to the list of tvbuffs that make up this composite tvbuff"]
     pub fn tvb_composite_append(tvb: *mut tvbuff_t, member: *mut tvbuff_t);
 }
 extern "C" {
-    #[doc = " Prepend to the list of tvbuffs that make up this composite tvbuff"]
     pub fn tvb_composite_prepend(tvb: *mut tvbuff_t, member: *mut tvbuff_t);
 }
 extern "C" {
-    #[doc = " Create an empty composite tvbuff."]
     pub fn tvb_new_composite() -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Mark a composite tvbuff as initialized. No further appends or prepends\n occur, data access can finally happen after this finalization."]
     pub fn tvb_composite_finalize(tvb: *mut tvbuff_t);
 }
 extern "C" {
-    pub fn tvb_captured_length(tvb: *const tvbuff_t) -> guint;
+    pub fn tvb_captured_length(tvb: *const tvbuff_t) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Computes bytes to end of buffer, from offset (which can be negative,\n to indicate bytes from end of buffer). Function returns 0 if offset is\n either at the end of the buffer or out of bounds. No exception is thrown.\n You probably want tvb_reported_length_remaining instead."]
-    pub fn tvb_captured_length_remaining(tvb: *const tvbuff_t, offset: gint) -> gint;
+    pub fn tvb_captured_length_remaining(
+        tvb: *const tvbuff_t,
+        offset: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Same as above, but throws an exception if the offset is out of bounds."]
-    pub fn tvb_ensure_captured_length_remaining(tvb: *const tvbuff_t, offset: gint) -> guint;
+    pub fn tvb_ensure_captured_length_remaining(
+        tvb: *const tvbuff_t,
+        offset: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    pub fn tvb_bytes_exist(tvb: *const tvbuff_t, offset: gint, length: gint) -> gboolean;
+    pub fn tvb_bytes_exist(
+        tvb: *const tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Checks that the bytes referred to by 'offset'/'length', where 'length'\n is a 64-bit unsigned integer, actually exist in the buffer, and throws\n an exception if they aren't."]
-    pub fn tvb_ensure_bytes_exist64(tvb: *const tvbuff_t, offset: gint, length: guint64);
+    pub fn tvb_ensure_bytes_exist64(
+        tvb: *const tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        length: u64,
+    );
 }
 extern "C" {
-    #[doc = " Checks that the bytes referred to by 'offset'/'length' actually exist\n in the buffer, and throws an exception if they aren't."]
-    pub fn tvb_ensure_bytes_exist(tvb: *const tvbuff_t, offset: gint, length: gint);
+    pub fn tvb_ensure_bytes_exist(
+        tvb: *const tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+    );
 }
 extern "C" {
-    pub fn tvb_offset_exists(tvb: *const tvbuff_t, offset: gint) -> gboolean;
+    pub fn tvb_offset_exists(tvb: *const tvbuff_t, offset: ::std::os::raw::c_int) -> bool;
 }
 extern "C" {
-    pub fn tvb_reported_length(tvb: *const tvbuff_t) -> guint;
+    pub fn tvb_reported_length(tvb: *const tvbuff_t) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Computes bytes of reported packet data to end of buffer, from offset\n (which can be negative, to indicate bytes from end of buffer). Function\n returns 0 if offset is either at the end of the buffer or out of bounds.\n No exception is thrown."]
-    pub fn tvb_reported_length_remaining(tvb: *const tvbuff_t, offset: gint) -> gint;
+    pub fn tvb_reported_length_remaining(
+        tvb: *const tvbuff_t,
+        offset: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Same as above, but throws an exception if the offset is out of bounds."]
-    pub fn tvb_ensure_reported_length_remaining(tvb: *const tvbuff_t, offset: gint) -> guint;
+    pub fn tvb_ensure_reported_length_remaining(
+        tvb: *const tvbuff_t,
+        offset: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Set the reported length of a tvbuff to a given value; used for protocols\nwhose headers contain an explicit length and where the calling\ndissector's payload may include padding as well as the packet for\nthis protocol.\n\nAlso adjusts the available and contained length."]
-    pub fn tvb_set_reported_length(tvb: *mut tvbuff_t, arg1: guint);
+    pub fn tvb_set_reported_length(tvb: *mut tvbuff_t, arg1: ::std::os::raw::c_uint);
 }
 extern "C" {
     pub fn tvb_fix_reported_length(tvb: *mut tvbuff_t);
 }
 extern "C" {
-    pub fn tvb_offset_from_real_beginning(tvb: *const tvbuff_t) -> guint;
+    pub fn tvb_offset_from_real_beginning(tvb: *const tvbuff_t) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    pub fn tvb_raw_offset(tvb: *mut tvbuff_t) -> gint;
+    pub fn tvb_raw_offset(tvb: *mut tvbuff_t) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Set the \"this is a fragment\" flag. This affects whether\n FragmentBoundsError is thrown instead of ContainedBoundsError\n or ReportedBoundsError."]
     pub fn tvb_set_fragment(tvb: *mut tvbuff_t);
 }
 extern "C" {
     pub fn tvb_get_ds_tvb(tvb: *mut tvbuff_t) -> *mut tvbuff;
 }
 extern "C" {
-    #[doc = " START OF ACCESSORS"]
-    pub fn tvb_get_guint8(tvb: *mut tvbuff_t, offset: gint) -> guint8;
+    pub fn tvb_get_uint8(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u8;
 }
 extern "C" {
-    pub fn tvb_get_gint8(tvb: *mut tvbuff_t, offset: gint) -> gint8;
+    pub fn tvb_get_int8(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i8;
 }
 extern "C" {
-    pub fn tvb_get_ntohs(tvb: *mut tvbuff_t, offset: gint) -> guint16;
+    pub fn tvb_get_ntohs(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u16;
 }
 extern "C" {
-    pub fn tvb_get_ntohis(tvb: *mut tvbuff_t, offset: gint) -> gint16;
+    pub fn tvb_get_ntohis(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i16;
 }
 extern "C" {
-    pub fn tvb_get_ntoh24(tvb: *mut tvbuff_t, offset: gint) -> guint32;
+    pub fn tvb_get_ntoh24(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u32;
 }
 extern "C" {
-    pub fn tvb_get_ntohi24(tvb: *mut tvbuff_t, offset: gint) -> gint32;
+    pub fn tvb_get_ntohi24(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i32;
 }
 extern "C" {
-    pub fn tvb_get_ntohl(tvb: *mut tvbuff_t, offset: gint) -> guint32;
+    pub fn tvb_get_ntohl(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u32;
 }
 extern "C" {
-    pub fn tvb_get_ntohil(tvb: *mut tvbuff_t, offset: gint) -> gint32;
+    pub fn tvb_get_ntohil(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i32;
 }
 extern "C" {
-    pub fn tvb_get_ntoh40(tvb: *mut tvbuff_t, offset: gint) -> guint64;
+    pub fn tvb_get_ntoh40(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_ntohi40(tvb: *mut tvbuff_t, offset: gint) -> gint64;
+    pub fn tvb_get_ntohi40(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_ntoh48(tvb: *mut tvbuff_t, offset: gint) -> guint64;
+    pub fn tvb_get_ntoh48(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_ntohi48(tvb: *mut tvbuff_t, offset: gint) -> gint64;
+    pub fn tvb_get_ntohi48(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_ntoh56(tvb: *mut tvbuff_t, offset: gint) -> guint64;
+    pub fn tvb_get_ntoh56(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_ntohi56(tvb: *mut tvbuff_t, offset: gint) -> gint64;
+    pub fn tvb_get_ntohi56(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_ntoh64(tvb: *mut tvbuff_t, offset: gint) -> guint64;
+    pub fn tvb_get_ntoh64(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_ntohi64(tvb: *mut tvbuff_t, offset: gint) -> gint64;
+    pub fn tvb_get_ntohi64(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_ntohieee_float(tvb: *mut tvbuff_t, offset: gint) -> gfloat;
+    pub fn tvb_get_ntohieee_float(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> f32;
 }
 extern "C" {
-    pub fn tvb_get_ntohieee_double(tvb: *mut tvbuff_t, offset: gint) -> gdouble;
+    pub fn tvb_get_ntohieee_double(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> f64;
 }
 extern "C" {
-    pub fn tvb_get_letohs(tvb: *mut tvbuff_t, offset: gint) -> guint16;
+    pub fn tvb_get_letohs(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u16;
 }
 extern "C" {
-    pub fn tvb_get_letohis(tvb: *mut tvbuff_t, offset: gint) -> gint16;
+    pub fn tvb_get_letohis(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i16;
 }
 extern "C" {
-    pub fn tvb_get_letoh24(tvb: *mut tvbuff_t, offset: gint) -> guint32;
+    pub fn tvb_get_letoh24(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u32;
 }
 extern "C" {
-    pub fn tvb_get_letohi24(tvb: *mut tvbuff_t, offset: gint) -> gint32;
+    pub fn tvb_get_letohi24(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i32;
 }
 extern "C" {
-    pub fn tvb_get_letohl(tvb: *mut tvbuff_t, offset: gint) -> guint32;
+    pub fn tvb_get_letohl(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u32;
 }
 extern "C" {
-    pub fn tvb_get_letohil(tvb: *mut tvbuff_t, offset: gint) -> gint32;
+    pub fn tvb_get_letohil(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i32;
 }
 extern "C" {
-    pub fn tvb_get_letoh40(tvb: *mut tvbuff_t, offset: gint) -> guint64;
+    pub fn tvb_get_letoh40(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_letohi40(tvb: *mut tvbuff_t, offset: gint) -> gint64;
+    pub fn tvb_get_letohi40(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_letoh48(tvb: *mut tvbuff_t, offset: gint) -> guint64;
+    pub fn tvb_get_letoh48(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_letohi48(tvb: *mut tvbuff_t, offset: gint) -> gint64;
+    pub fn tvb_get_letohi48(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_letoh56(tvb: *mut tvbuff_t, offset: gint) -> guint64;
+    pub fn tvb_get_letoh56(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_letohi56(tvb: *mut tvbuff_t, offset: gint) -> gint64;
+    pub fn tvb_get_letohi56(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_letoh64(tvb: *mut tvbuff_t, offset: gint) -> guint64;
+    pub fn tvb_get_letoh64(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_letohi64(tvb: *mut tvbuff_t, offset: gint) -> gint64;
+    pub fn tvb_get_letohi64(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_letohieee_float(tvb: *mut tvbuff_t, offset: gint) -> gfloat;
+    pub fn tvb_get_letohieee_float(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> f32;
 }
 extern "C" {
-    pub fn tvb_get_letohieee_double(tvb: *mut tvbuff_t, offset: gint) -> gdouble;
+    pub fn tvb_get_letohieee_double(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> f64;
 }
 extern "C" {
-    pub fn tvb_get_guint16(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> guint16;
+    pub fn tvb_get_uint16(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u16;
 }
 extern "C" {
-    pub fn tvb_get_gint16(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> gint16;
+    pub fn tvb_get_int16(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> i16;
 }
 extern "C" {
-    pub fn tvb_get_guint24(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> guint32;
+    pub fn tvb_get_uint24(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u32;
 }
 extern "C" {
-    pub fn tvb_get_gint24(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> gint32;
+    pub fn tvb_get_int24(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> i32;
 }
 extern "C" {
-    pub fn tvb_get_guint32(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> guint32;
+    pub fn tvb_get_uint32(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u32;
 }
 extern "C" {
-    pub fn tvb_get_gint32(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> gint32;
+    pub fn tvb_get_int32(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> i32;
 }
 extern "C" {
-    pub fn tvb_get_guint40(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> guint64;
+    pub fn tvb_get_uint40(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_gint40(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> gint64;
+    pub fn tvb_get_int40(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_guint48(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> guint64;
+    pub fn tvb_get_uint48(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_gint48(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> gint64;
+    pub fn tvb_get_int48(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_guint56(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> guint64;
+    pub fn tvb_get_uint56(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_gint56(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> gint64;
+    pub fn tvb_get_int56(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_guint64(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> guint64;
+    pub fn tvb_get_uint64(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u64;
 }
 extern "C" {
-    pub fn tvb_get_gint64(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> gint64;
+    pub fn tvb_get_int64(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> i64;
 }
 extern "C" {
-    pub fn tvb_get_ieee_float(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> gfloat;
+    pub fn tvb_get_ieee_float(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> f32;
 }
 extern "C" {
-    pub fn tvb_get_ieee_double(tvb: *mut tvbuff_t, offset: gint, encoding: guint) -> gdouble;
+    pub fn tvb_get_ieee_double(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> f64;
 }
 extern "C" {
     pub fn tvb_get_string_time(
         tvb: *mut tvbuff_t,
-        offset: gint,
-        length: gint,
-        encoding: guint,
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         ns: *mut nstime_t,
-        endoff: *mut gint,
+        endoff: *mut ::std::os::raw::c_int,
     ) -> *mut nstime_t;
 }
 extern "C" {
     pub fn tvb_get_string_bytes(
         tvb: *mut tvbuff_t,
-        offset: gint,
-        length: gint,
-        encoding: guint,
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         bytes: *mut GByteArray,
-        endoff: *mut gint,
+        endoff: *mut ::std::os::raw::c_int,
     ) -> *mut GByteArray;
 }
 extern "C" {
-    #[doc = " Fetch an IPv4 address, in network byte order.\n We do *not* convert it to host byte order; we leave it in\n network byte order, as that's what its callers expect."]
-    pub fn tvb_get_ipv4(tvb: *mut tvbuff_t, offset: gint) -> guint32;
+    pub fn tvb_get_ipv4(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int) -> u32;
 }
 extern "C" {
-    pub fn tvb_get_ipv6(tvb: *mut tvbuff_t, offset: gint, addr: *mut ws_in6_addr);
+    pub fn tvb_get_ipv6(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int, addr: *mut ws_in6_addr);
 }
 extern "C" {
-    pub fn tvb_get_ntohguid(tvb: *mut tvbuff_t, offset: gint, guid: *mut e_guid_t);
+    pub fn tvb_get_ipv4_addr_with_prefix_len(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        addr: *mut ws_in4_addr,
+        prefix_len: u32,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn tvb_get_letohguid(tvb: *mut tvbuff_t, offset: gint, guid: *mut e_guid_t);
+    pub fn tvb_get_ipv6_addr_with_prefix_len(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        addr: *mut ws_in6_addr,
+        prefix_len: u32,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn tvb_get_guid(tvb: *mut tvbuff_t, offset: gint, guid: *mut e_guid_t, encoding: guint);
+    pub fn tvb_get_ntohguid(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int, guid: *mut e_guid_t);
+}
+extern "C" {
+    pub fn tvb_get_letohguid(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        guid: *mut e_guid_t,
+    );
+}
+extern "C" {
+    pub fn tvb_get_guid(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        guid: *mut e_guid_t,
+        encoding: ::std::os::raw::c_uint,
+    );
 }
 extern "C" {
     pub fn tvb_get_bits_array(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
+        offset: ::std::os::raw::c_int,
         length: usize,
         data_length: *mut usize,
-        encoding: guint,
-    ) -> *mut guint8;
+        encoding: ::std::os::raw::c_uint,
+    ) -> *mut u8;
 }
 extern "C" {
-    pub fn tvb_get_bits8(tvb: *mut tvbuff_t, bit_offset: guint, no_of_bits: gint) -> guint8;
+    pub fn tvb_get_bits8(
+        tvb: *mut tvbuff_t,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+    ) -> u8;
 }
 extern "C" {
     pub fn tvb_get_bits16(
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        encoding: guint,
-    ) -> guint16;
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u16;
 }
 extern "C" {
     pub fn tvb_get_bits32(
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        encoding: guint,
-    ) -> guint32;
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u32;
 }
 extern "C" {
     pub fn tvb_get_bits64(
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        encoding: guint,
-    ) -> guint64;
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u64;
 }
 extern "C" {
-    #[doc = "  This function has EXACTLY the same behavior as\n  tvb_get_bits32()"]
     pub fn tvb_get_bits(
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        encoding: guint,
-    ) -> guint32;
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u32;
 }
 extern "C" {
-    #[doc = " Returns target for convenience. Does not suffer from possible\n expense of tvb_get_ptr(), since this routine is smart enough\n to copy data in chunks if the request range actually exists in\n different \"real\" tvbuffs. This function assumes that the target\n memory is already allocated; it does not allocate or free the\n target memory."]
     pub fn tvb_memcpy(
         tvb: *mut tvbuff_t,
         target: *mut ::std::os::raw::c_void,
-        offset: gint,
+        offset: ::std::os::raw::c_int,
         length: usize,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " Given an allocator scope, a tvbuff, a byte offset, a byte length:\n\n    allocate a buffer using the specified scope;\n\n    copy the data from the tvbuff specified by the offset and length\n    into that buffer, using tvb_memcpy();\n\n    and return a pointer to the buffer.\n\n Throws an exception if the tvbuff ends before the data being copied does.\n\n If scope is set to NULL it is the user's responsibility to wmem_free()\n the memory allocated. Otherwise memory is automatically freed when the\n scope lifetime is reached."]
     pub fn tvb_memdup(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
+        offset: ::std::os::raw::c_int,
         length: usize,
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    #[doc = " WARNING! This function is possibly expensive, temporarily allocating\n another copy of the packet data. Furthermore, it's dangerous because once\n this pointer is given to the user, there's no guarantee that the user will\n honor the 'length' and not overstep the boundaries of the buffer.\n\n If you're thinking of using tvb_get_ptr, STOP WHAT YOU ARE DOING\n IMMEDIATELY. Go take a break. Consider that tvb_get_ptr hands you\n a raw, unprotected pointer that you can easily use to create a\n security vulnerability or otherwise crash Wireshark. Then consider\n that you can probably find a function elsewhere in this file that\n does exactly what you want in a much more safe and robust manner.\n\n The returned pointer is data that is internal to the tvbuff, so do not\n attempt to free it. Don't modify the data, either, because another tvbuff\n that might be using this tvbuff may have already copied that portion of\n the data (sometimes tvbuff's need to make copies of data, but that's the\n internal implementation that you need not worry about). Assume that the\n guint8* points to read-only data that the tvbuff manages.\n\n Return a pointer into our buffer if the data asked for via 'offset'/'length'\n is contiguous (which might not be the case for a \"composite\" tvbuff). If the\n data is not contiguous, a tvb_memdup() is called for the entire buffer\n and the pointer to the newly-contiguous data is returned. This dynamically-\n allocated memory will be freed when the tvbuff is freed, after the\n tvbuff_free_cb_t() is called, if any."]
-    pub fn tvb_get_ptr(tvb: *mut tvbuff_t, offset: gint, length: gint) -> *const guint8;
+    pub fn tvb_get_ptr(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+    ) -> *const u8;
 }
 extern "C" {
-    #[doc = " Find first occurrence of needle in tvbuff, starting at offset. Searches\n at most maxlength number of bytes; if maxlength is -1, searches to\n end of tvbuff.\n Returns the offset of the found needle, or -1 if not found.\n Will not throw an exception, even if maxlength exceeds boundary of tvbuff;\n in that case, -1 will be returned if the boundary is reached before\n finding needle."]
-    pub fn tvb_find_guint8(
+    pub fn tvb_find_uint8(
         tvb: *mut tvbuff_t,
-        offset: gint,
-        maxlength: gint,
-        needle: guint8,
-    ) -> gint;
+        offset: ::std::os::raw::c_int,
+        maxlength: ::std::os::raw::c_int,
+        needle: u8,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Same as tvb_find_guint8() with 16bit needle."]
-    pub fn tvb_find_guint16(
+    pub fn tvb_find_uint16(
         tvb: *mut tvbuff_t,
-        offset: gint,
-        maxlength: gint,
-        needle: guint16,
-    ) -> gint;
+        offset: ::std::os::raw::c_int,
+        maxlength: ::std::os::raw::c_int,
+        needle: u16,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Find first occurrence of any of the needles of the pre-compiled pattern in\n tvbuff, starting at offset. The passed in pattern must have been \"compiled\"\n before-hand, using ws_mempbrk_compile().\n Searches at most maxlength number of bytes. Returns the offset of the\n found needle, or -1 if not found and the found needle.\n Will not throw an exception, even if\n maxlength exceeds boundary of tvbuff; in that case, -1 will be returned if\n the boundary is reached before finding needle."]
-    pub fn tvb_ws_mempbrk_pattern_guint8(
+    pub fn tvb_ws_mempbrk_pattern_uint8(
         tvb: *mut tvbuff_t,
-        offset: gint,
-        maxlength: gint,
+        offset: ::std::os::raw::c_int,
+        maxlength: ::std::os::raw::c_int,
         pattern: *const ws_mempbrk_pattern,
-        found_needle: *mut guchar,
-    ) -> gint;
+        found_needle: *mut ::std::os::raw::c_uchar,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Find size of stringz (NUL-terminated string) by looking for terminating\n NUL.  The size of the string includes the terminating NUL.\n\n If the NUL isn't found, it throws the appropriate exception."]
-    pub fn tvb_strsize(tvb: *mut tvbuff_t, offset: gint) -> guint;
+    pub fn tvb_strsize(tvb: *mut tvbuff_t, offset: ::std::os::raw::c_int)
+        -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Find size of UCS-2 or UTF-16 stringz (NUL-terminated string) by\n looking for terminating 16-bit NUL.  The size of the string includes\n the terminating NUL.\n\n If the NUL isn't found, it throws the appropriate exception."]
-    pub fn tvb_unicode_strsize(tvb: *mut tvbuff_t, offset: gint) -> guint;
+    pub fn tvb_unicode_strsize(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Find length of string by looking for end of zero terminated string, up to\n 'maxlength' characters'; if 'maxlength' is -1, searches to end\n of tvbuff.\n Returns -1 if 'maxlength' reached before finding EOS."]
-    pub fn tvb_strnlen(tvb: *mut tvbuff_t, offset: gint, maxlength: guint) -> gint;
+    pub fn tvb_strnlen(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        maxlength: ::std::os::raw::c_uint,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Format the data in the tvb from offset for size."]
     pub fn tvb_format_text(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        size: gint,
-    ) -> *mut gchar;
+        offset: ::std::os::raw::c_int,
+        size: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Like \"tvb_format_text()\", but for 'wsp'; don't show\n the characters as C-style escapes."]
     pub fn tvb_format_text_wsp(
         allocator: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        size: gint,
-    ) -> *mut gchar;
+        offset: ::std::os::raw::c_int,
+        size: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Like \"tvb_format_text()\", but for null-padded strings; don't show\n the null padding characters as \"\\000\"."]
     pub fn tvb_format_stringzpad(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        size: gint,
-    ) -> *mut gchar;
+        offset: ::std::os::raw::c_int,
+        size: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Like \"tvb_format_text_wsp()\", but for null-padded strings; don't show\n the null padding characters as \"\\000\"."]
     pub fn tvb_format_stringzpad_wsp(
         allocator: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        size: gint,
-    ) -> *mut gchar;
+        offset: ::std::os::raw::c_int,
+        size: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Given an allocator scope, a tvbuff, a byte offset, a byte length, and\n a string encoding, with the specified offset and length referring to\n a string in the specified encoding:\n\n    allocate a buffer using the specified scope;\n\n    convert the string from the specified encoding to UTF-8, possibly\n    mapping some characters or invalid octet sequences to the Unicode\n    REPLACEMENT CHARACTER, and put the resulting UTF-8 string, plus a\n    trailing '\\0', into that buffer;\n\n    and return a pointer to the buffer.\n\n Throws an exception if the tvbuff ends before the string does.\n\n If scope is set to NULL it is the user's responsibility to wmem_free()\n the memory allocated. Otherwise memory is automatically freed when the\n scope lifetime is reached."]
     pub fn tvb_get_string_enc(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        length: gint,
-        encoding: guint,
-    ) -> *mut guint8;
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> *mut u8;
 }
 extern "C" {
-    #[doc = " Given an allocator scope, a tvbuff, a bit offset, and a length in\n 7-bit characters (not octets!), with the specified offset and\n length referring to a string in the 3GPP TS 23.038 7bits encoding,\n with code points packed into 7 bits:\n\n    allocate a buffer using the specified scope;\n\n    convert the string from the specified encoding to UTF-8, possibly\n    mapping some characters or invalid octet sequences to the Unicode\n    REPLACEMENT CHARACTER, and put the resulting UTF-8 string, plus a\n    trailing '\\0', into that buffer;\n\n    and return a pointer to the buffer.\n\n Throws an exception if the tvbuff ends before the string does.\n\n If scope is set to NULL it is the user's responsibility to wmem_free()\n the memory allocated. Otherwise memory is automatically freed when the\n scope lifetime is reached."]
     pub fn tvb_get_ts_23_038_7bits_string_packed(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        bit_offset: gint,
-        no_of_chars: gint,
-    ) -> *mut gchar;
+        bit_offset: ::std::os::raw::c_int,
+        no_of_chars: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Given an allocator scope, a tvbuff, an offset, and a length in\n octets with the specified offset and length referring to a string\n in the 3GPP TS 23.038 7bits encoding, with one octet per code poiint\n (the 8th bit of each octet should be 0; if not, the octet is invalid):\n\n    allocate a buffer using the specified scope;\n\n    convert the string from the specified encoding to UTF-8, possibly\n    mapping some characters or invalid octet sequences to the Unicode\n    REPLACEMENT CHARACTER, and put the resulting UTF-8 string, plus a\n    trailing '\\0', into that buffer;\n\n    and return a pointer to the buffer.\n\n Throws an exception if the tvbuff ends before the string does.\n\n If scope is set to NULL it is the user's responsibility to wmem_free()\n the memory allocated. Otherwise memory is automatically freed when the\n scope lifetime is reached."]
     pub fn tvb_get_ts_23_038_7bits_string_unpacked(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        length: gint,
-    ) -> *mut gchar;
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Given an allocator scope, a tvbuff, an offset, and a length in\n octets with the specified offset and length referring to a string\n in the ETSI TS 102 221 Annex A encodings; if not:\n\n    allocate a buffer using the specified scope;\n\n    convert the string from the specified encoding to UTF-8, possibly\n    mapping some characters or invalid octet sequences to the Unicode\n    REPLACEMENT CHARACTER, and put the resulting UTF-8 string, plus a\n    trailing '\\0', into that buffer;\n\n    and return a pointer to the buffer.\n\n Throws an exception if the tvbuff ends before the string does.\n\n If scope is set to NULL it is the user's responsibility to wmem_free()\n the memory allocated. Otherwise memory is automatically freed when the\n scope lifetime is reached."]
     pub fn tvb_get_etsi_ts_102_221_annex_a_string(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        length: gint,
-    ) -> *mut gchar;
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Given an allocator scope, a tvbuff, an offset, and a length in\n 7-bit characters (not octets!), with the specified offset and\n length referring to a string in the ASCII 7bits encoding:\n\n    allocate a buffer using the specified scope;\n\n    convert the string from the specified encoding to UTF-8, possibly\n    mapping some characters or invalid octet sequences to the Unicode\n    REPLACEMENT CHARACTER, and put the resulting UTF-8 string, plus a\n    trailing '\\0', into that buffer;\n\n    and return a pointer to the buffer.\n\n Throws an exception if the tvbuff ends before the string does.\n\n If scope is set to NULL it is the user's responsibility to wmem_free()\n the memory allocated. Otherwise memory is automatically freed when the\n scope lifetime is reached."]
     pub fn tvb_get_ascii_7bits_string(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        bit_offset: gint,
-        no_of_chars: gint,
-    ) -> *mut gchar;
+        bit_offset: ::std::os::raw::c_int,
+        no_of_chars: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Given an allocator scope, a tvbuff, a byte offset, a byte length, and\n a string encoding, with the specified offset and length referring to\n a null-padded string in the specified encoding:\n\n    allocate a buffer using the specified scope;\n\n    convert the string from the specified encoding to UTF-8, possibly\n    mapping some characters or invalid octet sequences to the Unicode\n    REPLACEMENT CHARACTER, and put the resulting UTF-8 string, plus a\n    trailing '\\0', into that buffer;\n\n    and return a pointer to the buffer.\n\n Throws an exception if the tvbuff ends before the string does.\n\n If scope is set to NULL it is the user's responsibility to wmem_free()\n the memory allocated. Otherwise memory is automatically freed when the\n scope lifetime is reached."]
     pub fn tvb_get_stringzpad(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        length: gint,
-        encoding: guint,
-    ) -> *mut guint8;
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> *mut u8;
 }
 extern "C" {
-    #[doc = " Given an allocator scope, a tvbuff, a byte offset, a pointer to a\n gint, and a string encoding, with the specified offset referring to\n a null-terminated string in the specified encoding:\n\n    find the length of that string (and throw an exception if the tvbuff\n    ends before we find the null);\n\n    allocate a buffer using the specified scope;\n\n    convert the string from the specified encoding to UTF-8, possibly\n    mapping some characters or invalid octet sequences to the Unicode\n    REPLACEMENT CHARACTER, and put the resulting UTF-8 string, plus a\n    trailing '\\0', into that buffer;\n\n    if the pointer to the gint is non-null, set the gint to which it\n    points to the length of the string;\n\n    and return a pointer to the buffer.\n\n Throws an exception if the tvbuff ends before the string does.\n\n If scope is set to NULL it is the user's responsibility to wmem_free()\n the memory allocated. Otherwise memory is automatically freed when the\n scope lifetime is reached."]
     pub fn tvb_get_stringz_enc(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        lengthp: *mut gint,
-        encoding: guint,
-    ) -> *mut guint8;
+        offset: ::std::os::raw::c_int,
+        lengthp: *mut ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> *mut u8;
 }
 extern "C" {
-    #[doc = " Given a tvbuff and an offset, with the offset assumed to refer to\n a null-terminated string, find the length of that string (and throw\n an exception if the tvbuff ends before we find the null), allocate\n a buffer big enough to hold the string, copy the string into it,\n and return a pointer to the string.  Also return the length of the\n string (including the terminating null) through a pointer.\n\n This returns a constant (unmodifiable) string that does not need\n to be freed; instead, it will automatically be freed once the next\n packet is dissected.\n\n It is slightly more efficient than the other routines, but does *NOT*\n do any translation to UTF-8 - the string consists of the raw octets\n of the string, in whatever encoding they happen to be in, and, if\n the string is not valid in that encoding, with invalid octet sequences\n as they are in the packet.\n\n This function is deprecated because it does no validation of the string\n encoding. Do not use in new code. Prefer other APIs such as:\n \ttvb_get_stringz_enc()\n \tproto_tree_add_item_ret_string_and_length()\n \ttvb_strsize() and validate the pointed to memory region manually."]
     pub fn tvb_get_const_stringz(
         tvb: *mut tvbuff_t,
-        offset: gint,
-        lengthp: *mut gint,
-    ) -> *const guint8;
+        offset: ::std::os::raw::c_int,
+        lengthp: *mut ::std::os::raw::c_int,
+    ) -> *const u8;
 }
 extern "C" {
-    #[doc = " Looks for a NUL byte in tvbuff and copies\n no more than bufsize number of bytes, including terminating NUL, to buffer.\n Returns number of bytes copied (not including terminating NUL).\n\n When processing a packet where the remaining number of bytes is less\n than bufsize, an exception is not thrown if the end of the packet\n is reached before the NUL is found. The byte buffer is guaranteed to\n have a terminating NUL."]
     pub fn tvb_get_raw_bytes_as_stringz(
         tvb: *mut tvbuff_t,
-        offset: gint,
-        bufsize: guint,
-        buffer: *mut guint8,
-    ) -> gint;
+        offset: ::std::os::raw::c_int,
+        bufsize: ::std::os::raw::c_uint,
+        buffer: *mut u8,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn tvb_get_raw_bytes_as_string(
         tvb: *mut tvbuff_t,
-        offset: gint,
+        offset: ::std::os::raw::c_int,
         buffer: *mut ::std::os::raw::c_char,
         bufsize: usize,
-    ) -> gint;
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Iterates over the provided portion of the tvb checking that each byte\n is an ascii printable character.\n Returns TRUE if all bytes are printable, FALSE otherwise"]
-    pub fn tvb_ascii_isprint(tvb: *mut tvbuff_t, offset: gint, length: gint) -> gboolean;
+    pub fn tvb_ascii_isprint(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Iterates over the provided portion of the tvb checking that it is\n valid UTF-8 consisting entirely of printable characters. (The characters\n must be complete; if the portion ends in a partial sequence that could\n begin a valid character, this returns FALSE.) The length may be -1 for\n \"all the way to the end of the tvbuff\".\n Returns TRUE if printable, FALSE otherwise\n\n @see isprint_utf8_string()"]
-    pub fn tvb_utf_8_isprint(tvb: *mut tvbuff_t, offset: gint, length: gint) -> gboolean;
+    pub fn tvb_utf_8_isprint(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Iterates over the provided portion of the tvb checking that each byte\n is an ascii digit.\n Returns TRUE if all bytes are digits, FALSE otherwise"]
-    pub fn tvb_ascii_isdigit(tvb: *mut tvbuff_t, offset: gint, length: gint) -> gboolean;
+    pub fn tvb_ascii_isdigit(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Given a tvbuff, an offset into the tvbuff, and a length that starts\n at that offset (which may be -1 for \"all the way to the end of the\n tvbuff\"), find the end of the (putative) line that starts at the\n specified offset in the tvbuff, going no further than the specified\n length.\n\n Return the length of the line (not counting the line terminator at\n the end), or, if we don't find a line terminator:\n\n  if \"deseg\" is true, return -1;\n\n  if \"deseg\" is false, return the amount of data remaining in\n  the buffer.\n\n If \"next_offset\" is not NULL, set \"*next_offset\" to the offset of the\n character past the line terminator, or past the end of the buffer if\n we don't find a line terminator.  (It's not set if we return -1.)"]
     pub fn tvb_find_line_end(
         tvb: *mut tvbuff_t,
-        offset: gint,
+        offset: ::std::os::raw::c_int,
         len: ::std::os::raw::c_int,
-        next_offset: *mut gint,
-        desegment: gboolean,
-    ) -> gint;
+        next_offset: *mut ::std::os::raw::c_int,
+        desegment: bool,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Given a tvbuff, an offset into the tvbuff, and a length that starts\n at that offset (which may be -1 for \"all the way to the end of the\n tvbuff\"), find the end of the (putative) line that starts at the\n specified offset in the tvbuff, going no further than the specified\n length.\n\n However, treat quoted strings inside the buffer specially - don't\n treat newlines in quoted strings as line terminators.\n\n Return the length of the line (not counting the line terminator at\n the end), or the amount of data remaining in the buffer if we don't\n find a line terminator.\n\n If \"next_offset\" is not NULL, set \"*next_offset\" to the offset of the\n character past the line terminator, or past the end of the buffer if\n we don't find a line terminator."]
     pub fn tvb_find_line_end_unquoted(
         tvb: *mut tvbuff_t,
-        offset: gint,
+        offset: ::std::os::raw::c_int,
         len: ::std::os::raw::c_int,
-        next_offset: *mut gint,
-    ) -> gint;
+        next_offset: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Copied from the mgcp dissector. (This function should be moved to /epan )\n tvb_skip_wsp - Returns the position in tvb of the first non-whitespace\n                character following offset or offset + maxlength -1 whichever\n                is smaller.\n\n Parameters:\n tvb - The tvbuff in which we are skipping whitespace.\n offset - The offset in tvb from which we begin trying to skip whitespace.\n maxlength - The maximum distance from offset that we may try to skip\n whitespace.\n\n Returns: The position in tvb of the first non-whitespace\n          character following offset or offset + maxlength -1 whichever\n          is smaller."]
-    pub fn tvb_skip_wsp(tvb: *mut tvbuff_t, offset: gint, maxlength: gint) -> gint;
-}
-extern "C" {
-    pub fn tvb_skip_wsp_return(tvb: *mut tvbuff_t, offset: gint) -> gint;
-}
-extern "C" {
-    pub fn tvb_skip_guint8(
+    pub fn tvb_skip_wsp(
         tvb: *mut tvbuff_t,
         offset: ::std::os::raw::c_int,
         maxlength: ::std::os::raw::c_int,
-        ch: guint8,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Given a tvbuff, an offset into the tvbuff, and a length that starts\n at that offset (which may be -1 for \"all the way to the end of the\n tvbuff\"), find the end of the token that starts at the\n specified offset in the tvbuff, going no further than the specified\n length.\n\n Return the length of the token, or, if we don't find a terminator:\n\n  if \"deseg\" is true, return -1;\n\n  if \"deseg\" is false, return the amount of data remaining in\n  the buffer.\n\n Set \"*next_offset\" to the offset of the character past the\n terminator, or past the end of the buffer if we don't find a line\n terminator.  (It's not set if we return -1.)"]
+    pub fn tvb_skip_wsp_return(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn tvb_skip_uint8(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        maxlength: ::std::os::raw::c_int,
+        ch: u8,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
     pub fn tvb_get_token_len(
         tvb: *mut tvbuff_t,
-        offset: gint,
+        offset: ::std::os::raw::c_int,
         len: ::std::os::raw::c_int,
-        next_offset: *mut gint,
-        desegment: gboolean,
+        next_offset: *mut ::std::os::raw::c_int,
+        desegment: bool,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Call strncmp after checking if enough chars left, returning 0 if\n it returns 0 (meaning \"equal\") and -1 otherwise, otherwise return -1."]
-    pub fn tvb_strneql(tvb: *mut tvbuff_t, offset: gint, str_: *const gchar, size: usize) -> gint;
+    pub fn tvb_strneql(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        str_: *const ::std::os::raw::c_char,
+        size: usize,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Call g_ascii_strncasecmp after checking if enough chars left, returning\n 0 if it returns 0 (meaning \"equal\") and -1 otherwise, otherwise return -1."]
     pub fn tvb_strncaseeql(
         tvb: *mut tvbuff_t,
-        offset: gint,
-        str_: *const gchar,
+        offset: ::std::os::raw::c_int,
+        str_: *const ::std::os::raw::c_char,
         size: usize,
-    ) -> gint;
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Call memcmp after checking if enough chars left, returning 0 if\n it returns 0 (meaning \"equal\") and -1 otherwise, otherwise return -1."]
-    pub fn tvb_memeql(tvb: *mut tvbuff_t, offset: gint, str_: *const guint8, size: usize) -> gint;
+    pub fn tvb_memeql(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        str_: *const u8,
+        size: usize,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Format a bunch of data from a tvbuff as bytes, returning a pointer\n to the string with the formatted data, with \"punct\" as a byte\n separator."]
     pub fn tvb_bytes_to_str_punct(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        len: gint,
-        punct: gchar,
-    ) -> *mut gchar;
+        offset: ::std::os::raw::c_int,
+        len: ::std::os::raw::c_int,
+        punct: ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Format a bunch of data from a tvbuff as bytes, returning a pointer\n to the string with the formatted data."]
     pub fn tvb_bytes_to_str(
         allocator: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        len: gint,
-    ) -> *mut gchar;
+        offset: ::std::os::raw::c_int,
+        len: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
 }
-#[doc = " Given a tvbuff, an offset into the tvbuff, and a length that starts\n at that offset (which may be -1 for \"all the way to the end of the\n tvbuff\"), fetch BCD encoded digits from a tvbuff starting from either\n the low or high half byte, formatting the digits according to an input digit\n set, if NUL a default digit set of 0-9 returning \"?\" for overdecadic digits\n will be used.  A pointer to the WMEM-allocated string will\n be returned. Note a tvbuff content of 0xf is considered a 'filler' and will\n end the conversion."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct dgt_set_t {
@@ -31314,46 +31147,42 @@ extern "C" {
     pub fn tvb_bcd_dig_to_str(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        len: gint,
+        offset: ::std::os::raw::c_int,
+        len: ::std::os::raw::c_int,
         dgt: *const dgt_set_t,
-        skip_first: gboolean,
-    ) -> *const gchar;
+        skip_first: bool,
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Given a tvbuff, an offset into the tvbuff, and a length that starts\n at that offset (which may be -1 for \"all the way to the end of the\n tvbuff\"), fetch BCD encoded digits from a tvbuff starting from either\n the low or high half byte, formatting the digits according to an input digit\n set, if NUL a default digit set of 0-9 returning \"?\" for overdecadic digits\n will be used.  A pointer to the WMEM-allocated string will\n be returned. Note a tvbuff content of 0xf is considered a 'filler' and will\n end the conversion. Function uses big endian convetion: first digit is based\n on high order nibble, second digit is based on low order nibble."]
     pub fn tvb_bcd_dig_to_str_be(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        len: gint,
+        offset: ::std::os::raw::c_int,
+        len: ::std::os::raw::c_int,
         dgt: *const dgt_set_t,
-        skip_first: gboolean,
-    ) -> *const gchar;
+        skip_first: bool,
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Given a wmem scope, a tvbuff, an offset, a length, an input digit\n set, and a boolean indicator, fetch BCD-encoded digits from a\n tvbuff starting from either the low or high half byte of the\n first byte depending on the boolean indicator (TRUE means \"start\n with the high half byte, ignoring the low half byte\", and FALSE\n means \"start with the low half byte and proceed to the high half\n byte), formating the digits into characters according to the\n input digit set, and return a pointer to a UTF-8 string, allocated\n using the wmem scope.  A high-order nibble of 0xf is considered a\n 'filler' and will end the conversion. If odd is set the high order\n nibble in the last octet will be skipped. If bigendian is set then\n high order nibble is taken as first digit of a byte and low order\n nibble as second digit."]
     pub fn tvb_get_bcd_string(
         scope: *mut wmem_allocator_t,
         tvb: *mut tvbuff_t,
-        offset: gint,
-        len: gint,
+        offset: ::std::os::raw::c_int,
+        len: ::std::os::raw::c_int,
         dgt: *const dgt_set_t,
-        skip_first: gboolean,
-        odd: gboolean,
-        bigendian: gboolean,
-    ) -> *mut gchar;
+        skip_first: bool,
+        odd: bool,
+        bigendian: bool,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Locate a sub-tvbuff within another tvbuff, starting at position\n 'haystack_offset'. Returns the index of the beginning of 'needle' within\n 'haystack', or -1 if 'needle' is not found. The index is relative\n to the start of 'haystack', not 'haystack_offset'."]
     pub fn tvb_find_tvb(
         haystack_tvb: *mut tvbuff_t,
         needle_tvb: *mut tvbuff_t,
-        haystack_offset: gint,
-    ) -> gint;
+        haystack_offset: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Uncompresses a zlib compressed packet inside a tvbuff at offset with\n length comprlen.  Returns an uncompressed tvbuffer if uncompression\n succeeded or NULL if uncompression failed.\n\n The returned tvbuffer must be freed with `tvb_free` or added to the\n chain of another tvbuffer to avoid a memory leak. Consider using\n tvb_child_uncompress to simplify memory management."]
     pub fn tvb_uncompress(
         tvb: *mut tvbuff_t,
         offset: ::std::os::raw::c_int,
@@ -31361,7 +31190,13 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a zlib compressed packet inside a tvbuff at offset with\n length comprlen.  Returns an uncompressed tvbuffer attached to parent if\n uncompression succeeded or NULL if uncompression failed."]
+    pub fn tvb_uncompress_zlib(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        comprlen: ::std::os::raw::c_int,
+    ) -> *mut tvbuff_t;
+}
+extern "C" {
     pub fn tvb_child_uncompress(
         parent: *mut tvbuff_t,
         tvb: *mut tvbuff_t,
@@ -31370,7 +31205,14 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a brotli compressed packet inside a tvbuff at offset with\n length comprlen.  Returns an uncompressed tvbuffer if uncompression\n succeeded or NULL if uncompression failed.\n\n The returned tvbuffer must be freed with `tvb_free` or added to the\n chain of another tvbuffer to avoid a memory leak. Consider using\n tvb_child_uncompress_brotli to simplify memory management."]
+    pub fn tvb_child_uncompress_zlib(
+        parent: *mut tvbuff_t,
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        comprlen: ::std::os::raw::c_int,
+    ) -> *mut tvbuff_t;
+}
+extern "C" {
     pub fn tvb_uncompress_brotli(
         tvb: *mut tvbuff_t,
         offset: ::std::os::raw::c_int,
@@ -31378,7 +31220,6 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a brotli compressed packet inside a tvbuff at offset with\n length comprlen.  Returns an uncompressed tvbuffer attached to parent if\n uncompression succeeded or NULL if uncompression failed."]
     pub fn tvb_child_uncompress_brotli(
         parent: *mut tvbuff_t,
         tvb: *mut tvbuff_t,
@@ -31387,7 +31228,21 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a Microsoft Plain LZ77 compressed payload inside a\n tvbuff at offset with length comprlen.  Returns an uncompressed\n tvbuffer if uncompression succeeded or NULL if uncompression\n failed.\n\n The returned tvbuffer must be freed with `tvb_free` or added to the\n chain of another tvbuffer to avoid a memory leak. Consider using\n tvb_child_uncompress_lz77 to simplify memory management."]
+    pub fn tvb_uncompress_snappy(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        comprlen: ::std::os::raw::c_int,
+    ) -> *mut tvbuff_t;
+}
+extern "C" {
+    pub fn tvb_child_uncompress_snappy(
+        parent: *mut tvbuff_t,
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        comprlen: ::std::os::raw::c_int,
+    ) -> *mut tvbuff_t;
+}
+extern "C" {
     pub fn tvb_uncompress_lz77(
         tvb: *mut tvbuff_t,
         offset: ::std::os::raw::c_int,
@@ -31395,7 +31250,6 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a Microsoft Plain LZ77 compressed payload inside a\n tvbuff at offset with length comprlen.  Returns an uncompressed\n tvbuffer attached to parent if uncompression succeeded or NULL if\n uncompression failed."]
     pub fn tvb_child_uncompress_lz77(
         parent: *mut tvbuff_t,
         tvb: *mut tvbuff_t,
@@ -31404,7 +31258,6 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a Microsoft LZ77+Huffman compressed payload inside a\n tvbuff at offset with length comprlen.  Returns an uncompressed\n tvbuffer if uncompression succeeded or NULL if uncompression\n failed.\n\n The returned tvbuffer must be freed with `tvb_free` or added to the\n chain of another tvbuffer to avoid a memory leak. Consider using\n tvb_child_uncompress_lz77huff to simplify memory management."]
     pub fn tvb_uncompress_lz77huff(
         tvb: *mut tvbuff_t,
         offset: ::std::os::raw::c_int,
@@ -31412,7 +31265,6 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a Microsoft LZ77+Huffman compressed payload inside a\n tvbuff at offset with length comprlen.  Returns an uncompressed\n tvbuffer attached to parent if uncompression succeeded or NULL if\n uncompression failed."]
     pub fn tvb_child_uncompress_lz77huff(
         parent: *mut tvbuff_t,
         tvb: *mut tvbuff_t,
@@ -31421,7 +31273,6 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a Microsoft LZNT1 compressed payload inside\n a tvbuff at offset with length comprlen.  Returns an uncompressed\n tvbuffer if uncompression succeeded or NULL if uncompression\n failed.\n\n The returned tvbuffer must be freed with `tvb_free` or added to the\n chain of another tvbuffer to avoid a memory leak. Consider using\n tvb_child_uncompress_lznt1 to simplify memory management."]
     pub fn tvb_uncompress_lznt1(
         tvb: *mut tvbuff_t,
         offset: ::std::os::raw::c_int,
@@ -31429,7 +31280,6 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a Microsoft LZNT1 compressed payload inside\n a tvbuff at offset with length comprlen.  Returns an uncompressed\n tvbuffer attached to parent if uncompression succeeded or NULL if\n uncompression failed."]
     pub fn tvb_child_uncompress_lznt1(
         parent: *mut tvbuff_t,
         tvb: *mut tvbuff_t,
@@ -31438,7 +31288,6 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a ZSTD compressed payload inside a\n tvbuff at offset with length comprlen.  Returns an uncompressed\n tvbuffer if uncompression succeeded or NULL if uncompression\n failed.\n\n The returned tvbuffer must be freed with `tvb_free` or added to the\n chain of another tvbuffer to avoid a memory leak. Consider using\n tvb_child_uncompress_zstd to simplify memory management."]
     pub fn tvb_uncompress_zstd(
         tvb: *mut tvbuff_t,
         offset: ::std::os::raw::c_int,
@@ -31446,7 +31295,6 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Uncompresses a ZSTD compressed payload inside a\n tvbuff at offset with length comprlen.  Returns an uncompressed\n tvbuffer attached to parent if uncompression succeeded or NULL\n if uncompression failed."]
     pub fn tvb_child_uncompress_zstd(
         parent: *mut tvbuff_t,
         tvb: *mut tvbuff_t,
@@ -31455,14 +31303,12 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Return a tvb that contains the binary representation of a base64\n  string as a child of the indicated tvb.\n\n @param parent The parent tvbuff.\n @param base64 The base64 encoded string which binary representation will be\n               returned in the child tvb.\n\n @return   A tvb with the binary representation of the base64 decoded string."]
     pub fn base64_to_tvb(
         parent: *mut tvbuff_t,
         base64: *const ::std::os::raw::c_char,
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Return a tvb that contains the binary representation of a base64\n  encoded string in the parent tvb as a child of the indicated tvb.\n\n @param parent The parent tvbuff.\n @param offset Start of the base64 string in the tvb\n @param length Length of the base64 string in the tvb\n\n @return   A tvb with the binary representation of the base64 decoded string."]
     pub fn base64_tvb_to_new_tvb(
         parent: *mut tvbuff_t,
         offset: ::std::os::raw::c_int,
@@ -31477,20 +31323,34 @@ extern "C" {
     ) -> *mut tvbuff_t;
 }
 extern "C" {
-    #[doc = " Extract a variable length integer from a tvbuff.\n Each byte in a varint, except the last byte, has the most significant bit (msb)\n set -- this indicates that there are further bytes to come. For example,\n   1010 1100 0000 0010 is 300\n\n @param tvb The tvbuff in which we are extracting integer.\n @param offset The offset in tvb from which we begin trying to extract integer.\n @param maxlen The maximum distance from offset that we may try to extract integer\n @param value  if parsing succeeds, parsed varint will store here.\n @param encoding The ENC_* that defines the format (e.g., ENC_VARINT_PROTOBUF, ENC_VARINT_QUIC, ENC_VARINT_ZIGZAG, ENC_VARINT_SDNV)\n @return   the length of this varint in tvb. 0 means parsing failed."]
+    pub fn tvb_get_hpack_huffman_strbuf(
+        scope: *mut wmem_allocator_t,
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        len: ::std::os::raw::c_int,
+    ) -> *mut wmem_strbuf_t;
+}
+extern "C" {
+    pub fn tvb_child_uncompress_hpack_huff(
+        parent: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+    ) -> *mut tvbuff_t;
+}
+extern "C" {
     pub fn tvb_get_varint(
         tvb: *mut tvbuff_t,
-        offset: guint,
-        maxlen: guint,
-        value: *mut guint64,
-        encoding: guint,
-    ) -> guint;
+        offset: ::std::os::raw::c_uint,
+        maxlen: ::std::os::raw::c_uint,
+        value: *mut u64,
+        encoding: ::std::os::raw::c_uint,
+    ) -> ::std::os::raw::c_uint;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _value_string {
-    pub value: guint32,
-    pub strptr: *const gchar,
+    pub value: u32,
+    pub strptr: *const ::std::os::raw::c_char,
 }
 #[test]
 fn bindgen_test_layout__value_string() {
@@ -31530,48 +31390,48 @@ fn bindgen_test_layout__value_string() {
 pub type value_string = _value_string;
 extern "C" {
     pub fn val_to_str(
-        val: guint32,
+        val: u32,
         vs: *const value_string,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn val_to_str_wmem(
         scope: *mut wmem_allocator_t,
-        val: guint32,
+        val: u32,
         vs: *const value_string,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *mut gchar;
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn val_to_str_const(
-        val: guint32,
+        val: u32,
         vs: *const value_string,
         unknown_str: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn try_val_to_str(val: guint32, vs: *const value_string) -> *const gchar;
+    pub fn try_val_to_str(val: u32, vs: *const value_string) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn try_val_to_str_idx(
-        val: guint32,
+        val: u32,
         vs: *const value_string,
-        idx: *mut gint,
-    ) -> *const gchar;
+        idx: *mut ::std::os::raw::c_int,
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn char_val_to_str(
         val: ::std::os::raw::c_char,
         vs: *const value_string,
         msg: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _val64_string {
-    pub value: guint64,
-    pub strptr: *const gchar,
+    pub value: u64,
+    pub strptr: *const ::std::os::raw::c_char,
 }
 #[test]
 fn bindgen_test_layout__val64_string() {
@@ -31611,46 +31471,53 @@ fn bindgen_test_layout__val64_string() {
 pub type val64_string = _val64_string;
 extern "C" {
     pub fn val64_to_str(
-        val: guint64,
+        val: u64,
         vs: *const val64_string,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn val64_to_str_const(
-        val: guint64,
+        val: u64,
         vs: *const val64_string,
         unknown_str: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn try_val64_to_str(val: guint64, vs: *const val64_string) -> *const gchar;
+    pub fn try_val64_to_str(val: u64, vs: *const val64_string) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn try_val64_to_str_idx(
-        val: guint64,
+        val: u64,
         vs: *const val64_string,
-        idx: *mut gint,
-    ) -> *const gchar;
+        idx: *mut ::std::os::raw::c_int,
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn str_to_val(val: *const gchar, vs: *const value_string, err_val: guint32) -> guint32;
+    pub fn str_to_val(
+        val: *const ::std::os::raw::c_char,
+        vs: *const value_string,
+        err_val: u32,
+    ) -> u32;
 }
 extern "C" {
-    pub fn str_to_val_idx(val: *const gchar, vs: *const value_string) -> gint;
+    pub fn str_to_val_idx(
+        val: *const ::std::os::raw::c_char,
+        vs: *const value_string,
+    ) -> ::std::os::raw::c_int;
 }
 pub type value_string_ext = _value_string_ext;
 pub type _value_string_match2_t = ::std::option::Option<
-    unsafe extern "C" fn(arg1: guint32, arg2: *mut value_string_ext) -> *const value_string,
+    unsafe extern "C" fn(arg1: u32, arg2: *mut value_string_ext) -> *const value_string,
 >;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _value_string_ext {
     pub _vs_match2: _value_string_match2_t,
-    pub _vs_first_value: guint32,
-    pub _vs_num_entries: guint,
+    pub _vs_first_value: u32,
+    pub _vs_num_entries: ::std::os::raw::c_uint,
     pub _vs_p: *const value_string,
-    pub _vs_name: *const gchar,
+    pub _vs_name: *const ::std::os::raw::c_char,
 }
 #[test]
 fn bindgen_test_layout__value_string_ext() {
@@ -31718,16 +31585,13 @@ fn bindgen_test_layout__value_string_ext() {
     );
 }
 extern "C" {
-    pub fn _try_val_to_str_ext_init(
-        val: guint32,
-        vse: *mut value_string_ext,
-    ) -> *const value_string;
+    pub fn _try_val_to_str_ext_init(val: u32, vse: *mut value_string_ext) -> *const value_string;
 }
 extern "C" {
     pub fn value_string_ext_new(
         vs: *const value_string,
-        vs_tot_num_entries: guint,
-        vs_name: *const gchar,
+        vs_tot_num_entries: ::std::os::raw::c_uint,
+        vs_name: *const ::std::os::raw::c_char,
     ) -> *mut value_string_ext;
 }
 extern "C" {
@@ -31735,48 +31599,51 @@ extern "C" {
 }
 extern "C" {
     pub fn val_to_str_ext(
-        val: guint32,
+        val: u32,
         vse: *mut value_string_ext,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn val_to_str_ext_wmem(
         scope: *mut wmem_allocator_t,
-        val: guint32,
+        val: u32,
         vse: *mut value_string_ext,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *mut gchar;
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn val_to_str_ext_const(
-        val: guint32,
+        val: u32,
         vs: *mut value_string_ext,
         unknown_str: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn try_val_to_str_ext(val: guint32, vse: *mut value_string_ext) -> *const gchar;
+    pub fn try_val_to_str_ext(
+        val: u32,
+        vse: *mut value_string_ext,
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn try_val_to_str_idx_ext(
-        val: guint32,
+        val: u32,
         vse: *mut value_string_ext,
-        idx: *mut gint,
-    ) -> *const gchar;
+        idx: *mut ::std::os::raw::c_int,
+    ) -> *const ::std::os::raw::c_char;
 }
 pub type val64_string_ext = _val64_string_ext;
 pub type _val64_string_match2_t = ::std::option::Option<
-    unsafe extern "C" fn(arg1: guint64, arg2: *mut val64_string_ext) -> *const val64_string,
+    unsafe extern "C" fn(arg1: u64, arg2: *mut val64_string_ext) -> *const val64_string,
 >;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _val64_string_ext {
     pub _vs_match2: _val64_string_match2_t,
-    pub _vs_first_value: guint64,
-    pub _vs_num_entries: guint,
+    pub _vs_first_value: u64,
+    pub _vs_num_entries: ::std::os::raw::c_uint,
     pub _vs_p: *const val64_string,
-    pub _vs_name: *const gchar,
+    pub _vs_name: *const ::std::os::raw::c_char,
 }
 #[test]
 fn bindgen_test_layout__val64_string_ext() {
@@ -31844,16 +31711,13 @@ fn bindgen_test_layout__val64_string_ext() {
     );
 }
 extern "C" {
-    pub fn _try_val64_to_str_ext_init(
-        val: guint64,
-        vse: *mut val64_string_ext,
-    ) -> *const val64_string;
+    pub fn _try_val64_to_str_ext_init(val: u64, vse: *mut val64_string_ext) -> *const val64_string;
 }
 extern "C" {
     pub fn val64_string_ext_new(
         vs: *const val64_string,
-        vs_tot_num_entries: guint,
-        vs_name: *const gchar,
+        vs_tot_num_entries: ::std::os::raw::c_uint,
+        vs_name: *const ::std::os::raw::c_char,
     ) -> *mut val64_string_ext;
 }
 extern "C" {
@@ -31861,41 +31725,44 @@ extern "C" {
 }
 extern "C" {
     pub fn val64_to_str_ext(
-        val: guint64,
+        val: u64,
         vse: *mut val64_string_ext,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn val64_to_str_ext_wmem(
         scope: *mut wmem_allocator_t,
-        val: guint64,
+        val: u64,
         vse: *mut val64_string_ext,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *mut gchar;
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn val64_to_str_ext_const(
-        val: guint64,
+        val: u64,
         vs: *mut val64_string_ext,
         unknown_str: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn try_val64_to_str_ext(val: guint64, vse: *mut val64_string_ext) -> *const gchar;
+    pub fn try_val64_to_str_ext(
+        val: u64,
+        vse: *mut val64_string_ext,
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn try_val64_to_str_idx_ext(
-        val: guint64,
+        val: u64,
         vse: *mut val64_string_ext,
-        idx: *mut gint,
-    ) -> *const gchar;
+        idx: *mut ::std::os::raw::c_int,
+    ) -> *const ::std::os::raw::c_char;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _string_string {
-    pub value: *const gchar,
-    pub strptr: *const gchar,
+    pub value: *const ::std::os::raw::c_char,
+    pub strptr: *const ::std::os::raw::c_char,
 }
 #[test]
 fn bindgen_test_layout__string_string() {
@@ -31935,27 +31802,30 @@ fn bindgen_test_layout__string_string() {
 pub type string_string = _string_string;
 extern "C" {
     pub fn str_to_str(
-        val: *const gchar,
+        val: *const ::std::os::raw::c_char,
         vs: *const string_string,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn try_str_to_str(val: *const gchar, vs: *const string_string) -> *const gchar;
+    pub fn try_str_to_str(
+        val: *const ::std::os::raw::c_char,
+        vs: *const string_string,
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn try_str_to_str_idx(
-        val: *const gchar,
+        val: *const ::std::os::raw::c_char,
         vs: *const string_string,
-        idx: *mut gint,
-    ) -> *const gchar;
+        idx: *mut ::std::os::raw::c_int,
+    ) -> *const ::std::os::raw::c_char;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _range_string {
     pub value_min: u64,
     pub value_max: u64,
-    pub strptr: *const gchar,
+    pub strptr: *const ::std::os::raw::c_char,
 }
 #[test]
 fn bindgen_test_layout__range_string() {
@@ -32005,44 +31875,44 @@ fn bindgen_test_layout__range_string() {
 pub type range_string = _range_string;
 extern "C" {
     pub fn rval_to_str(
-        val: guint32,
+        val: u32,
         rs: *const range_string,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn rval_to_str_const(
-        val: guint32,
+        val: u32,
         rs: *const range_string,
         unknown_str: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn try_rval_to_str(val: guint32, rs: *const range_string) -> *const gchar;
+    pub fn try_rval_to_str(val: u32, rs: *const range_string) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn try_rval_to_str_idx(
-        val: guint32,
+        val: u32,
         rs: *const range_string,
-        idx: *mut gint,
-    ) -> *const gchar;
+        idx: *mut ::std::os::raw::c_int,
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn try_rval64_to_str(val: guint64, rs: *const range_string) -> *const gchar;
+    pub fn try_rval64_to_str(val: u64, rs: *const range_string) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn try_rval64_to_str_idx(
-        val: guint64,
+        val: u64,
         rs: *const range_string,
-        idx: *mut gint,
-    ) -> *const gchar;
+        idx: *mut ::std::os::raw::c_int,
+    ) -> *const ::std::os::raw::c_char;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _bytes_string {
-    pub value: *const guint8,
+    pub value: *const u8,
     pub value_length: usize,
-    pub strptr: *const gchar,
+    pub strptr: *const ::std::os::raw::c_char,
 }
 #[test]
 fn bindgen_test_layout__bytes_string() {
@@ -32092,53 +31962,54 @@ fn bindgen_test_layout__bytes_string() {
 pub type bytes_string = _bytes_string;
 extern "C" {
     pub fn bytesval_to_str(
-        val: *const guint8,
+        val: *const u8,
         val_len: usize,
         bs: *const bytes_string,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn try_bytesval_to_str(
-        val: *const guint8,
+        val: *const u8,
         val_len: usize,
         bs: *const bytes_string,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn bytesprefix_to_str(
-        haystack: *const guint8,
+        haystack: *const u8,
         haystack_len: usize,
         bs: *const bytes_string,
         fmt: *const ::std::os::raw::c_char,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn try_bytesprefix_to_str(
-        haystack: *const guint8,
+        haystack: *const u8,
         haystack_len: usize,
         bs: *const bytes_string,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn value_string_ext_validate(vse: *const value_string_ext) -> gboolean;
+    pub fn value_string_ext_validate(vse: *const value_string_ext) -> bool;
 }
 extern "C" {
-    pub fn value_string_ext_match_type_str(vse: *const value_string_ext) -> *const gchar;
+    pub fn value_string_ext_match_type_str(
+        vse: *const value_string_ext,
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn val64_string_ext_validate(vse: *const val64_string_ext) -> gboolean;
+    pub fn val64_string_ext_validate(vse: *const val64_string_ext) -> bool;
 }
 extern "C" {
-    pub fn val64_string_ext_match_type_str(vse: *const val64_string_ext) -> *const gchar;
+    pub fn val64_string_ext_match_type_str(
+        vse: *const val64_string_ext,
+    ) -> *const ::std::os::raw::c_char;
 }
-#[doc = " Struct for boolean representation"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct true_false_string {
-    #[doc = "< The string presented when true"]
     pub true_string: *const ::std::os::raw::c_char,
-    #[doc = "< The string presented when false"]
     pub false_string: *const ::std::os::raw::c_char,
 }
 #[test]
@@ -32177,9 +32048,8 @@ fn bindgen_test_layout_true_false_string() {
     );
 }
 extern "C" {
-    #[doc = " Returns the string representing the true or false value.\n\n From the given true_false_string return the appropriate string pointer\n @param[in] value The boolean value for which the string representation is sought\n @param[in] tfs   The true_false_string containing the relevant strings\n @return          Pointer to the appropriate string"]
     pub fn tfs_get_string(
-        value: gboolean,
+        value: bool,
         tfs: *const true_false_string,
     ) -> *const ::std::os::raw::c_char;
 }
@@ -32214,6 +32084,9 @@ extern "C" {
     pub static tfs_on_off: true_false_string;
 }
 extern "C" {
+    pub static tfs_off_on: true_false_string;
+}
+extern "C" {
     pub static tfs_ack_nack: true_false_string;
 }
 extern "C" {
@@ -32221,9 +32094,6 @@ extern "C" {
 }
 extern "C" {
     pub static tfs_allow_block: true_false_string;
-}
-extern "C" {
-    pub static tfs_restricted_allowed: true_false_string;
 }
 extern "C" {
     pub static tfs_restricted_not_restricted: true_false_string;
@@ -32400,16 +32270,10 @@ extern "C" {
     pub static tfs_up_down: true_false_string;
 }
 extern "C" {
-    pub static tfs_downlink_uplink: true_false_string;
-}
-extern "C" {
     pub static tfs_uplink_downlink: true_false_string;
 }
 extern "C" {
     pub static tfs_s2c_c2s: true_false_string;
-}
-extern "C" {
-    pub static tfs_c2s_s2c: true_false_string;
 }
 extern "C" {
     pub static tfs_open_closed: true_false_string;
@@ -32441,6 +32305,15 @@ extern "C" {
 extern "C" {
     pub static tfs_current_not_yet: true_false_string;
 }
+extern "C" {
+    pub static tfs_should_be_traced_should_not_be_traced: true_false_string;
+}
+extern "C" {
+    pub static tfs_activate_do_not_activate: true_false_string;
+}
+extern "C" {
+    pub static tfs_data_pdu_control_pdu: true_false_string;
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct epan_session {
@@ -32448,9 +32321,7 @@ pub struct epan_session {
 }
 pub const packet_char_enc_PACKET_CHAR_ENC_CHAR_ASCII: packet_char_enc = 0;
 pub const packet_char_enc_PACKET_CHAR_ENC_CHAR_EBCDIC: packet_char_enc = 1;
-#[doc = " @todo XXX - some of this stuff is used only while a packet is being dissected;\nshould we keep that stuff in the \"packet_info\" structure, instead, to\nsave memory?"]
 pub type packet_char_enc = ::std::os::raw::c_int;
-#[doc = " The frame number is the ordinal number of the frame in the capture, so\nit's 1-origin.  In various contexts, 0 as a frame number means \"frame\nnumber unknown\".\n\nThere is one of these structures for every frame in the capture.\nThat means a lot of memory if we have a lot of frames.\nThey are packed into power-of-2 chunks, so their size is effectively\nrounded up to a power of 2.\nTry to keep it close to, and less than or equal to, a power of 2.\n\"Smaller than a power of 2\" is OK for ILP32 platforms.\n\nXXX - shuffle the fields to try to keep the most commonly-accessed\nfields within the first 16 or 32 bytes, so they all fit in a cache\nline?"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _color_filter {
@@ -32459,36 +32330,21 @@ pub struct _color_filter {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _frame_data {
-    #[doc = "< Frame number"]
-    pub num: guint32,
-    #[doc = "< Packet length"]
-    pub pkt_len: guint32,
-    #[doc = "< Amount actually captured"]
-    pub cap_len: guint32,
-    #[doc = "< Cumulative bytes into the capture"]
-    pub cum_bytes: guint32,
-    #[doc = "< File offset"]
-    pub file_off: gint64,
-    #[doc = "< Per frame proto data"]
+    pub num: u32,
+    pub pkt_len: u32,
+    pub cap_len: u32,
+    pub cum_bytes: u32,
+    pub file_off: i64,
     pub pfd: *mut GSList,
-    #[doc = "< A hash table of frames which this one depends on"]
     pub dependent_frames: *mut GHashTable,
-    #[doc = "< Per-packet matching color_filter_t object"]
     pub color_filter: *const _color_filter,
-    #[doc = "< subframe number, for protocols that require this"]
-    pub subnum: guint16,
+    pub tcp_snd_manual_analysis: u8,
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 2usize]>,
-    #[doc = "< Absolute timestamp"]
     pub abs_ts: nstime_t,
-    #[doc = "< How much the abs_tm of the frame is shifted"]
     pub shift_offset: nstime_t,
-    #[doc = "< Previous reference frame (0 if this is one)"]
-    pub frame_ref_num: guint32,
-    #[doc = "< Previous displayed frame (0 if first one)"]
-    pub prev_dis_num: guint32,
-    #[doc = "< TCP SEQ Analysis Overriding, 0 = none, 1 = OOO, 2 = RET , 3 = Fast RET, 4 = Spurious RET"]
-    pub tcp_snd_manual_analysis: guint8,
+    pub frame_ref_num: u32,
+    pub prev_dis_num: u32,
 }
 #[test]
 fn bindgen_test_layout__frame_data() {
@@ -32496,7 +32352,7 @@ fn bindgen_test_layout__frame_data() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_frame_data>(),
-        104usize,
+        96usize,
         concat!("Size of: ", stringify!(_frame_data))
     );
     assert_eq!(
@@ -32585,13 +32441,13 @@ fn bindgen_test_layout__frame_data() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).subnum) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).tcp_snd_manual_analysis) as usize - ptr as usize },
         48usize,
         concat!(
             "Offset of field: ",
             stringify!(_frame_data),
             "::",
-            stringify!(subnum)
+            stringify!(tcp_snd_manual_analysis)
         )
     );
     assert_eq!(
@@ -32632,16 +32488,6 @@ fn bindgen_test_layout__frame_data() {
             stringify!(_frame_data),
             "::",
             stringify!(prev_dis_num)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tcp_snd_manual_analysis) as usize - ptr as usize },
-        96usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_frame_data),
-            "::",
-            stringify!(tcp_snd_manual_analysis)
         )
     );
 }
@@ -32832,13 +32678,12 @@ impl _frame_data {
 }
 pub type frame_data = _frame_data;
 extern "C" {
-    #[doc = " compare two frame_datas"]
     pub fn frame_data_compare(
         epan: *const epan_session,
         fdata1: *const frame_data,
         fdata2: *const frame_data,
         field: ::std::os::raw::c_int,
-    ) -> gint;
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn frame_data_reset(fdata: *mut frame_data);
@@ -32849,22 +32694,21 @@ extern "C" {
 extern "C" {
     pub fn frame_data_init(
         fdata: *mut frame_data,
-        num: guint32,
+        num: u32,
         rec: *const wtap_rec,
-        offset: gint64,
-        cum_bytes: guint32,
+        offset: i64,
+        cum_bytes: u32,
     );
 }
 extern "C" {
     pub fn frame_delta_abs_time(
         epan: *const epan_session,
         fdata: *const frame_data,
-        prev_num: guint32,
+        prev_num: u32,
         delta: *mut nstime_t,
     );
 }
 extern "C" {
-    #[doc = " Sets the frame data struct values before dissection."]
     pub fn frame_data_set_before_dissect(
         fdata: *mut frame_data,
         elapsed_time: *mut nstime_t,
@@ -32873,7 +32717,111 @@ extern "C" {
     );
 }
 extern "C" {
-    pub fn frame_data_set_after_dissect(fdata: *mut frame_data, cum_bytes: *mut guint32);
+    pub fn frame_data_set_after_dissect(fdata: *mut frame_data, cum_bytes: *mut u32);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ipv4_addr_and_mask {
+    pub addr: u32,
+    pub nmask: u32,
+}
+#[test]
+fn bindgen_test_layout_ipv4_addr_and_mask() {
+    const UNINIT: ::std::mem::MaybeUninit<ipv4_addr_and_mask> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<ipv4_addr_and_mask>(),
+        8usize,
+        concat!("Size of: ", stringify!(ipv4_addr_and_mask))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ipv4_addr_and_mask>(),
+        4usize,
+        concat!("Alignment of ", stringify!(ipv4_addr_and_mask))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).addr) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ipv4_addr_and_mask),
+            "::",
+            stringify!(addr)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).nmask) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ipv4_addr_and_mask),
+            "::",
+            stringify!(nmask)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ipv6_addr_and_prefix {
+    pub addr: ws_in6_addr,
+    pub prefix: u32,
+}
+#[test]
+fn bindgen_test_layout_ipv6_addr_and_prefix() {
+    const UNINIT: ::std::mem::MaybeUninit<ipv6_addr_and_prefix> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<ipv6_addr_and_prefix>(),
+        20usize,
+        concat!("Size of: ", stringify!(ipv6_addr_and_prefix))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ipv6_addr_and_prefix>(),
+        4usize,
+        concat!("Alignment of ", stringify!(ipv6_addr_and_prefix))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).addr) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ipv6_addr_and_prefix),
+            "::",
+            stringify!(addr)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).prefix) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ipv6_addr_and_prefix),
+            "::",
+            stringify!(prefix)
+        )
+    );
+}
+extern "C" {
+    pub fn ws_ipv4_get_subnet_mask(mask_length: u32) -> u32;
+}
+extern "C" {
+    pub fn ws_ipv4_addr_and_mask_init(
+        dst: *mut ipv4_addr_and_mask,
+        src_addr: ws_in4_addr,
+        src_bits: ::std::os::raw::c_int,
+    );
+}
+extern "C" {
+    pub fn ws_ipv4_addr_and_mask_contains(
+        ipv4: *const ipv4_addr_and_mask,
+        addr: *const ws_in4_addr,
+    ) -> bool;
+}
+extern "C" {
+    pub fn ws_ipv6_addr_and_prefix_contains(
+        ipv6: *const ipv6_addr_and_prefix,
+        addr: *const ws_in6_addr,
+    ) -> bool;
 }
 pub const address_type_AT_NONE: address_type = 0;
 pub const address_type_AT_ETHER: address_type = 1;
@@ -32956,7 +32904,11 @@ fn bindgen_test_layout__address() {
 }
 pub type address = _address;
 extern "C" {
-    pub fn address_to_bytes(addr: *const address, buf: *mut guint8, buf_len: guint) -> guint;
+    pub fn address_to_bytes(
+        addr: *const address,
+        buf: *mut u8,
+        buf_len: ::std::os::raw::c_uint,
+    ) -> ::std::os::raw::c_uint;
 }
 pub const port_type_PT_NONE: port_type = 0;
 pub const port_type_PT_SCTP: port_type = 1;
@@ -32981,104 +32933,61 @@ pub struct conversation_element {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _packet_info {
-    #[doc = "< name of protocol currently being dissected"]
     pub current_proto: *const ::std::os::raw::c_char,
-    #[doc = "< Column formatting information"]
     pub cinfo: *mut epan_column_info,
-    #[doc = "< Presence flags for some items"]
-    pub presence_flags: guint32,
-    #[doc = "< Frame number"]
-    pub num: guint32,
-    #[doc = "< Packet absolute time stamp"]
+    pub presence_flags: u32,
+    pub num: u32,
     pub abs_ts: nstime_t,
-    #[doc = "< Relative timestamp (yes, it can be negative)"]
     pub rel_ts: nstime_t,
-    #[doc = "< Relative timestamp from capture start (might be negative for broken files)"]
     pub rel_cap_ts: nstime_t,
-    #[doc = "< Relative timestamp from capture start valid"]
-    pub rel_cap_ts_present: gboolean,
+    pub rel_cap_ts_present: bool,
     pub fd: *mut frame_data,
     pub pseudo_header: *mut wtap_pseudo_header,
-    #[doc = "< Record metadata"]
     pub rec: *mut wtap_rec,
-    #[doc = "< Frame data sources"]
     pub data_src: *mut GSList,
-    #[doc = "< link-layer source address"]
     pub dl_src: address,
-    #[doc = "< link-layer destination address"]
     pub dl_dst: address,
-    #[doc = "< network-layer source address"]
     pub net_src: address,
-    #[doc = "< network-layer destination address"]
     pub net_dst: address,
-    #[doc = "< source address (net if present, DL otherwise )"]
     pub src: address,
-    #[doc = "< destination address (net if present, DL otherwise )"]
     pub dst: address,
-    #[doc = "< First encountered VLAN Id if present otherwise 0"]
-    pub vlan_id: guint32,
-    #[doc = "< reason why reassembly wasn't done, if any"]
+    pub vlan_id: u32,
     pub noreassembly_reason: *const ::std::os::raw::c_char,
-    #[doc = "< TRUE if the protocol is only a fragment"]
-    pub fragmented: gboolean,
+    pub fragmented: bool,
     pub flags: _packet_info__bindgen_ty_1,
-    #[doc = "< type of the following two port numbers"]
     pub ptype: port_type,
-    #[doc = "< source port"]
-    pub srcport: guint32,
-    #[doc = "< destination port"]
-    pub destport: guint32,
-    #[doc = "< matched uint for calling subdissector from table"]
-    pub match_uint: guint32,
-    #[doc = "< matched string for calling subdissector from table"]
+    pub srcport: u32,
+    pub destport: u32,
+    pub match_uint: u32,
     pub match_string: *const ::std::os::raw::c_char,
-    #[doc = "< TRUE if address/port endpoints member should be used for conversations"]
-    pub use_conv_addr_port_endpoints: gboolean,
-    #[doc = "< Data that can be used for address+port conversations, including wildcarding"]
+    pub use_conv_addr_port_endpoints: bool,
     pub conv_addr_port_endpoints: *mut conversation_addr_port_endpoints,
-    #[doc = "< Arbritrary conversation identifier; can't be wildcarded"]
     pub conv_elements: *mut conversation_element,
-    #[doc = "< >0 if this segment could be desegmented.\nA dissector that can offer this API (e.g.\nTCP) sets can_desegment=2, then\ncan_desegment is decremented by 1 each time\nwe pass to the next subdissector. Thus only\nthe dissector immediately above the\nprotocol which sets the flag can use it"]
-    pub can_desegment: guint16,
-    #[doc = "< Value of can_desegment before current\ndissector was called.  Supplied so that\ndissectors for proxy protocols such as\nSOCKS can restore it, allowing the\ndissectors that they call to use the\nTCP dissector's desegmentation (SOCKS\njust retransmits TCP segments once it's\nfinished setting things up, so the TCP\ndesegmentor can desegment its payload)."]
-    pub saved_can_desegment: guint16,
-    #[doc = "< offset to stuff needing desegmentation"]
+    pub can_desegment: u16,
+    pub saved_can_desegment: u16,
     pub desegment_offset: ::std::os::raw::c_int,
-    #[doc = "< requested desegmentation additional length\nor\nDESEGMENT_ONE_MORE_SEGMENT:\nDesegment one more full segment\n(warning! only partially implemented)\nDESEGMENT_UNTIL_FIN:\nDesgment all data for this tcp session\nuntil the FIN segment."]
-    pub desegment_len: guint32,
-    #[doc = "< >0 if the subdissector has specified\na value in 'bytes_until_next_pdu'.\nWhen a dissector detects that the next PDU\nwill start beyond the start of the next\nsegment, it can set this value to 2\nand 'bytes_until_next_pdu' to the number of\nbytes beyond the next segment where the\nnext PDU starts.\n\nIf the protocol dissector below this\none is capable of PDU tracking it can\nuse this hint to detect PDUs that starts\nunaligned to the segment boundaries.\nThe TCP dissector is using this hint from\n(some) protocols to detect when a new PDU\nstarts in the middle of a tcp segment.\n\nThere is intelligence in the glue between\ndissector layers to make sure that this\nrequest is only passed down to the protocol\nimmediately below the current one and not\nany further."]
-    pub want_pdu_tracking: guint16,
-    pub bytes_until_next_pdu: guint32,
-    #[doc = "< Packet was captured as an\noutbound (P2P_DIR_SENT)\ninbound (P2P_DIR_RECV)\nunknown (P2P_DIR_UNKNOWN)"]
+    pub desegment_len: u32,
+    pub want_pdu_tracking: u16,
+    pub bytes_until_next_pdu: u32,
     pub p2p_dir: ::std::os::raw::c_int,
-    #[doc = "< a hash table passed from one dissector to another"]
     pub private_table: *mut GHashTable,
-    #[doc = "< layers of each protocol"]
     pub layers: *mut wmem_list_t,
     pub proto_layers: *mut wmem_map_t,
-    #[doc = "< The current \"depth\" or layer number in the current frame"]
-    pub curr_layer_num: guint8,
-    #[doc = "< The current \"depth\" or layer number for this dissector in the current frame"]
-    pub curr_proto_layer_num: guint8,
-    pub link_number: guint16,
-    #[doc = "< clnp/cotp source reference (can't use srcport, this would confuse tpkt)"]
-    pub clnp_srcref: guint16,
-    #[doc = "< clnp/cotp destination reference (can't use dstport, this would confuse tpkt)"]
-    pub clnp_dstref: guint16,
-    #[doc = "< 3GPP messages are sometime different UP link(UL) or Downlink(DL)"]
+    pub curr_layer_num: u8,
+    pub curr_proto_layer_num: u8,
+    pub link_number: u16,
+    pub clnp_srcref: u16,
+    pub clnp_dstref: u16,
     pub link_dir: ::std::os::raw::c_int,
-    #[doc = "< Rcv.Wind.Shift src applies when sending segments; -1 unknown; -2 disabled"]
-    pub src_win_scale: gint16,
-    #[doc = "< Rcv.Wind.Shift dst applies when sending segments; -1 unknown; -2 disabled"]
-    pub dst_win_scale: gint16,
-    #[doc = "< Per packet proto data"]
+    pub src_win_scale: i16,
+    pub dst_win_scale: i16,
     pub proto_data: *mut GSList,
     pub frame_end_routines: *mut GSList,
-    #[doc = "< Memory pool scoped to the pinfo struct"]
     pub pool: *mut wmem_allocator_t,
     pub epan: *mut epan_session,
-    #[doc = "< name of heur list if this packet is being heuristically dissected"]
-    pub heur_list_name: *const gchar,
+    pub heur_list_name: *const ::std::os::raw::c_char,
+    pub dissection_depth: ::std::os::raw::c_int,
+    pub stream_id: u32,
 }
 #[repr(C)]
 #[repr(align(4))]
@@ -33103,22 +33012,22 @@ fn bindgen_test_layout__packet_info__bindgen_ty_1() {
 }
 impl _packet_info__bindgen_ty_1 {
     #[inline]
-    pub fn in_error_pkt(&self) -> guint32 {
+    pub fn in_error_pkt(&self) -> u32 {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_in_error_pkt(&mut self, val: guint32) {
+    pub fn set_in_error_pkt(&mut self, val: u32) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
-    pub fn in_gre_pkt(&self) -> guint32 {
+    pub fn in_gre_pkt(&self) -> u32 {
         unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
     }
     #[inline]
-    pub fn set_in_gre_pkt(&mut self, val: guint32) {
+    pub fn set_in_gre_pkt(&mut self, val: u32) {
         unsafe {
             let val: u32 = ::std::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
@@ -33126,8 +33035,8 @@ impl _packet_info__bindgen_ty_1 {
     }
     #[inline]
     pub fn new_bitfield_1(
-        in_error_pkt: guint32,
-        in_gre_pkt: guint32,
+        in_error_pkt: u32,
+        in_gre_pkt: u32,
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
@@ -33147,7 +33056,7 @@ fn bindgen_test_layout__packet_info() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_packet_info>(),
-        432usize,
+        440usize,
         concat!("Size of: ", stringify!(_packet_info))
     );
     assert_eq!(
@@ -33687,6 +33596,26 @@ fn bindgen_test_layout__packet_info() {
             stringify!(heur_list_name)
         )
     );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).dissection_depth) as usize - ptr as usize },
+        432usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_packet_info),
+            "::",
+            stringify!(dissection_depth)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).stream_id) as usize - ptr as usize },
+        436usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_packet_info),
+            "::",
+            stringify!(stream_id)
+        )
+    );
 }
 pub type packet_info = _packet_info;
 #[repr(C)]
@@ -33710,11 +33639,9 @@ extern "C" {
     ) -> *mut ws_regex_t;
 }
 extern "C" {
-    #[doc = " Matches a null-terminated subject string."]
     pub fn ws_regex_matches(re: *const ws_regex_t, subj: *const ::std::os::raw::c_char) -> bool;
 }
 extern "C" {
-    #[doc = " Matches a subject string length in 8 bit code units."]
     pub fn ws_regex_matches_length(
         re: *const ws_regex_t,
         subj: *const ::std::os::raw::c_char,
@@ -33722,11 +33649,11 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[doc = " Returns start and end position of the matched substring.\n\n  pos_vect[0] is first codepoint in the matched substring.\n  pos_vect[1] is the next to last codepoint in the matched substring.\n  pos_vect[1] - pos_vect[0] is the matched substring length."]
     pub fn ws_regex_matches_pos(
         re: *const ws_regex_t,
         subj: *const ::std::os::raw::c_char,
         subj_length: isize,
+        subj_offset: usize,
         pos_vect: *mut usize,
     ) -> bool;
 }
@@ -33783,6 +33710,7 @@ pub const ftenum_FT_STRINGZPAD: ftenum = 43;
 pub const ftenum_FT_FCWWN: ftenum = 44;
 pub const ftenum_FT_STRINGZTRUNC: ftenum = 45;
 pub const ftenum_FT_NUM_TYPES: ftenum = 46;
+pub const ftenum_FT_SCALAR: ftenum = 47;
 pub type ftenum = ::std::os::raw::c_int;
 pub use self::ftenum as ftenum_t;
 pub const ft_framenum_type_FT_FRAMENUM_NONE: ft_framenum_type = 0;
@@ -34222,6 +34150,30 @@ extern "C" {
     ) -> *mut fvalue_t;
 }
 extern "C" {
+    pub fn fvalue_from_sinteger64(
+        ftype: ftenum_t,
+        s: *const ::std::os::raw::c_char,
+        number: i64,
+        err_msg: *mut *mut ::std::os::raw::c_char,
+    ) -> *mut fvalue_t;
+}
+extern "C" {
+    pub fn fvalue_from_uinteger64(
+        ftype: ftenum_t,
+        s: *const ::std::os::raw::c_char,
+        number: u64,
+        err_msg: *mut *mut ::std::os::raw::c_char,
+    ) -> *mut fvalue_t;
+}
+extern "C" {
+    pub fn fvalue_from_floating(
+        ftype: ftenum_t,
+        s: *const ::std::os::raw::c_char,
+        number: f64,
+        err_msg: *mut *mut ::std::os::raw::c_char,
+    ) -> *mut fvalue_t;
+}
+extern "C" {
     pub fn fvalue_to_string_repr(
         scope: *mut wmem_allocator_t,
         fv: *const fvalue_t,
@@ -34242,7 +34194,10 @@ extern "C" {
     pub fn fvalue_to_sinteger64(fv: *const fvalue_t, repr: *mut i64) -> ft_result;
 }
 extern "C" {
-    pub fn fvalue_type_ftenum(fv: *mut fvalue_t) -> ftenum_t;
+    pub fn fvalue_to_double(fv: *const fvalue_t, repr: *mut f64) -> ft_result;
+}
+extern "C" {
+    pub fn fvalue_type_ftenum(fv: *const fvalue_t) -> ftenum_t;
 }
 extern "C" {
     pub fn fvalue_type_name(fv: *const fvalue_t) -> *const ::std::os::raw::c_char;
@@ -34308,7 +34263,10 @@ extern "C" {
     pub fn fvalue_set_floating(fv: *mut fvalue_t, value: f64);
 }
 extern "C" {
-    pub fn fvalue_set_ipv6(fv: *mut fvalue_t, value: *const ws_in6_addr);
+    pub fn fvalue_set_ipv4(fv: *mut fvalue_t, value: *const ipv4_addr_and_mask);
+}
+extern "C" {
+    pub fn fvalue_set_ipv6(fv: *mut fvalue_t, value: *const ipv6_addr_and_prefix);
 }
 extern "C" {
     pub fn fvalue_get_bytes(fv: *mut fvalue_t) -> *mut GBytes;
@@ -34350,7 +34308,10 @@ extern "C" {
     pub fn fvalue_get_floating(fv: *mut fvalue_t) -> f64;
 }
 extern "C" {
-    pub fn fvalue_get_ipv6(fv: *mut fvalue_t) -> *const ws_in6_addr;
+    pub fn fvalue_get_ipv4(fv: *mut fvalue_t) -> *const ipv4_addr_and_mask;
+}
+extern "C" {
+    pub fn fvalue_get_ipv6(fv: *mut fvalue_t) -> *const ipv6_addr_and_prefix;
 }
 extern "C" {
     pub fn fvalue_eq(a: *const fvalue_t, b: *const fvalue_t) -> ft_bool_t;
@@ -34460,11 +34421,10 @@ pub type register_cb = ::std::option::Option<
     unsafe extern "C" fn(
         action: register_action_e,
         message: *const ::std::os::raw::c_char,
-        client_data: gpointer,
+        client_data: *mut ::std::os::raw::c_void,
     ),
 >;
 extern "C" {
-    #[doc = " The header-field index for the special text pseudo-field. Exported by libwireshark.dll"]
     pub static mut hf_text_only: ::std::os::raw::c_int;
 }
 #[repr(C)]
@@ -34473,107 +34433,65 @@ pub struct expert_field {
     _unused: [u8; 0],
 }
 pub type custom_fmt_func_t =
-    ::std::option::Option<unsafe extern "C" fn(arg1: *mut gchar, arg2: guint32)>;
+    ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_char, arg2: u32)>;
 pub type custom_fmt_func_64_t =
-    ::std::option::Option<unsafe extern "C" fn(arg1: *mut gchar, arg2: guint64)>;
+    ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_char, arg2: u64)>;
 pub type custom_fmt_func_double_t =
-    ::std::option::Option<unsafe extern "C" fn(arg1: *mut gchar, arg2: f64)>;
+    ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_char, arg2: f64)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _protocol {
     _unused: [u8; 0],
 }
-#[doc = " Structure for information about a protocol"]
 pub type protocol_t = _protocol;
 extern "C" {
-    #[doc = " Function used for reporting errors in dissectors; it throws a\n DissectorError exception, with a string generated from the format\n and arguments to the format, as the message for the exception, so\n that it can show up in the Info column and the protocol tree.\n\n If the WIRESHARK_ABORT_ON_DISSECTOR_BUG environment variable is set,\n it will call abort(), instead, to make it easier to get a stack trace.\n\n @param format format string to use for the message"]
     pub fn proto_report_dissector_bug(format: *const ::std::os::raw::c_char, ...);
 }
-#[doc = "< none"]
 pub const field_display_e_BASE_NONE: field_display_e = 0;
-#[doc = "< decimal [integer, float]"]
 pub const field_display_e_BASE_DEC: field_display_e = 1;
-#[doc = "< hexadecimal [integer, float]"]
 pub const field_display_e_BASE_HEX: field_display_e = 2;
-#[doc = "< octal [integer]"]
 pub const field_display_e_BASE_OCT: field_display_e = 3;
-#[doc = "< decimal (hexadecimal) [integer]"]
 pub const field_display_e_BASE_DEC_HEX: field_display_e = 4;
-#[doc = "< hexadecimal (decimal) [integer]"]
 pub const field_display_e_BASE_HEX_DEC: field_display_e = 5;
-#[doc = "< call custom routine to format [integer, float]"]
 pub const field_display_e_BASE_CUSTOM: field_display_e = 6;
-#[doc = "< exponential [float]"]
 pub const field_display_e_BASE_EXP: field_display_e = 7;
-#[doc = "< hexadecimal bytes with a period (.) between each byte"]
 pub const field_display_e_SEP_DOT: field_display_e = 8;
-#[doc = "< hexadecimal bytes with a dash (-) between each byte"]
 pub const field_display_e_SEP_DASH: field_display_e = 9;
-#[doc = "< hexadecimal bytes with a colon (:) between each byte"]
 pub const field_display_e_SEP_COLON: field_display_e = 10;
-#[doc = "< hexadecimal bytes with a space between each byte"]
 pub const field_display_e_SEP_SPACE: field_display_e = 11;
-#[doc = "< Used for IPv4 address that shouldn't be resolved (like for netmasks)"]
 pub const field_display_e_BASE_NETMASK: field_display_e = 12;
-#[doc = "< UDP port"]
 pub const field_display_e_BASE_PT_UDP: field_display_e = 13;
-#[doc = "< TCP port"]
 pub const field_display_e_BASE_PT_TCP: field_display_e = 14;
-#[doc = "< DCCP port"]
 pub const field_display_e_BASE_PT_DCCP: field_display_e = 15;
-#[doc = "< SCTP port"]
 pub const field_display_e_BASE_PT_SCTP: field_display_e = 16;
-#[doc = "< OUI resolution"]
 pub const field_display_e_BASE_OUI: field_display_e = 17;
-#[doc = "< local time in our time zone, with month and day"]
 pub const field_display_e_ABSOLUTE_TIME_LOCAL: field_display_e = 18;
-#[doc = "< UTC, with month and day"]
 pub const field_display_e_ABSOLUTE_TIME_UTC: field_display_e = 19;
-#[doc = "< UTC, with 1-origin day-of-year"]
 pub const field_display_e_ABSOLUTE_TIME_DOY_UTC: field_display_e = 20;
-#[doc = "< UTC, with \"NULL\" when timestamp is all zeros"]
 pub const field_display_e_ABSOLUTE_TIME_NTP_UTC: field_display_e = 21;
-#[doc = "< Unix time"]
 pub const field_display_e_ABSOLUTE_TIME_UNIX: field_display_e = 22;
-#[doc = "< Replace all whitespace characters (newline, formfeed, etc) with \"space\"."]
 pub const field_display_e_BASE_STR_WSP: field_display_e = 23;
 pub type field_display_e = ::std::os::raw::c_int;
-#[doc = "< Field is not referenced"]
 pub const hf_ref_type_HF_REF_TYPE_NONE: hf_ref_type = 0;
-#[doc = "< Field is indirectly referenced (only applicable for FT_PROTOCOL) via. its child"]
 pub const hf_ref_type_HF_REF_TYPE_INDIRECT: hf_ref_type = 1;
-#[doc = "< Field is directly referenced"]
 pub const hf_ref_type_HF_REF_TYPE_DIRECT: hf_ref_type = 2;
+pub const hf_ref_type_HF_REF_TYPE_PRINT: hf_ref_type = 3;
 pub type hf_ref_type = ::std::os::raw::c_int;
-#[doc = " information describing a header field"]
 pub type header_field_info = _header_field_info;
-#[doc = " information describing a header field"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _header_field_info {
-    #[doc = "< [FIELDNAME] full name of this field"]
     pub name: *const ::std::os::raw::c_char,
-    #[doc = "< [FIELDFILTERNAME] filter name of this field"]
     pub abbrev: *const ::std::os::raw::c_char,
-    #[doc = "< [FIELDTYPE] field type, one of FT_ (from ftypes.h)"]
     pub type_: ftenum,
-    #[doc = "< [FIELDDISPLAY] one of BASE_, or field bit-width if FT_BOOLEAN and non-zero bitmask"]
     pub display: ::std::os::raw::c_int,
-    #[doc = "< [FIELDCONVERT] value_string, val64_string, range_string or true_false_string,\ntypically converted by VALS(), RVALS() or TFS().\nIf this is an FT_PROTOCOL or BASE_PROTOCOL_INFO then it points to the\nassociated protocol_t structure"]
     pub strings: *const ::std::os::raw::c_void,
-    #[doc = "< [BITMASK] bitmask of interesting bits"]
-    pub bitmask: guint64,
-    #[doc = "< [FIELDDESCR] Brief description of field"]
+    pub bitmask: u64,
     pub blurb: *const ::std::os::raw::c_char,
-    #[doc = "< Field ID"]
     pub id: ::std::os::raw::c_int,
-    #[doc = "< parent protocol tree"]
     pub parent: ::std::os::raw::c_int,
-    #[doc = "< is this field referenced by a filter"]
     pub ref_type: hf_ref_type,
-    #[doc = "< ID of previous hfinfo with same abbrev"]
     pub same_name_prev_id: ::std::os::raw::c_int,
-    #[doc = "< Link to next hfinfo with same abbrev"]
     pub same_name_next: *mut header_field_info,
 }
 #[test]
@@ -34711,13 +34629,10 @@ fn bindgen_test_layout__header_field_info() {
         )
     );
 }
-#[doc = " Used when registering many fields at once, using proto_register_field_array()"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct hf_register_info {
-    #[doc = "< written to by register() function"]
     pub p_id: *mut ::std::os::raw::c_int,
-    #[doc = "< the field info to be registered"]
     pub hfinfo: header_field_info,
 }
 #[test]
@@ -34755,7 +34670,6 @@ fn bindgen_test_layout_hf_register_info() {
         )
     );
 }
-#[doc = " string representation, if one of the proto_tree_add_..._format() functions used"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _item_label_t {
@@ -34786,34 +34700,21 @@ fn bindgen_test_layout__item_label_t() {
         )
     );
 }
-#[doc = " string representation, if one of the proto_tree_add_..._format() functions used"]
 pub type item_label_t = _item_label_t;
-#[doc = " Contains the field information for the proto_item."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct field_info {
-    #[doc = "< pointer to registered field information"]
-    pub hfinfo: *mut header_field_info,
-    #[doc = "< current start of data in field_info.ds_tvb"]
-    pub start: gint,
-    #[doc = "< current data length of item in field_info.ds_tvb"]
-    pub length: gint,
-    #[doc = "< start of appendix data"]
-    pub appendix_start: gint,
-    #[doc = "< length of appendix data"]
-    pub appendix_length: gint,
-    #[doc = "< one of ETT_ or -1"]
-    pub tree_type: gint,
-    #[doc = "< bitfield like FI_GENERATED, ..."]
-    pub flags: guint32,
-    #[doc = "< string for GUI tree"]
+    pub hfinfo: *const header_field_info,
+    pub start: ::std::os::raw::c_int,
+    pub length: ::std::os::raw::c_int,
+    pub appendix_start: ::std::os::raw::c_int,
+    pub appendix_length: ::std::os::raw::c_int,
+    pub tree_type: ::std::os::raw::c_int,
+    pub flags: u32,
     pub rep: *mut item_label_t,
-    #[doc = "< data source tvbuff"]
     pub ds_tvb: *mut tvbuff_t,
     pub value: *mut fvalue_t,
-    #[doc = "< Hierarchical layer number, for all protocols in the tree."]
     pub total_layer_num: ::std::os::raw::c_int,
-    #[doc = "< Protocol layer number, so 1st, 2nd, 3rd, ... for protocol X."]
     pub proto_layer_num: ::std::os::raw::c_int,
 }
 #[test]
@@ -34954,8 +34855,8 @@ fn bindgen_test_layout_field_info() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct crumb_spec_t {
-    pub crumb_bit_offset: guint,
-    pub crumb_bit_length: guint8,
+    pub crumb_bit_offset: ::std::os::raw::c_uint,
+    pub crumb_bit_length: u8,
 }
 #[test]
 fn bindgen_test_layout_crumb_spec_t() {
@@ -34992,14 +34893,13 @@ fn bindgen_test_layout_crumb_spec_t() {
         )
     );
 }
-#[doc = " One of these exists for the entire protocol tree. Each proto_node\n in the protocol tree points to the same copy."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct tree_data_t {
     pub interesting_hfids: *mut GHashTable,
-    pub visible: gboolean,
-    pub fake_protocols: gboolean,
-    pub count: guint,
+    pub visible: bool,
+    pub fake_protocols: bool,
+    pub count: ::std::os::raw::c_uint,
     pub pinfo: *mut _packet_info,
 }
 #[test]
@@ -35008,7 +34908,7 @@ fn bindgen_test_layout_tree_data_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<tree_data_t>(),
-        32usize,
+        24usize,
         concat!("Size of: ", stringify!(tree_data_t))
     );
     assert_eq!(
@@ -35038,7 +34938,7 @@ fn bindgen_test_layout_tree_data_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).fake_protocols) as usize - ptr as usize },
-        12usize,
+        9usize,
         concat!(
             "Offset of field: ",
             stringify!(tree_data_t),
@@ -35048,7 +34948,7 @@ fn bindgen_test_layout_tree_data_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).count) as usize - ptr as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(tree_data_t),
@@ -35058,7 +34958,7 @@ fn bindgen_test_layout_tree_data_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pinfo) as usize - ptr as usize },
-        24usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(tree_data_t),
@@ -35067,7 +34967,6 @@ fn bindgen_test_layout_tree_data_t() {
         )
     );
 }
-#[doc = " Each proto_tree, proto_item is one of these."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _proto_node {
@@ -35153,21 +35052,20 @@ fn bindgen_test_layout__proto_node() {
         )
     );
 }
-#[doc = " Each proto_tree, proto_item is one of these."]
 pub type proto_node = _proto_node;
-#[doc = " A protocol tree element."]
 pub type proto_tree = proto_node;
-#[doc = " A protocol item element."]
 pub type proto_item = proto_node;
-pub type proto_tree_foreach_func =
-    ::std::option::Option<unsafe extern "C" fn(arg1: *mut proto_node, arg2: gpointer)>;
-pub type proto_tree_traverse_func =
-    ::std::option::Option<unsafe extern "C" fn(arg1: *mut proto_node, arg2: gpointer) -> gboolean>;
+pub type proto_tree_foreach_func = ::std::option::Option<
+    unsafe extern "C" fn(arg1: *mut proto_node, arg2: *mut ::std::os::raw::c_void),
+>;
+pub type proto_tree_traverse_func = ::std::option::Option<
+    unsafe extern "C" fn(arg1: *mut proto_node, arg2: *mut ::std::os::raw::c_void) -> bool,
+>;
 extern "C" {
     pub fn proto_tree_children_foreach(
         tree: *mut proto_tree,
         func: proto_tree_foreach_func,
-        data: gpointer,
+        data: *mut ::std::os::raw::c_void,
     );
 }
 #[repr(C)]
@@ -35212,11 +35110,9 @@ fn bindgen_test_layout_proto_plugin() {
     );
 }
 extern "C" {
-    #[doc = " Register dissector plugin with the plugin system."]
     pub fn proto_register_plugin(plugin: *const proto_plugin);
 }
 extern "C" {
-    #[doc = " Sets up memory used by proto routines. Called at program startup"]
     pub fn proto_init(
         register_all_plugin_protocols_list: *mut GSList,
         register_all_plugin_handoffs_list: *mut GSList,
@@ -35225,61 +35121,51 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Frees memory used by proto routines. Called at program shutdown"]
     pub fn proto_cleanup();
 }
 extern "C" {
-    #[doc = " This function takes a tree and a protocol id as parameter and\nwill return TRUE/FALSE for whether the protocol or any of the filterable\nfields in the protocol is referenced by any fitlers.\nIf this function returns FALSE then it is safe to skip any\nproto_tree_add_...() calls and just treat the call as if the\ndissector was called with tree==NULL.\nIf you reset the tree to NULL by this dissector returning FALSE,\nyou will still need to call any subdissector with the original value of\ntree or filtering will break.\n\nThe purpose of this is to optimize wireshark for speed and make it\nfaster for when filters are being used."]
     pub fn proto_field_is_referenced(
         tree: *mut proto_tree,
         proto_id: ::std::os::raw::c_int,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Create a subtree under an existing item.\n@param pi the parent item of the new subtree\n@param idx one of the ett_ array elements registered with proto_register_subtree_array()\n@return the new subtree"]
-    pub fn proto_item_add_subtree(pi: *mut proto_item, idx: gint) -> *mut proto_tree;
+    pub fn proto_item_add_subtree(
+        pi: *mut proto_item,
+        idx: ::std::os::raw::c_int,
+    ) -> *mut proto_tree;
 }
 extern "C" {
-    #[doc = " Get an existing subtree under an item.\n@param pi the parent item of the subtree\n@return the subtree or NULL"]
     pub fn proto_item_get_subtree(pi: *mut proto_item) -> *mut proto_tree;
 }
 extern "C" {
-    #[doc = " Get the parent of a subtree item.\n@param pi the child item in the subtree\n@return parent item or NULL"]
     pub fn proto_item_get_parent(pi: *const proto_item) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Get Nth generation parent item.\n@param pi the child item in the subtree\n@param gen the generation to get (using 1 here is the same as using proto_item_get_parent())\n@return parent item"]
     pub fn proto_item_get_parent_nth(
         pi: *mut proto_item,
         gen: ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Replace text of item after it already has been created.\n@param pi the item to set the text\n@param format printf like format string\n@param ... printf like parameters"]
     pub fn proto_item_set_text(pi: *mut proto_item, format: *const ::std::os::raw::c_char, ...);
 }
 extern "C" {
-    #[doc = " Append to text of item after it has already been created.\n@param pi the item to append the text to\n@param format printf like format string\n@param ... printf like parameters"]
     pub fn proto_item_append_text(pi: *mut proto_item, format: *const ::std::os::raw::c_char, ...);
 }
 extern "C" {
-    #[doc = " Prepend to text of item after it has already been created.\n@param pi the item to prepend the text to\n@param format printf like format string\n@param ... printf like parameters"]
     pub fn proto_item_prepend_text(pi: *mut proto_item, format: *const ::std::os::raw::c_char, ...);
 }
 extern "C" {
-    #[doc = " Set proto_item's length inside tvb, after it has already been created.\n@param pi the item to set the length\n@param length the new length of the item"]
-    pub fn proto_item_set_len(pi: *mut proto_item, length: gint);
+    pub fn proto_item_set_len(pi: *mut proto_item, length: ::std::os::raw::c_int);
 }
 extern "C" {
-    #[doc = " Sets the length of the item based on its start and on the specified\n offset, which is the offset past the end of the item; as the start\n in the item is relative to the beginning of the data source tvbuff,\n we need to pass in a tvbuff.\n\n Given an item created as:\n      ti = proto_tree_add_item(*, *, tvb, offset, -1, *);\n then\n      proto_item_set_end(ti, tvb, end);\n is equivalent to\n      proto_item_set_len(ti, end - offset);\n\n@param pi the item to set the length\n@param tvb end is relative to this tvbuff\n@param end this end offset is relative to the beginning of tvb\n@todo make usage clearer, I don't understand it!"]
-    pub fn proto_item_set_end(pi: *mut proto_item, tvb: *mut tvbuff_t, end: gint);
+    pub fn proto_item_set_end(pi: *mut proto_item, tvb: *mut tvbuff_t, end: ::std::os::raw::c_int);
 }
 extern "C" {
-    #[doc = " Get length of a proto_item. Useful after using proto_tree_add_item()\n to add a variable-length field (e.g., FT_UINT_STRING).\n@param pi the item to get the length from\n@return the current length"]
     pub fn proto_item_get_len(pi: *const proto_item) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Set the bit offset and length for the specified proto_item.\n @param ti The item to set.\n @param bits_offset The number of bits from the beginning of the field.\n @param bits_len The new length in bits."]
     pub fn proto_item_set_bits_offset_len(
         ti: *mut proto_item,
         bits_offset: ::std::os::raw::c_int,
@@ -35287,49 +35173,42 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Get the display representation of a proto_item.\n Can be used, for example, to append that to the parent item of\n that item.\n@param scope the wmem scope to use to allocate the string\n@param pi the item from which to get the display representation\n@return the display representation"]
     pub fn proto_item_get_display_repr(
         scope: *mut wmem_allocator_t,
         pi: *mut proto_item,
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Creates a new proto_tree root.\n@return the new tree root"]
     pub fn proto_tree_create_root(pinfo: *mut _packet_info) -> *mut proto_tree;
 }
 extern "C" {
     pub fn proto_tree_reset(tree: *mut proto_tree);
 }
 extern "C" {
-    #[doc = " Clear memory for entry proto_tree. Clears proto_tree struct also.\n@param tree the tree to free"]
     pub fn proto_tree_free(tree: *mut proto_tree);
 }
 extern "C" {
-    #[doc = " Set the tree visible or invisible.\nIs the parsing being done for a visible proto_tree or an invisible one?\nBy setting this correctly, the proto_tree creation is sped up by not\nhaving to call vsnprintf and copy strings around.\n@param tree the tree to be set\n@param visible ... or not\n@return the old value"]
-    pub fn proto_tree_set_visible(tree: *mut proto_tree, visible: gboolean) -> gboolean;
+    pub fn proto_tree_set_visible(tree: *mut proto_tree, visible: bool) -> bool;
 }
 extern "C" {
-    #[doc = " Indicate whether we should fake protocols during dissection (default = TRUE)\n@param tree the tree to be set\n@param fake_protocols TRUE if we should fake protocols"]
-    pub fn proto_tree_set_fake_protocols(tree: *mut proto_tree, fake_protocols: gboolean);
+    pub fn proto_tree_set_fake_protocols(tree: *mut proto_tree, fake_protocols: bool);
 }
 extern "C" {
-    #[doc = " Mark a field/protocol ID as \"interesting\".\n@param tree the tree to be set (currently ignored)\n@param hfid the interesting field id\n@todo what *does* interesting mean?"]
     pub fn proto_tree_prime_with_hfid(tree: *mut proto_tree, hfid: ::std::os::raw::c_int);
 }
 extern "C" {
-    #[doc = " Get a parent item of a subtree.\n@param tree the tree to get the parent from\n@return parent item"]
+    pub fn proto_tree_prime_with_hfid_print(tree: *mut proto_tree, hfid: ::std::os::raw::c_int);
+}
+extern "C" {
     pub fn proto_tree_get_parent(tree: *mut proto_tree) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Get the parent tree of a subtree.\n@param tree the tree to get the parent from\n@return parent tree"]
     pub fn proto_tree_get_parent_tree(tree: *mut proto_tree) -> *mut proto_tree;
 }
 extern "C" {
-    #[doc = " Get the root tree from any subtree.\n@param tree the tree to get the root from\n@return root tree"]
     pub fn proto_tree_get_root(tree: *mut proto_tree) -> *mut proto_tree;
 }
 extern "C" {
-    #[doc = " Move an existing item behind another existing item.\n@param tree the tree to which both items belong\n@param fixed_item the item which keeps its position\n@param item_to_move the item which will be moved"]
     pub fn proto_tree_move_item(
         tree: *mut proto_tree,
         fixed_item: *mut proto_item,
@@ -35337,23 +35216,21 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Set start and length of an appendix for a proto_tree.\n@param tree the tree to set the appendix start and length\n@param tvb the tv buffer of the current data\n@param start the start offset of the appendix\n@param length the length of the appendix"]
     pub fn proto_tree_set_appendix(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
     );
 }
 extern "C" {
-    #[doc = " Add an item to a proto_tree, using the text label registered to that item.\nThe item is extracted from the tvbuff handed to it.\n@param tree the tree to append this item to\n@param hfinfo field\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param encoding data encoding\n@return the newly created item"]
     pub fn proto_tree_add_item_new(
         tree: *mut proto_tree,
         hfinfo: *mut header_field_info,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
     ) -> *mut proto_item;
 }
 extern "C" {
@@ -35361,21 +35238,20 @@ extern "C" {
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add an item to a proto_tree, using the text label registered to that item.\nThe item is extracted from the tvbuff handed to it.\n\nReturn the length of the item through the pointer.\n@param tree the tree to append this item to\n@param hfinfo field\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param encoding data encoding\n@param[out] lenretval points to a gint that will be set to the item length\n@return the newly created item, and *lenretval is set to the item length"]
     pub fn proto_tree_add_item_new_ret_length(
         tree: *mut proto_tree,
         hfinfo: *mut header_field_info,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        lenretval: *mut gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        lenretval: *mut ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
@@ -35383,22 +35259,21 @@ extern "C" {
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        lenretval: *mut gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        lenretval: *mut ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add an integer data item to a proto_tree, using the text label registered to that item.\nThe item is extracted from the tvbuff handed to it, and the retrieved\nvalue is also set to *retval so the caller gets it back for other uses.\n\nThis function retrieves the value even if the passed-in tree param is NULL,\nso that it can be used by dissectors at all times to both get the value\nand set the tree item to it.\n\nLike other proto_tree_add functions, if there is a tree and the value cannot\nbe decoded from the tvbuff, then an expert info error is reported.\n\nThis function accepts ENC_LITTLE_ENDIAN and ENC_BIG_ENDIAN for native number\nencoding in the tvbuff\n\nThe length argument must\nbe set to the appropriate size of the native type as in other proto_add routines.\n\nIntegers of 8, 16, 24 and 32 bits can be retrieved with the _ret_int and\nret_uint functions; integers of 40, 48, 56, and 64 bits can be retrieved\nwith the _ret_uint64 function; Boolean values of 8, 16, 24, 32, 40, 48,\n56, and 64 bits can be retrieved with the _ret_boolean function.\n\n@param tree the tree to append this item to\n@param hfindex field\n@param tvb the tv buffer of the current data\n@param start start of data in tvb (cannot be negative)\n@param length length of data in tvb (for strings can be -1 for remaining)\n@param encoding data encoding (e.g, ENC_LITTLE_ENDIAN, ENC_BIG_ENDIAN, ENC_ASCII|ENC_STRING, etc.)\n@param[out] retval points to a gint32 or guint32 which will be set to the value\n@return the newly created item, and *retval is set to the decoded value masked/shifted according to bitmask"]
     pub fn proto_tree_add_item_ret_int(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        retval: *mut gint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut i32,
     ) -> *mut proto_item;
 }
 extern "C" {
@@ -35406,10 +35281,10 @@ extern "C" {
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        retval: *mut gint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut i64,
     ) -> *mut proto_item;
 }
 extern "C" {
@@ -35417,10 +35292,10 @@ extern "C" {
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        retval: *mut guint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut u32,
     ) -> *mut proto_item;
 }
 extern "C" {
@@ -35428,10 +35303,10 @@ extern "C" {
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        retval: *mut guint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut u64,
     ) -> *mut proto_item;
 }
 extern "C" {
@@ -35439,11 +35314,11 @@ extern "C" {
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        retval: *mut guint64,
-        lenretval: *mut gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut u64,
+        lenretval: *mut ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
@@ -35451,10 +35326,10 @@ extern "C" {
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        retval: *mut gboolean,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut bool,
     ) -> *mut proto_item;
 }
 extern "C" {
@@ -35462,887 +35337,911 @@ extern "C" {
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         retval: *mut ws_in4_addr,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " @brief Parse an ipv6 address from the buffer and add it to the tree,\n writing the value to the pointer specified by the caller. The pointer\n must not be null.\n\n @param tree the tree\n @param hfindex the field\n @param tvb the tv buffer\n @param start the start index of data in tvb\n @param length the length of data. calls REPORT_DISSECTOR_BUG if not equal to FT_IPv6_LEN\n @param encoding encodings not yet supported. calls REPORT_DISSECTOR_BUG if not equal to 0\n @param retval where the address should be written, must not be null\n @return the newly created item"]
     pub fn proto_tree_add_item_ret_ipv6(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         retval: *mut ws_in6_addr,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " @brief Parse an ethernet address from the buffer and add it to the tree,\n writing the value to the pointer specified by the caller. The pointer\n must not be null.\n\n @param tree the tree\n @param hfindex the field\n @param tvb the tv buffer\n @param start the start index of data in tvb\n @param length the length of data. calls REPORT_DISSECTOR_BUG if not equal to FT_ETHER_LEN\n @param encoding encodings not yet supported. calls REPORT_DISSECTOR_BUG if not equal to 0\n @param retval a buffer of at least FT_ETHER_LEN bytes for the address, must not be null\n @return the newly created item"]
     pub fn proto_tree_add_item_ret_ether(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        retval: *mut guint8,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut u8,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " @brief Parse a float from the buffer and add it to the tree,\n returning the item added and the parsed value via retval.\n\n @param tree the tree\n @param hfindex the field\n @param tvb the tv buffer\n @param start start index of data in tvb\n @param length the length of data. calls REPORT_DISSECTOR_BUG if not equal to 4\n @param encoding ENC_LITTLE_ENDIAN or ENC_BIG_ENDIAN\n @param[out] retval for the decoded value\n @return the newly created item"]
     pub fn proto_tree_add_item_ret_float(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        retval: *mut gfloat,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut f32,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " @brief Parse a double from the buffer and add it to the tree,\n returning the item added and the parsed value via retval\n\n @param tree the tree\n @param hfindex the field\n @param tvb the tv buffer\n @param start start index of data in tvb\n @param length length of data. calls REPORT_DISSECTOR_BUG if not equal to 8\n @param encoding ENC_LITTLE_ENDIAN or ENC_BIG_ENDIAN\n @param[out] retval for the decoded value\n @return the newly created item and retval is set to the decoded value"]
     pub fn proto_tree_add_item_ret_double(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
-        retval: *mut gdouble,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut f64,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add an string item to a proto_tree, using the text label registered to\nthat item.\n\nThe item is extracted from the tvbuff handed to it, and the retrieved\nvalue and its length are returned through pointers so the caller can use\nthem.  The value is allocated using the wmem scope passed in.\n\nThis function retrieves the value and length even if the passed-in tree\nparam is NULL, so that then can be used by dissectors at all times to\nboth get the value and set the tree item to it.\n\nLike other proto_tree_add functions, if there is a tree and the value cannot\nbe decoded from the tvbuff, then an expert info error is reported.\n\nThis function accepts string encodings.\n\n@param scope the wmem scope to use to allocate the string\n@param tree the tree to append this item to\n@param hfindex field\n@param tvb the tv buffer of the current data\n@param start start of data in tvb (cannot be negative)\n@param length length of data in tvb (for strings can be -1 for remaining)\n@param encoding data encoding (e.g, ENC_ASCII, ENC_UTF_8, etc.)\n@param[out] retval points to a guint8 * that will be set to point to the\nstring value\n@param[out] lenretval points to a gint that will be set to the item length\n@return the newly created item, *retval is set to the decoded value,\nand *lenretval is set to the item length"]
     pub fn proto_tree_add_item_ret_string_and_length(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         scope: *mut wmem_allocator_t,
-        retval: *mut *const guint8,
-        lenretval: *mut gint,
+        retval: *mut *const u8,
+        lenretval: *mut ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add an string item to a proto_tree, using the text label registered to\nthat item.\n\nThe item is extracted from the tvbuff handed to it, and the retrieved\nvalue is returned through a pointer so the caller can use it.  The value\nis allocated using the wmem scope passed in.\n\nThis function retrieves the value even if the passed-in tree param is NULL,\nso that it can be used by dissectors at all times to both get the value\nand set the tree item to it.\n\nLike other proto_tree_add functions, if there is a tree and the value cannot\nbe decoded from the tvbuff, then an expert info error is reported.\n\nThis function accepts string encodings.\n\n@param scope the wmem scope to use to allocate the string\n@param tree the tree to append this item to\n@param hfindex field\n@param tvb the tv buffer of the current data\n@param start start of data in tvb (cannot be negative)\n@param length length of data in tvb (for strings can be -1 for remaining)\n@param encoding data encoding (e.g, ENC_ASCII, ENC_UTF_8, etc.)\n@param[out] retval points to a guint8 * that will be set to point to the\nstring value\n@return the newly created item, and *retval is set to the decoded value"]
     pub fn proto_tree_add_item_ret_string(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         scope: *mut wmem_allocator_t,
-        retval: *mut *const guint8,
+        retval: *mut *const u8,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add an string or byte array item to a proto_tree, using the\ntext label registered to that item.\n\nThis provides a string that is a display representation of the value,\nand the length of the item, similar to what\nproto_tree_add_item_ret_string_and_length() does.\n\n@param scope the wmem scope to use to allocate the string\n@param tree the tree to append this item to\n@param hfindex field\n@param tvb the tv buffer of the current data\n@param start start of data in tvb (cannot be negative)\n@param length length of data in tvb (for strings can be -1 for remaining)\n@param encoding data encoding (e.g, ENC_ASCII, ENC_UTF_8, etc.)\n@param[out] retval points to a guint8 * that will be set to point to the\nstring value\n@param[out] lenretval points to a gint that will be set to the item length\n@return the newly created item, *retval is set to the display string,\nand *lenretval is set to the item length"]
     pub fn proto_tree_add_item_ret_display_string_and_length(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         scope: *mut wmem_allocator_t,
         retval: *mut *mut ::std::os::raw::c_char,
-        lenretval: *mut gint,
+        lenretval: *mut ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add an string or byte array item to a proto_tree, using the\ntext label registered to that item.\n\nThis provides a string that is a display representation of the value,\nsimilar to what proto_tree_add_item_ret_string() does.\n\n@param tree the tree to append this item to\n@param hfindex field\n@param tvb the tv buffer of the current data\n@param start start of data in tvb (cannot be negative)\n@param length length of data in tvb (for strings can be -1 for remaining)\n@param encoding data encoding (e.g, ENC_ASCII, ENC_UTF_8, etc.)\n@param scope the wmem scope to use to allocate the string\n@param[out] retval points to a guint8 * that will be set to point to the\nstring value\n@return the newly created item, *retval is set to the display string"]
     pub fn proto_tree_add_item_ret_display_string(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         scope: *mut wmem_allocator_t,
         retval: *mut *mut ::std::os::raw::c_char,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a time item to a proto_tree, using thetext label registered to that item.\n\nThis provides a string that is a display representation of the time value\n\n@param tree the tree to append this item to\n@param hfindex field\n@param tvb the tv buffer of the current data\n@param start start of data in tvb (cannot be negative)\n@param length length of data in tvb (for strings can be -1 for remaining)\n@param encoding data encoding (e.g, ENC_ASCII, ENC_UTF_8, etc.)\n@param scope the wmem scope to use to allocate the string\n@param[out] retval points to a guint8 * that will be set to point to the\nstring value\n@return the newly created item, *retval is set to the display string"]
     pub fn proto_tree_add_item_ret_time_string(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         scope: *mut wmem_allocator_t,
         retval: *mut *mut ::std::os::raw::c_char,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " (INTERNAL USE ONLY) Add a text-only node to a proto_tree.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_text_internal(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " (INTERNAL USE ONLY) Add a text-only node to a proto_tree using a variable argument list.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param format printf like format string\n@param ap variable argument list\n@return the newly created item"]
     pub fn proto_tree_add_text_valist_internal(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         format: *const ::std::os::raw::c_char,
         ap: va_list,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a text-only node that creates a subtree underneath.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param idx one of the ett_ array elements registered with proto_register_subtree_array()\n@param tree_item item returned with tree creation. Can be NULL if going to be unused\n@param text label for the tree\n@return the newly created tree"]
     pub fn proto_tree_add_subtree(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        idx: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        idx: ::std::os::raw::c_int,
         tree_item: *mut *mut proto_item,
         text: *const ::std::os::raw::c_char,
     ) -> *mut proto_tree;
 }
 extern "C" {
-    #[doc = " Add a text-only node that creates a subtree underneath.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param idx one of the ett_ array elements registered with proto_register_subtree_array()\n@param tree_item item returned with tree creation. Can be NULL if going to be unused\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created tree"]
     pub fn proto_tree_add_subtree_format(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        idx: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        idx: ::std::os::raw::c_int,
         tree_item: *mut *mut proto_item,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_tree;
 }
 extern "C" {
-    #[doc = " Add a text-only node to a proto_tree with tvb_format_text() string."]
     pub fn proto_tree_add_format_text(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a text-only node to a proto_tree with tvb_format_text_wsp() string."]
     pub fn proto_tree_add_format_wsp_text(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_NONE field to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_none_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_PROTOCOL to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_protocol_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_BYTES to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param start_ptr pointer to the data to display\n@return the newly created item"]
     pub fn proto_tree_add_bytes(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        start_ptr: *const guint8,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        start_ptr: *const u8,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_BYTES to a proto_tree like proto_tree_add_bytes,\nbut used when the tvb data length does not match the bytes length.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param start_ptr pointer to the data to display\n@param ptr_length length of data in start_ptr\n@return the newly created item"]
     pub fn proto_tree_add_bytes_with_length(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        start_ptr: *const guint8,
-        ptr_length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        start_ptr: *const u8,
+        ptr_length: ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Get and add a byte-array-based FT_* to a proto_tree.\n\nSupported: FT_BYTES, FT_UINT_BYTES, FT_OID, FT_REL_OID, and FT_SYSTEM_ID.\n\nThe item is extracted from the tvbuff handed to it, based on the ENC_* passed\nin for the encoding, and the retrieved byte array is also set to *retval so the\ncaller gets it back for other uses.\n\nThis function retrieves the value even if the passed-in tree param is NULL,\nso that it can be used by dissectors at all times to both get the value\nand set the tree item to it.\n\nLike other proto_tree_add functions, if there is a tree and the value cannot\nbe decoded from the tvbuff, then an expert info error is reported. For string\nencoding, this means that a failure to decode the hex value from the string\nresults in an expert info error being added to the tree.\n\nIf encoding is string-based, it will convert using tvb_get_string_bytes(); see\nthat function's comments for details.\n\n@note The GByteArray retval must be pre-constructed using g_byte_array_new().\n\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param encoding data encoding (e.g, ENC_LITTLE_ENDIAN, or ENC_UTF_8|ENC_STR_HEX)\n@param[in,out] retval points to a GByteArray which will be set to the bytes from the Tvb.\n@param[in,out] endoff if not NULL, gets set to the character after those consumed.\n@param[in,out] err if not NULL, gets set to 0 if no failure, else the errno code (e.g., EINVAL).\n@return the newly created item, and retval is set to the decoded value"]
     pub fn proto_tree_add_bytes_item(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         retval: *mut GByteArray,
-        endoff: *mut gint,
-        err: *mut gint,
+        endoff: *mut ::std::os::raw::c_int,
+        err: *mut ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_BYTES to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param start_ptr pointer to the data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_bytes_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        start_ptr: *const guint8,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        start_ptr: *const u8,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_BYTES to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param start_ptr pointer to the data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_bytes_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        start_ptr: *const guint8,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        start_ptr: *const u8,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_ABSOLUTE_TIME or FT_RELATIVE_TIME to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr pointer to the data to display\n@return the newly created item"]
     pub fn proto_tree_add_time(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value_ptr: *const nstime_t,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Get and add a FT_ABSOLUTE_TIME or FT_RELATIVE_TIME to a proto_tree.\nThe item is extracted from the tvbuff handed to it, based on the ENC_* passed\nin for the encoding, and the retrieved value is also set to *retval so the\ncaller gets it back for other uses.\n\nThis function retrieves the value even if the passed-in tree param is NULL,\nso that it can be used by dissectors at all times to both get the value\nand set the tree item to it.\n\nLike other proto_tree_add functions, if there is a tree and the value cannot\nbe decoded from the tvbuff, then an expert info error is reported. For string\nencoding, this means that a failure to decode the time value from the string\nresults in an expert info error being added to the tree.\n\nIf encoding is string-based, it will convert using tvb_get_string_time(); see\nthat function's comments for details.\n\n@note The nstime_t *retval must be pre-allocated as a nstime_t.\n\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param encoding data encoding (e.g, ENC_LITTLE_ENDIAN, ENC_UTF_8|ENC_ISO_8601_DATE_TIME, etc.)\n@param[in,out] retval points to a nstime_t which will be set to the value\n@param[in,out] endoff if not NULL, gets set to the character after those consumed.\n@param[in,out] err if not NULL, gets set to 0 if no failure, else EINVAL.\n@return the newly created item, and retval is set to the decoded value"]
     pub fn proto_tree_add_time_item(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        encoding: guint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
         retval: *mut nstime_t,
-        endoff: *mut gint,
-        err: *mut gint,
+        endoff: *mut ::std::os::raw::c_int,
+        err: *mut ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_ABSOLUTE_TIME or FT_RELATIVE_TIME to a proto_tree, with\nthe format generating the string for the value and with the field name\nbeing included automatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr pointer to the data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_time_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value_ptr: *mut nstime_t,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_ABSOLUTE_TIME or FT_RELATIVE_TIME to a proto_tree, with\nthe format generating the entire string for the entry, including any field\nname.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr pointer to the data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_time_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value_ptr: *mut nstime_t,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_IPXNET to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_ipxnet(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u32,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_IPXNET to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_ipxnet_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u32,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_IPXNET to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_ipxnet_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u32,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_IPv4 to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_ipv4(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: ws_in4_addr,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_IPv4 to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_ipv4_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: ws_in4_addr,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_IPv4 to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_ipv4_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: ws_in4_addr,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_IPv6 to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr data to display\n@return the newly created item"]
     pub fn proto_tree_add_ipv6(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value_ptr: *const ws_in6_addr,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_IPv6 to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_ipv6_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value_ptr: *const ws_in6_addr,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_IPv6 to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_ipv6_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value_ptr: *const ws_in6_addr,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_ETHER to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_ether(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: *const guint8,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: *const u8,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_ETHER to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_ether_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: *const guint8,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: *const u8,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_ETHER to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_ether_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: *const guint8,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: *const u8,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_GUID to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr data to display\n@return the newly created item"]
     pub fn proto_tree_add_guid(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value_ptr: *const e_guid_t,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_GUID to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_guid_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value_ptr: *const e_guid_t,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_GUID to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_guid_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value_ptr: *const e_guid_t,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_OID to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr data to display\n@return the newly created item"]
     pub fn proto_tree_add_oid(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value_ptr: *const guint8,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value_ptr: *const u8,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_OID to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_oid_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value_ptr: *const guint8,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value_ptr: *const u8,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_OID to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value_ptr data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_oid_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value_ptr: *const guint8,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value_ptr: *const u8,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add an FT_STRING, FT_STRINGZ, FT_STRINGZPAD, or FT_STRINGZTRUNC to a\nproto_tree. The value passed in should be a UTF-8 encoded null terminated\nstring, such as produced by tvb_get_string_enc(), regardless of the original\npacket data.\n\nThis function is used to add a custom string *value* to the protocol tree.\nDo not format the string value for display, for example by using format_text().\nThe input string represents packet data, not a display label. Formatting\nlabels is a concern of the UI. Doing that here would change the meaning of the packet\ndata, restrict the options for formatting later and make display filtering unintuitive\nfor whitespace and other special characters.\n\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_string(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: *const ::std::os::raw::c_char,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_STRING, FT_STRINGZ, FT_STRINGZPAD, or FT_STRINGZTRUNC\nto a proto_tree, with the format generating the string for the value\nand with the field name being included automatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_string_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: *const ::std::os::raw::c_char,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_STRING, FT_STRINGZ, FT_STRINGZPAD, or FT_STRINGZTRUNC\nto a proto_tree, with the format generating the entire string for the\nentry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_string_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: *const ::std::os::raw::c_char,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_BOOLEAN to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_boolean(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u64,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_BOOLEAN to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_boolean_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u64,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_BOOLEAN to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_boolean_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u64,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_FLOAT to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_float(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: f32,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_FLOAT to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_float_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: f32,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_FLOAT to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_float_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: f32,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_DOUBLE to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_double(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: f64,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_DOUBLE to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_double_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: f64,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_DOUBLE to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_double_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
         value: f64,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add one of FT_UINT8, FT_UINT16, FT_UINT24 or FT_UINT32 to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_uint(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u32,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_UINT8, FT_UINT16, FT_UINT24 or FT_UINT32 to a proto_tree,\nwith the format generating the string for the value and with the field\nname being included automatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_uint_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u32,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_UINT8, FT_UINT16, FT_UINT24 or FT_UINT32 to a proto_tree,\nwith the format generating the entire string for the entry, including any\nfield name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_uint_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u32,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add an FT_UINT64 to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_uint64(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u64,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_UINT64 to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_uint64_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u64,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_UINT64 to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_uint64_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u64,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add one of FT_INT8, FT_INT16, FT_INT24 or FT_INT32 to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_int(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: gint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: i32,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_INT8, FT_INT16, FT_INT24 or FT_INT32 to a proto_tree,\nwith the format generating the string for the value and with the field\nname being included automatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_int_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: gint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: i32,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_INT8, FT_INT16, FT_INT24 or FT_INT32 to a proto_tree,\nwith the format generating the entire string for the entry, including\nany field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_int_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: gint32,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: i32,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add an FT_INT64 to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_int64(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: gint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: i64,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_INT64 to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_int64_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: gint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: i64,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_INT64 to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_int64_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: gint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: i64,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_EUI64 to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@return the newly created item"]
     pub fn proto_tree_add_eui64(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u64,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_EUI64 to a proto_tree, with the format generating\nthe string for the value and with the field name being included\nautomatically.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_eui64_format_value(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u64,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a formatted FT_EUI64 to a proto_tree, with the format generating\nthe entire string for the entry, including any field name.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param start start of data in tvb\n@param length length of data in tvb\n@param value data to display\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_eui64_format(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        start: gint,
-        length: gint,
-        value: guint64,
+        start: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_int,
+        value: u64,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _mac_hf_list_t {
+    pub hf_addr: *mut ::std::os::raw::c_int,
+    pub hf_addr_resolved: *mut ::std::os::raw::c_int,
+    pub hf_oui: *mut ::std::os::raw::c_int,
+    pub hf_oui_resolved: *mut ::std::os::raw::c_int,
+    pub hf_lg: *mut ::std::os::raw::c_int,
+    pub hf_ig: *mut ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout__mac_hf_list_t() {
+    const UNINIT: ::std::mem::MaybeUninit<_mac_hf_list_t> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<_mac_hf_list_t>(),
+        48usize,
+        concat!("Size of: ", stringify!(_mac_hf_list_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_mac_hf_list_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_mac_hf_list_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).hf_addr) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mac_hf_list_t),
+            "::",
+            stringify!(hf_addr)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).hf_addr_resolved) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mac_hf_list_t),
+            "::",
+            stringify!(hf_addr_resolved)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).hf_oui) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mac_hf_list_t),
+            "::",
+            stringify!(hf_oui)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).hf_oui_resolved) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mac_hf_list_t),
+            "::",
+            stringify!(hf_oui_resolved)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).hf_lg) as usize - ptr as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mac_hf_list_t),
+            "::",
+            stringify!(hf_lg)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).hf_ig) as usize - ptr as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_mac_hf_list_t),
+            "::",
+            stringify!(hf_ig)
+        )
+    );
+}
+pub type mac_hf_list_t = _mac_hf_list_t;
 extern "C" {
-    #[doc = " Useful for quick debugging. Also sends string to STDOUT, so don't\nleave call to this function in production code.\n@param tree the tree to append the text to\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
+    pub fn proto_tree_add_mac48_detail(
+        list_specific: *const mac_hf_list_t,
+        list_generic: *const mac_hf_list_t,
+        idx: ::std::os::raw::c_int,
+        tvb: *mut tvbuff_t,
+        tree: *mut proto_tree,
+        offset: ::std::os::raw::c_int,
+    ) -> *mut proto_item;
+}
+extern "C" {
     pub fn proto_tree_add_debug_text(
         tree: *mut proto_tree,
         format: *const ::std::os::raw::c_char,
@@ -36350,19 +36249,16 @@ extern "C" {
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Fill given label_str with a simple string representation of field.\n@param finfo the item to get the info from\n@param label_str the string to fill\n@todo think about changing the parameter profile"]
-    pub fn proto_item_fill_label(finfo: *mut field_info, label_str: *mut gchar);
+    pub fn proto_item_fill_label(finfo: *const field_info, label_str: *mut ::std::os::raw::c_char);
 }
 extern "C" {
-    #[doc = " Fill the given display_label_str with the string representation of a field\n formatted according to its type and field display specifier.\n Used to display custom columns and packet diagram values.\n@param fi The item to get the info from\n@param display_label_str The string to fill\n@return The length of the label excluding the terminating '\\0'."]
     pub fn proto_item_fill_display_label(
-        fi: *mut field_info,
-        display_label_str: *mut gchar,
+        fi: *const field_info,
+        display_label_str: *mut ::std::os::raw::c_char,
         label_str_size: ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Register a new protocol.\n@param name the full name of the new protocol\n@param short_name abbreviated name of the new protocol\n@param filter_name protocol name used for a display filter string\n@return the new protocol handle"]
     pub fn proto_register_protocol(
         name: *const ::std::os::raw::c_char,
         short_name: *const ::std::os::raw::c_char,
@@ -36370,7 +36266,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Register a \"helper\" protocol (pino - protocol in name only).\nThis is for dissectors that need distinguishing names and don't need the other\nfeatures (like enable/disable).  One use case is a protocol with multiple dissection\nfunctions in a single dissector table needing unique \"dissector names\" to remove\nconfusion with Decode As dialog.  Another use case is for a dissector table set\nup to handle TLVs within a single protocol (and allow \"external\" TLVs being\nregistered through the dissector table).\n@param name the full name of the new protocol\n@param short_name abbreviated name of the new protocol\n@param filter_name protocol name used for a display filter string\n@param parent_proto the \"real\" protocol for the helper.  The parent decides enable/disable\n@param field_type FT_PROTOCOL or FT_BYTES.  Allows removal of \"protocol highlighting\" (FT_BYTES)\nif pino is part of TLV.\n@return the new protocol handle"]
     pub fn proto_register_protocol_in_name_only(
         name: *const ::std::os::raw::c_char,
         short_name: *const ::std::os::raw::c_char,
@@ -36380,32 +36275,26 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Deregister a protocol.\nThis is only used internally for reloading Lua plugins and must not be used\nby dissectors or plugins.\n@param short_name abbreviated name of the protocol\n@return TRUE if protocol is removed"]
-    pub fn proto_deregister_protocol(short_name: *const ::std::os::raw::c_char) -> gboolean;
+    pub fn proto_deregister_protocol(short_name: *const ::std::os::raw::c_char) -> bool;
 }
 extern "C" {
-    #[doc = " Register a protocol alias.\nThis is for dissectors whose original name has changed, e.g. BOOTP to DHCP.\n@param proto_id protocol id returned by proto_register_protocol (0-indexed)\n@param alias_name alias for the protocol's filter name"]
     pub fn proto_register_alias(
         proto_id: ::std::os::raw::c_int,
         alias_name: *const ::std::os::raw::c_char,
     );
 }
-#[doc = " This type of function can be registered to get called whenever\na given field was not found but a its prefix is matched;\nIt can be used to procrastinate the hf array registration.\n@param match  what's being matched"]
 pub type prefix_initializer_t =
     ::std::option::Option<unsafe extern "C" fn(match_: *const ::std::os::raw::c_char)>;
 extern "C" {
-    #[doc = " Register a new prefix for delayed initialization of field arrays\nNote that the initializer function MAY NOT be called before the dissector\nis first called.  That is, dissectors using this function must be prepared\nto call the initializer before beginning dissection; they should do this by\ncalling proto_registrar_get_byname() on one of the dissector's field names.\n@param prefix the prefix for the new protocol\n@param initializer function that will initialize the field array for the given prefix"]
     pub fn proto_register_prefix(
         prefix: *const ::std::os::raw::c_char,
         initializer: prefix_initializer_t,
     );
 }
 extern "C" {
-    #[doc = " Initialize every remaining uninitialized prefix."]
     pub fn proto_initialize_all_prefixes();
 }
 extern "C" {
-    #[doc = " Register a header_field array.\n@param parent the protocol handle from proto_register_protocol()\n@param hf the hf_register_info array\n@param num_records the number of records in hf"]
     pub fn proto_register_field_array(
         parent: ::std::os::raw::c_int,
         hf: *mut hf_register_info,
@@ -36413,19 +36302,15 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Deregister an already registered field.\n@param parent the protocol handle from proto_register_protocol()\n@param hf_id the field to deregister"]
-    pub fn proto_deregister_field(parent: ::std::os::raw::c_int, hf_id: gint);
+    pub fn proto_deregister_field(parent: ::std::os::raw::c_int, hf_id: ::std::os::raw::c_int);
 }
 extern "C" {
-    #[doc = " Add data to be freed when deregistered fields are freed.\n@param data a pointer to data to free"]
     pub fn proto_add_deregistered_data(data: *mut ::std::os::raw::c_void);
 }
 extern "C" {
-    #[doc = " Add a memory slice to be freed when deregistered fields are freed.\n@param block_size the size of the block\n@param mem_block a pointer to the block to free"]
-    pub fn proto_add_deregistered_slice(block_size: gsize, mem_block: gpointer);
+    pub fn proto_add_deregistered_slice(block_size: usize, mem_block: *mut ::std::os::raw::c_void);
 }
 extern "C" {
-    #[doc = " Free strings in a field.\n@param field_type the field type (one of FT_ values)\n@param field_display field display value (one of BASE_ values)\n@param field_strings field strings"]
     pub fn proto_free_field_strings(
         field_type: ftenum_t,
         field_display: ::std::os::raw::c_uint,
@@ -36433,64 +36318,51 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Free fields deregistered in proto_deregister_field()."]
     pub fn proto_free_deregistered_fields();
 }
 extern "C" {
-    #[doc = " Register a protocol subtree (ett) array.\n@param indices array of ett indices\n@param num_indices the number of records in indices"]
     pub fn proto_register_subtree_array(
-        indices: *const *mut gint,
+        indices: *const *mut ::std::os::raw::c_int,
         num_indices: ::std::os::raw::c_int,
     );
 }
 extern "C" {
-    #[doc = " Get name of registered header_field number n.\n@param n item # n (0-indexed)\n@return the name of this registered item"]
     pub fn proto_registrar_get_name(n: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Get abbreviation of registered header_field number n.\n@param n item # n (0-indexed)\n@return the abbreviation of this registered item"]
     pub fn proto_registrar_get_abbrev(n: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Get the header_field information based upon a field or protocol id.\n@param hfindex item # n (0-indexed)\n@return the registered item"]
-    pub fn proto_registrar_get_nth(hfindex: guint) -> *mut header_field_info;
+    pub fn proto_registrar_get_nth(hfindex: ::std::os::raw::c_uint) -> *mut header_field_info;
 }
 extern "C" {
-    #[doc = " Get the header_field information based upon a field name.\n@param field_name the field name to search for\n@return the registered item"]
     pub fn proto_registrar_get_byname(
         field_name: *const ::std::os::raw::c_char,
     ) -> *mut header_field_info;
 }
 extern "C" {
-    #[doc = " Get the header_field information based upon a field alias.\n@param alias_name the aliased field name to search for\n@return the registered item"]
     pub fn proto_registrar_get_byalias(
         alias_name: *const ::std::os::raw::c_char,
     ) -> *mut header_field_info;
 }
 extern "C" {
-    #[doc = " Get the header_field id based upon a field name.\n@param field_name the field name to search for\n@return the field id for the registered item"]
     pub fn proto_registrar_get_id_byname(
         field_name: *const ::std::os::raw::c_char,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Get enum ftenum FT_ of registered header_field number n.\n@param n item # n (0-indexed)\n@return the registered item"]
     pub fn proto_registrar_get_ftype(n: ::std::os::raw::c_int) -> ftenum;
 }
 extern "C" {
-    #[doc = " Get parent protocol of registered header_field number n.\n@param n item # n (0-indexed)\n@return -1 if item _is_ a protocol"]
     pub fn proto_registrar_get_parent(n: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Is item # n a protocol?\n@param n item # n (0-indexed)\n@return TRUE if it's a protocol, FALSE if it's not"]
-    pub fn proto_registrar_is_protocol(n: ::std::os::raw::c_int) -> gboolean;
+    pub fn proto_registrar_is_protocol(n: ::std::os::raw::c_int) -> bool;
 }
 extern "C" {
-    #[doc = " Get length of registered field according to field type.\n@param n item # n (0-indexed)\n@return 0 means undeterminable at registration time, -1 means unknown field"]
-    pub fn proto_registrar_get_length(n: ::std::os::raw::c_int) -> gint;
+    pub fn proto_registrar_get_length(n: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Routines to use to iterate over the protocols and their fields;\n they return the item number of the protocol in question or the\n appropriate hfinfo pointer, and keep state in \"*cookie\"."]
     pub fn proto_get_first_protocol(
         cookie: *mut *mut ::std::os::raw::c_void,
     ) -> ::std::os::raw::c_int;
@@ -36516,205 +36388,169 @@ extern "C" {
     ) -> *mut header_field_info;
 }
 extern "C" {
-    #[doc = " Check if a protocol name is already registered.\n@param name the name to search for\n@return proto_id"]
-    pub fn proto_name_already_registered(name: *const gchar) -> ::std::os::raw::c_int;
+    pub fn proto_name_already_registered(name: *const ::std::os::raw::c_char) -> bool;
 }
 extern "C" {
-    #[doc = " Given a protocol's filter_name.\n@param filter_name the filter name to search for\n@return proto_id"]
-    pub fn proto_get_id_by_filter_name(filter_name: *const gchar) -> ::std::os::raw::c_int;
+    pub fn proto_get_id_by_filter_name(
+        filter_name: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Given a protocol's short name.\n@param short_name the protocol short name to search for\n@return proto_id"]
-    pub fn proto_get_id_by_short_name(short_name: *const gchar) -> ::std::os::raw::c_int;
+    pub fn proto_get_id_by_short_name(
+        short_name: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Can item # n decoding be disabled?\n@param proto_id protocol id (0-indexed)\n@return TRUE if it's a protocol, FALSE if it's not"]
-    pub fn proto_can_toggle_protocol(proto_id: ::std::os::raw::c_int) -> gboolean;
+    pub fn proto_can_toggle_protocol(proto_id: ::std::os::raw::c_int) -> bool;
 }
 extern "C" {
-    #[doc = " Get the \"protocol_t\" structure for the given protocol's item number.\n@param proto_id protocol id (0-indexed)"]
     pub fn find_protocol_by_id(proto_id: ::std::os::raw::c_int) -> *mut protocol_t;
 }
 extern "C" {
-    #[doc = " Get the protocol's name for the given protocol's item number.\n@param proto_id protocol id (0-indexed)\n@return its name"]
     pub fn proto_get_protocol_name(
         proto_id: ::std::os::raw::c_int,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Get the protocol's item number, for the given protocol's \"protocol_t\".\n@return its proto_id"]
     pub fn proto_get_id(protocol: *const protocol_t) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Get the protocol's short name, for the given protocol's \"protocol_t\".\n@return its short name."]
     pub fn proto_get_protocol_short_name(
         protocol: *const protocol_t,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Get the protocol's long name, for the given protocol's \"protocol_t\".\n@return its long name."]
     pub fn proto_get_protocol_long_name(
         protocol: *const protocol_t,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Is protocol's decoding enabled ?\n@return TRUE if decoding is enabled, FALSE if not"]
-    pub fn proto_is_protocol_enabled(protocol: *const protocol_t) -> gboolean;
+    pub fn proto_is_protocol_enabled(protocol: *const protocol_t) -> bool;
 }
 extern "C" {
-    #[doc = " Is protocol's enabled by default (most are)?\n@return TRUE if decoding is enabled by default, FALSE if not"]
-    pub fn proto_is_protocol_enabled_by_default(protocol: *const protocol_t) -> gboolean;
+    pub fn proto_is_protocol_enabled_by_default(protocol: *const protocol_t) -> bool;
 }
 extern "C" {
-    #[doc = " Is this a protocol in name only (i.e. not a real one)?\n@return TRUE if helper, FALSE if not"]
-    pub fn proto_is_pino(protocol: *const protocol_t) -> gboolean;
+    pub fn proto_is_pino(protocol: *const protocol_t) -> bool;
 }
 extern "C" {
-    #[doc = " Get a protocol's filter name by its item number.\n@param proto_id protocol id (0-indexed)\n@return its filter name."]
     pub fn proto_get_protocol_filter_name(
         proto_id: ::std::os::raw::c_int,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Associate a heuristic dissector with a protocol\n INTERNAL USE ONLY!!!\n @param protocol to associate the heuristic with\n @param short_name heuristic dissector's short name"]
     pub fn proto_add_heuristic_dissector(
         protocol: *mut protocol_t,
         short_name: *const ::std::os::raw::c_char,
     );
 }
 extern "C" {
-    #[doc = " Apply func to all heuristic dissectors of a protocol\n @param protocol to iterate over heuristics\n @param func function to execute on heuristics\n @param user_data user-specific data for function"]
     pub fn proto_heuristic_dissector_foreach(
         protocol: *const protocol_t,
         func: GFunc,
-        user_data: gpointer,
+        user_data: *mut ::std::os::raw::c_void,
     );
 }
 extern "C" {
-    #[doc = " Find commonly-used protocols in a layer list.\n @param layers Protocol layer list\n @param is_ip Set to TRUE if the layer list contains IPv4 or IPv6, otherwise\n unchanged. May be NULL.\n @param is_tcp Set to TRUE if the layer list contains TCP, otherwise\n unchanged. May be NULL.\n @param is_udp Set to TRUE if the layer list contains UDP, otherwise\n unchanged. May be NULL.\n @param is_sctp Set to TRUE if the layer list contains SCTP, otherwise\n unchanged. May be NULL.\n @param is_tls Set to TRUE if the layer list contains SSL/TLS, otherwise\n unchanged. May be NULL.\n @param is_rtp Set to TRUE if the layer list contains RTP, otherwise\n unchanged. May be NULL.\n @param is_lte_rlc Set to TRUE if the layer list contains LTE RLC, otherwise\n unchanged. May be NULL."]
     pub fn proto_get_frame_protocols(
         layers: *const wmem_list_t,
-        is_ip: *mut gboolean,
-        is_tcp: *mut gboolean,
-        is_udp: *mut gboolean,
-        is_sctp: *mut gboolean,
-        is_tls: *mut gboolean,
-        is_rtp: *mut gboolean,
-        is_lte_rlc: *mut gboolean,
+        is_ip: *mut bool,
+        is_tcp: *mut bool,
+        is_udp: *mut bool,
+        is_sctp: *mut bool,
+        is_tls: *mut bool,
+        is_rtp: *mut bool,
+        is_lte_rlc: *mut bool,
     );
 }
 extern "C" {
-    #[doc = " Check whether a protocol, specified by name, is in a layer list.\n @param layers Protocol layer list\n @param proto_name Name of protocol to find\n @return TRUE if the protocol is found, FALSE if it isn't"]
     pub fn proto_is_frame_protocol(
         layers: *const wmem_list_t,
         proto_name: *const ::std::os::raw::c_char,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Create a string of all layers in the packet.\n @param pinfo Pointer to packet info\n @return string of layer names"]
-    pub fn proto_list_layers(pinfo: *const packet_info) -> *mut gchar;
+    pub fn proto_list_layers(pinfo: *const packet_info) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Mark protocol with the given item number as disabled by default.\n@param proto_id protocol id (0-indexed)"]
     pub fn proto_disable_by_default(proto_id: ::std::os::raw::c_int);
 }
 extern "C" {
-    #[doc = " Enable / Disable protocol of the given item number.\n@param proto_id protocol id (0-indexed)\n@param enabled enable / disable the protocol"]
-    pub fn proto_set_decoding(proto_id: ::std::os::raw::c_int, enabled: gboolean);
+    pub fn proto_set_decoding(proto_id: ::std::os::raw::c_int, enabled: bool);
 }
 extern "C" {
-    #[doc = " Disable all protocols."]
     pub fn proto_disable_all();
 }
 extern "C" {
-    #[doc = " Re-enable all protocols that are not marked as disabled by default."]
     pub fn proto_reenable_all();
 }
 extern "C" {
-    #[doc = " Disable disabling/enabling of protocol of the given item number.\n@param proto_id protocol id (0-indexed)"]
     pub fn proto_set_cant_toggle(proto_id: ::std::os::raw::c_int);
 }
 extern "C" {
-    #[doc = " Checks for existence any protocol or field within a tree.\n@param tree \"Protocols\" are assumed to be a child of the [empty] root node.\n@param id hfindex of protocol or field\n@return TRUE = found, FALSE = not found\n@todo add explanation of id parameter"]
     pub fn proto_check_for_protocol_or_field(
         tree: *const proto_tree,
         id: ::std::os::raw::c_int,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Return GPtrArray* of field_info pointers for all hfindex that appear in\ntree. Only works with primed trees, and is fast.\n@param tree tree of interest\n@param hfindex primed hfindex\n@return GPtrArray pointer"]
     pub fn proto_get_finfo_ptr_array(
         tree: *const proto_tree,
         hfindex: ::std::os::raw::c_int,
     ) -> *mut GPtrArray;
 }
 extern "C" {
-    #[doc = " Return whether we're tracking any interesting fields.\nOnly works with primed trees, and is fast.\n@param tree tree of interest\n@return TRUE if we're tracking interesting fields"]
-    pub fn proto_tracking_interesting_fields(tree: *const proto_tree) -> gboolean;
+    pub fn proto_tracking_interesting_fields(tree: *const proto_tree) -> bool;
 }
 extern "C" {
-    #[doc = " Return GPtrArray* of field_info pointers for all hfindex that appear in\ntree. Works with any tree, primed or unprimed, and is slower than\nproto_get_finfo_ptr_array because it has to search through the tree.\n@param tree tree of interest\n@param hfindex index of field info of interest\n@return GPtrArry pointer"]
     pub fn proto_find_finfo(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
     ) -> *mut GPtrArray;
 }
 extern "C" {
-    #[doc = " Return GPtrArray* of field_info pointer for first hfindex that appear in\ntree. Works with any tree, primed or unprimed, and is slower than\nproto_get_finfo_ptr_array because it has to search through the tree.\n@param tree tree of interest\n@param hfindex index of field info of interest\n@return GPtrArry pointer"]
     pub fn proto_find_first_finfo(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
     ) -> *mut GPtrArray;
 }
 extern "C" {
-    #[doc = " Return GPtrArray* of field_info pointers containg all hfindexes that appear\nin tree.\n@param tree tree of interest\n@return GPtrArry pointer"]
     pub fn proto_all_finfos(tree: *mut proto_tree) -> *mut GPtrArray;
 }
 extern "C" {
-    #[doc = " Dumps a glossary of the protocol registrations to STDOUT"]
     pub fn proto_registrar_dump_protocols();
 }
 extern "C" {
-    #[doc = " Dumps a glossary of the field value strings or true/false strings to STDOUT"]
     pub fn proto_registrar_dump_values();
 }
 extern "C" {
-    #[doc = " Dumps a mapping file for loading tshark output into ElasticSearch"]
-    pub fn proto_registrar_dump_elastic(filter: *const gchar);
+    pub fn proto_registrar_dump_elastic(filter: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    #[doc = " Dumps the number of protocol and field registrations to STDOUT.\n@return FALSE if we pre-allocated enough fields, TRUE otherwise."]
-    pub fn proto_registrar_dump_fieldcount() -> gboolean;
+    pub fn proto_registrar_dump_fieldcount() -> bool;
 }
 extern "C" {
-    #[doc = " Dumps a glossary of the protocol and field registrations to STDOUT."]
     pub fn proto_registrar_dump_fields();
 }
 extern "C" {
-    #[doc = " Dumps protocol and field abbreviations to STDOUT which start with prefix."]
-    pub fn proto_registrar_dump_field_completions(prefix: *mut ::std::os::raw::c_char) -> gboolean;
+    pub fn proto_registrar_dump_field_completions(prefix: *mut ::std::os::raw::c_char) -> bool;
 }
 extern "C" {
-    #[doc = " Dumps a glossary field types and descriptive names to STDOUT"]
     pub fn proto_registrar_dump_ftypes();
 }
 extern "C" {
-    #[doc = " Get string representation of display field value\n@param field_display field display value (one of BASE_ values)\n@return string representation of display field value or \"Unknown\" if doesn't exist"]
     pub fn proto_field_display_to_string(
         field_display: ::std::os::raw::c_int,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Number of elements in the tree_is_expanded array. With MSVC and a\n libwireshark.dll, we need a special declaration."]
     pub static mut num_tree_types: ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Returns TRUE if subtrees of that type are to be expanded."]
-    pub fn tree_expanded(tree_type: ::std::os::raw::c_int) -> gboolean;
+    pub fn tree_expanded(tree_type: ::std::os::raw::c_int) -> bool;
 }
 extern "C" {
-    #[doc = " Sets if subtrees of that type are to be expanded."]
-    pub fn tree_expanded_set(tree_type: ::std::os::raw::c_int, value: gboolean);
+    pub fn tree_expanded_set(tree_type: ::std::os::raw::c_int, value: bool);
 }
 extern "C" {
     pub fn hfinfo_bitshift(hfinfo: *const header_field_info) -> ::std::os::raw::c_int;
@@ -36725,359 +36561,319 @@ pub struct epan_dissect {
     _unused: [u8; 0],
 }
 extern "C" {
-    #[doc = " Can we do a \"match selected\" on this field.\n@param finfo field_info\n@param edt epan dissecting\n@return TRUE if we can do a \"match selected\" on the field, FALSE otherwise."]
-    pub fn proto_can_match_selected(finfo: *mut field_info, edt: *mut epan_dissect) -> gboolean;
+    pub fn proto_can_match_selected(finfo: *const field_info, edt: *mut epan_dissect) -> bool;
 }
 extern "C" {
-    #[doc = " Construct a \"match selected\" display filter string.\n@param finfo field_info\n@param edt epan dissecting\n@return the wmem NULL alloced display filter string.  Needs to be freed with wmem_free(NULL, ...)"]
     pub fn proto_construct_match_selected_string(
-        finfo: *mut field_info,
+        finfo: *const field_info,
         edt: *mut epan_dissect,
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Find field from offset in tvb.\n@param tree tree of interest\n@param offset offset in the tvb\n@param tvb the tv buffer\n@return the corresponding field_info"]
     pub fn proto_find_field_from_offset(
         tree: *mut proto_tree,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         tvb: *mut tvbuff_t,
     ) -> *mut field_info;
 }
 extern "C" {
-    #[doc = " Find undecoded bytes in a tree\n@param tree tree of interest\n@param length the length of the frame\n@return an array to be used as bitmap of decoded bytes"]
-    pub fn proto_find_undecoded_data(tree: *mut proto_tree, length: guint) -> *mut gchar;
+    pub fn proto_find_undecoded_data(
+        tree: *mut proto_tree,
+        length: ::std::os::raw::c_uint,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " This function will dissect a sequence of bytes that describe a bitmask.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param hf_hdr an 8/16/24/32/40/48/56/64 bit integer that describes the\nbitmask to be dissected.\nThis field will form an expansion under which the individual fields\nof the bitmask are dissected and displayed.\nThis field must be of the type FT_[U]INT{8|16|24|32|40|48|56|64}.\n@param ett subtree index\n@param fields an array of pointers to int that lists all the fields of the\nbitmask. These fields can be either of the type FT_BOOLEAN for flags\nor another integer of the same type/size as hf_hdr with a mask specified.\nThis array is terminated by a NULL entry.\nFT_BOOLEAN bits that are set to 1 will have the name added to the expansion.\nFT_integer fields that have a value_string attached will have the\nmatched string displayed on the expansion line.\n@param encoding big or little endian byte representation (ENC_BIG_ENDIAN/ENC_LITTLE_ENDIAN/ENC_HOST_ENDIAN)\n@return the newly created item"]
     pub fn proto_tree_add_bitmask(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         hf_hdr: ::std::os::raw::c_int,
-        ett: gint,
+        ett: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
-        encoding: guint,
+        encoding: ::std::os::raw::c_uint,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " This function will dissect a sequence of bytes that describe a bitmask.\nThe value of the integer containing the bitmask is returned through\na pointer.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param hf_hdr an 8/16/24/32/40/48/56/64 bit integer that describes the\nbitmask to be dissected.\nThis field will form an expansion under which the individual fields\nof the bitmask are dissected and displayed.\nThis field must be of the type FT_[U]INT{8|16|24|32|40|48|56|64}.\n@param ett subtree index\n@param fields an array of pointers to int that lists all the fields of the\nbitmask. These fields can be either of the type FT_BOOLEAN for flags\nor another integer of the same type/size as hf_hdr with a mask specified.\nThis array is terminated by a NULL entry.\nFT_BOOLEAN bits that are set to 1 will have the name added to the expansion.\nFT_integer fields that have a value_string attached will have the\nmatched string displayed on the expansion line.\n@param encoding big or little endian byte representation (ENC_BIG_ENDIAN/ENC_LITTLE_ENDIAN/ENC_HOST_ENDIAN)\n@param[out] retval points to a guint64 which will be set\n@return the newly created item, and *retval is set to the decoded value masked/shifted according to bitmask"]
     pub fn proto_tree_add_bitmask_ret_uint64(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         hf_hdr: ::std::os::raw::c_int,
-        ett: gint,
+        ett: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
-        encoding: guint,
-        retval: *mut guint64,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut u64,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " This function will dissect a sequence of bytes that describe a bitmask.\nThis has \"filterable\" bitmask header functionality of proto_tree_add_bitmask\nwith the ability to control what data is appended to the header like\nproto_tree_add_bitmask_text\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param hf_hdr an 8/16/24/32/40/48/56/64 bit integer that describes the\nbitmask to be dissected.\nThis field will form an expansion under which the individual fields\nof the bitmask are dissected and displayed.\nThis field must be of the type FT_[U]INT{8|16|24|32|40|48|56|64}.\n@param ett subtree index\n@param fields an array of pointers to int that lists all the fields of the\nbitmask. These fields can be either of the type FT_BOOLEAN for flags\nor another integer of the same type/size as hf_hdr with a mask specified.\nThis array is terminated by a NULL entry.\nFT_BOOLEAN bits that are set to 1 will have the name added to the expansion.\nFT_integer fields that have a value_string attached will have the\nmatched string displayed on the expansion line.\n@param encoding big or little endian byte representation (ENC_BIG_ENDIAN/ENC_LITTLE_ENDIAN/ENC_HOST_ENDIAN)\n@param flags bitmask field using BMT_NO_* flags to determine behavior\n@return the newly created item"]
     pub fn proto_tree_add_bitmask_with_flags(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         hf_hdr: ::std::os::raw::c_int,
-        ett: gint,
+        ett: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
-        encoding: guint,
+        encoding: ::std::os::raw::c_uint,
         flags: ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " This function will dissect a sequence of bytes that describe a bitmask.\nThis has \"filterable\" bitmask header functionality of proto_tree_add_bitmask\nwith the ability to control what data is appended to the header like\nproto_tree_add_bitmask_text\nThe value of the integer containing the bitmask is returned through\na pointer.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param hf_hdr an 8/16/24/32/40/48/56/64 bit integer that describes the\nbitmask to be dissected.\nThis field will form an expansion under which the individual fields\nof the bitmask are dissected and displayed.\nThis field must be of the type FT_[U]INT{8|16|24|32|40|48|56|64}.\n@param ett subtree index\n@param fields an array of pointers to int that lists all the fields of the\nbitmask. These fields can be either of the type FT_BOOLEAN for flags\nor another integer of the same type/size as hf_hdr with a mask specified.\nThis array is terminated by a NULL entry.\nFT_BOOLEAN bits that are set to 1 will have the name added to the expansion.\nFT_integer fields that have a value_string attached will have the\nmatched string displayed on the expansion line.\n@param encoding big or little endian byte representation (ENC_BIG_ENDIAN/ENC_LITTLE_ENDIAN/ENC_HOST_ENDIAN)\n@param flags bitmask field using BMT_NO_* flags to determine behavior\n@param[out] retval points to a guint64 which will be set\n@return the newly created item, and *retval is set to the decoded value masked/shifted according to bitmask"]
     pub fn proto_tree_add_bitmask_with_flags_ret_uint64(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         hf_hdr: ::std::os::raw::c_int,
-        ett: gint,
+        ett: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
-        encoding: guint,
+        encoding: ::std::os::raw::c_uint,
         flags: ::std::os::raw::c_int,
-        retval: *mut guint64,
+        retval: *mut u64,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " This function will dissect a value that describe a bitmask. Similar to proto_tree_add_bitmask(),\nbut with a passed in value (presumably because it can't be retrieved directly from tvb)\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param hf_hdr an 8/16/24/32/64 bit integer that describes the bitmask to be dissected.\nThis field will form an expansion under which the individual fields of the\nbitmask is dissected and displayed.\nThis field must be of the type FT_[U]INT{8|16|24|32|64}.\n@param ett subtree index\n@param fields an array of pointers to int that lists all the fields of the\nbitmask. These fields can be either of the type FT_BOOLEAN for flags\nor another integer of the same type/size as hf_hdr with a mask specified.\nThis array is terminated by a NULL entry.\nFT_BOOLEAN bits that are set to 1 will have the name added to the expansion.\nFT_integer fields that have a value_string attached will have the\nmatched string displayed on the expansion line.\n@param value bitmask value\n@return the newly created item"]
     pub fn proto_tree_add_bitmask_value(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         hf_hdr: ::std::os::raw::c_int,
-        ett: gint,
+        ett: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
-        value: guint64,
+        value: u64,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " This function will dissect a value that describe a bitmask. Similar to proto_tree_add_bitmask(),\nbut with a passed in value (presumably because it can't be retrieved directly from tvb)\nThis has \"filterable\" bitmask header functionality of proto_tree_add_bitmask_value\nwith the ability to control what data is appended to the header like\nproto_tree_add_bitmask_text\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param hf_hdr an 8/16/24/32/64 bit integer that describes the bitmask to be dissected.\nThis field will form an expansion under which the individual fields of the\nbitmask is dissected and displayed.\nThis field must be of the type FT_[U]INT{8|16|24|32|64}.\n@param ett subtree index\n@param fields an array of pointers to int that lists all the fields of the\nbitmask. These fields can be either of the type FT_BOOLEAN for flags\nor another integer of the same type/size as hf_hdr with a mask specified.\nThis array is terminated by a NULL entry.\nFT_BOOLEAN bits that are set to 1 will have the name added to the expansion.\nFT_integer fields that have a value_string attached will have the\nmatched string displayed on the expansion line.\n@param value bitmask value\n@param flags bitmask field using BMT_NO_* flags to determine behavior\n@return the newly created item"]
     pub fn proto_tree_add_bitmask_value_with_flags(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         hf_hdr: ::std::os::raw::c_int,
-        ett: gint,
+        ett: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
-        value: guint64,
+        value: u64,
         flags: ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " This function will dissect a sequence of bytes that describe a bitmask. Similar\nto proto_tree_add_bitmask(), but with no \"header\" item to group all of the fields\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param len number of bytes of data\n@param fields an array of pointers to int that lists all the fields of the\nbitmask. These fields can be either of the type FT_BOOLEAN for flags\nor another integer of the same type/size as hf_hdr with a mask specified.\nThis array is terminated by a NULL entry.\nFT_BOOLEAN bits that are set to 1 will have the name added to the expansion.\nFT_integer fields that have a value_string attached will have the\nmatched string displayed on the expansion line.\n@param encoding big or little endian byte representation (ENC_BIG_ENDIAN/ENC_LITTLE_ENDIAN/ENC_HOST_ENDIAN)"]
     pub fn proto_tree_add_bitmask_list(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         len: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
-        encoding: guint,
+        encoding: ::std::os::raw::c_uint,
     );
 }
 extern "C" {
-    #[doc = " This function will dissect a value that describe a bitmask. Similar to proto_tree_add_bitmask_list(),\nbut with a return value\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param len number of bytes of data\n@param fields an array of pointers to int that lists all the fields of the\nbitmask. These fields can be either of the type FT_BOOLEAN for flags\nor another integer of the same type/size as hf_hdr with a mask specified.\nThis array is terminated by a NULL entry.\nFT_BOOLEAN bits that are set to 1 will have the name added to the expansion.\nFT_integer fields that have a value_string attached will have the\nmatched string displayed on the expansion line.\n@param encoding big or little endian byte representation (ENC_BIG_ENDIAN/ENC_LITTLE_ENDIAN/ENC_HOST_ENDIAN)\n@param retval if a pointer is passed here the value is returned."]
     pub fn proto_tree_add_bitmask_list_ret_uint64(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         len: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
-        encoding: guint,
-        retval: *mut guint64,
+        encoding: ::std::os::raw::c_uint,
+        retval: *mut u64,
     );
 }
 extern "C" {
-    #[doc = " This function will dissect a value that describe a bitmask. Similar to proto_tree_add_bitmask_list(),\nbut with a passed in value (presumably because it can't be retrieved directly from tvb)\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param len number of bytes of data\n@param fields an array of pointers to int that lists all the fields of the\nbitmask. These fields can be either of the type FT_BOOLEAN for flags\nor another integer of the same type/size as hf_hdr with a mask specified.\nThis array is terminated by a NULL entry.\nFT_BOOLEAN bits that are set to 1 will have the name added to the expansion.\nFT_integer fields that have a value_string attached will have the\nmatched string displayed on the expansion line.\n@param value bitmask value"]
     pub fn proto_tree_add_bitmask_list_value(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         len: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
-        value: guint64,
+        value: u64,
     );
 }
 extern "C" {
-    #[doc = " This function will dissect a sequence of bytes that describe a bitmask.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param len number of bytes of data\n@param hf_hdr an 8/16/24/32 bit integer that describes the bitmask to be dissected.\nThis field will form an expansion under which the individual fields of the\nbitmask are dissected and displayed.\nThis field must be of the type FT_[U]INT{8|16|24|32}.\n@param ett subtree index\n@param fields an array of pointers to int that lists all the fields of the\nbitmask. These fields can be either of the type FT_BOOLEAN for flags\nor another integer with a mask specified.\nThis array is terminated by a NULL entry.\nFT_BOOLEAN bits that are set to 1 will have the name added to the expansion.\nFT_integer fields that have a value_string attached will have the\nmatched string displayed on the expansion line.\n@param exp expert info field used when decodable_len < len.  This also means this function\nshould be called even when tree == NULL\n@param encoding big or little endian byte representation (ENC_BIG_ENDIAN/ENC_LITTLE_ENDIAN/ENC_HOST_ENDIAN)\n@return the newly created item"]
     pub fn proto_tree_add_bitmask_len(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
-        len: guint,
+        offset: ::std::os::raw::c_uint,
+        len: ::std::os::raw::c_uint,
         hf_hdr: ::std::os::raw::c_int,
-        ett: gint,
+        ett: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
         exp: *mut expert_field,
-        encoding: guint,
+        encoding: ::std::os::raw::c_uint,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a text with a subtree of bitfields.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param len length of the field name\n@param name field name (NULL if bitfield contents should be used)\n@param fallback field name if none of bitfields were usable\n@param ett subtree index\n@param fields NULL-terminated array of bitfield indexes\n@param encoding big or little endian byte representation (ENC_BIG_ENDIAN/ENC_LITTLE_ENDIAN/ENC_HOST_ENDIAN)\n@param flags bitmask field\n@return the newly created item"]
     pub fn proto_tree_add_bitmask_text(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
-        len: guint,
+        offset: ::std::os::raw::c_uint,
+        len: ::std::os::raw::c_uint,
         name: *const ::std::os::raw::c_char,
         fallback: *const ::std::os::raw::c_char,
-        ett: gint,
+        ett: ::std::os::raw::c_int,
         fields: *const *mut ::std::os::raw::c_int,
-        encoding: guint,
+        encoding: ::std::os::raw::c_uint,
         flags: ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add bits to a proto_tree, using the text label registered to that item.\nThe item is extracted from the tvbuff handed to it.\n@param tree the tree to append this item to\n@param hf_index field index. Fields for use with this function should have bitmask==0.\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_bits length of data in tvb expressed in bits\n@param encoding data encoding\n@return the newly created item"]
     pub fn proto_tree_add_bits_item(
         tree: *mut proto_tree,
         hf_index: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        encoding: guint,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add bits to a proto_tree, using the text label registered to that item.\n  The item is extracted from the tvbuff handed to it as a set\n  of crumbs (segments) of contiguous bits, specified by an\n  array of crumb_spec elements.  The crumbs are assembled to\n  create the value.  There may be any number of crumbs\n  specifying up to a total of 64 bits which may occur anywhere\n  within the tvb. If the span of the crumbs within the tvb is 4\n  octets or less, a bitmap of the crumbs is produced.\n@param tree the tree to append this item to\n@param hf_index field index. Fields for use with this function should have bitmask==0.\n@param tvb the tv buffer of the current data\n@param bit_offset of the first crumb in tvb expressed in bits\n@param crumb_spec pointer to crumb_spec array\n@param return_value if a pointer is passed here the value is returned.\n@return the newly created item"]
     pub fn proto_tree_add_split_bits_item_ret_val(
         tree: *mut proto_tree,
         hf_index: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
+        bit_offset: ::std::os::raw::c_uint,
         crumb_spec: *const crumb_spec_t,
-        return_value: *mut guint64,
+        return_value: *mut u64,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add bitmap text for a split-bits crumb to a proto_tree,\n  using the text label registered to an item. The bitmap is\n  extracted from the tvbuff handed to it as a crumb (segment)\n  of contiguous bits, specified by one of an array of\n  crumb_spec elements. This function is normally called once\n  per crumb, after the call to\nproto_tree_add_split_bits_item_ret_val\n@param tree the tree to append this item to\n@param hf_index field index. Fields for use with this function should have bitmask==0.\n@param tvb the tv buffer of the current data\n@param bit_offset of the first crumb in tvb expressed in bits\n@param crumb_spec pointer to crumb_spec array\n@param crumb_index into the crumb_spec array for this crumb"]
     pub fn proto_tree_add_split_bits_crumb(
         tree: *mut proto_tree,
         hf_index: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
+        bit_offset: ::std::os::raw::c_uint,
         crumb_spec: *const crumb_spec_t,
-        crumb_index: guint16,
+        crumb_index: u16,
     );
 }
 extern "C" {
-    #[doc = " Add bits to a proto_tree, using the text label registered to that item.\nThe item is extracted from the tvbuff handed to it.\n@param tree the tree to append this item to\n@param hf_index field index. Fields for use with this function should have bitmask==0.\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_bits length of data in tvb expressed in bits\n@param return_value if a pointer is passed here the value is returned.\n@param encoding data encoding\n@return the newly created item"]
     pub fn proto_tree_add_bits_ret_val(
         tree: *mut proto_tree,
         hf_index: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        return_value: *mut guint64,
-        encoding: guint,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        return_value: *mut u64,
+        encoding: ::std::os::raw::c_uint,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add bits for a FT_UINT8, FT_UINT16, FT_UINT24 or FT_UINT32\nheader field to a proto_tree, with the format generating the\nstring for the value and with the field name being included automatically.\n@param tree the tree to append this item to\n@param hf_index field index\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_bits length of data in tvb expressed in bit\n@param value data to display\n@param encoding data encoding\n@param format printf like format string\n@return the newly created item"]
     pub fn proto_tree_add_uint_bits_format_value(
         tree: *mut proto_tree,
         hf_index: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        value: guint32,
-        encoding: guint,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        value: u32,
+        encoding: ::std::os::raw::c_uint,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add bits for a FT_UINT8, FT_UINT16, FT_UINT24 or FT_UINT32\nheader field to a proto_tree, with the format generating the\nstring for the value and with the field name being included automatically.\n@param tree the tree to append this item to\n@param hf_index field index\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_bits length of data in tvb expressed in bit\n@param value data to display\n@param encoding data encoding\n@param format printf like format string\n@return the newly created item"]
     pub fn proto_tree_add_uint64_bits_format_value(
         tree: *mut proto_tree,
         hf_index: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        value: guint64,
-        encoding: guint,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        value: u64,
+        encoding: ::std::os::raw::c_uint,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add bits for a FT_BOOLEAN header field to a proto_tree, with\nthe format generating the string for the value and with the field\nname being included automatically.\n@param tree the tree to append this item to\n@param hf_index field index\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_bits length of data in tvb expressed in bit\n@param value data to display\n@param encoding data encoding\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_boolean_bits_format_value(
         tree: *mut proto_tree,
         hf_index: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        value: guint32,
-        encoding: guint,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        value: u64,
+        encoding: ::std::os::raw::c_uint,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add bits for a FT_BOOLEAN header field to a proto_tree, with\nthe format generating the string for the value and with the field\nname being included automatically.\n@param tree the tree to append this item to\n@param hf_index field index\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_bits length of data in tvb expressed in bit\n@param value data to display\n@param encoding data encoding\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
-    pub fn proto_tree_add_boolean_bits_format_value64(
-        tree: *mut proto_tree,
-        hf_index: ::std::os::raw::c_int,
-        tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        value: guint64,
-        encoding: guint,
-        format: *const ::std::os::raw::c_char,
-        ...
-    ) -> *mut proto_item;
-}
-extern "C" {
-    #[doc = " Add bits for a FT_INT8, FT_INT16, FT_INT24 or FT_INT32\nheader field to a proto_tree, with the format generating the\nstring for the value and with the field name being included automatically.\n@param tree the tree to append this item to\n@param hf_index field index\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_bits length of data in tvb expressed in bit\n@param value data to display\n@param encoding data encoding\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_int_bits_format_value(
         tree: *mut proto_tree,
         hf_index: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        value: gint32,
-        encoding: guint,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        value: i32,
+        encoding: ::std::os::raw::c_uint,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add bits for a FT_INT8, FT_INT16, FT_INT24 or FT_INT32\nheader field to a proto_tree, with the format generating the\nstring for the value and with the field name being included automatically.\n@param tree the tree to append this item to\n@param hf_index field index\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_bits length of data in tvb expressed in bit\n@param value data to display\n@param encoding data encoding\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_int64_bits_format_value(
         tree: *mut proto_tree,
         hf_index: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
-        value: gint64,
-        encoding: guint,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
+        value: i64,
+        encoding: ::std::os::raw::c_uint,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add bits for a FT_FLOAT header field to a proto_tree, with\nthe format generating the string for the value and with the field\nname being included automatically.\n@param tree the tree to append this item to\n@param hf_index field index\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_bits length of data in tvb expressed in bit\n@param value data to display\n@param encoding data encoding\n@param format printf like format string\n@param ... printf like parameters\n@return the newly created item"]
     pub fn proto_tree_add_float_bits_format_value(
         tree: *mut proto_tree,
         hf_index: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_bits: gint,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_bits: ::std::os::raw::c_int,
         value: f32,
-        encoding: guint,
+        encoding: ::std::os::raw::c_uint,
         format: *const ::std::os::raw::c_char,
         ...
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_STRING with ENC_3GPP_TS_23_038_7BITS_PACKED encoding to a\nproto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_chars number of 7bits characters to display\n@return the newly created item"]
     pub fn proto_tree_add_ts_23_038_7bits_packed_item(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_chars: gint,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_chars: ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a FT_STRING with ENC_ASCII_7BITS encoding to a proto_tree.\n@param tree the tree to append this item to\n@param hfindex field index\n@param tvb the tv buffer of the current data\n@param bit_offset start of data in tvb expressed in bits\n@param no_of_chars number of 7bits characters to display\n@return the newly created item"]
     pub fn proto_tree_add_ascii_7bits_item(
         tree: *mut proto_tree,
         hfindex: ::std::os::raw::c_int,
         tvb: *mut tvbuff_t,
-        bit_offset: guint,
-        no_of_chars: gint,
+        bit_offset: ::std::os::raw::c_uint,
+        no_of_chars: ::std::os::raw::c_int,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a checksum filed to a proto_tree.\nThis standardizes the display of a checksum field as well as any\nstatus and expert info supporting it.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param hf_checksum checksum field index\n@param hf_checksum_status optional checksum status field index.  If none\nexists, just pass -1\n@param bad_checksum_expert optional expert info for a bad checksum.  If\nnone exists, just pass NULL\n@param pinfo Packet info used for optional expert info.  If unused, NULL can\nbe passed\n@param computed_checksum Checksum to verify against\n@param encoding data encoding of checksum from tvb\n@param flags bitmask field of PROTO_CHECKSUM_ options\n@return the newly created item"]
     pub fn proto_tree_add_checksum(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         hf_checksum: ::std::os::raw::c_int,
         hf_checksum_status: ::std::os::raw::c_int,
         bad_checksum_expert: *mut expert_field,
         pinfo: *mut packet_info,
-        computed_checksum: guint32,
-        encoding: guint,
-        flags: guint,
+        computed_checksum: u32,
+        encoding: ::std::os::raw::c_uint,
+        flags: ::std::os::raw::c_uint,
     ) -> *mut proto_item;
 }
 extern "C" {
-    #[doc = " Add a checksum bytes arry filed to a proto_tree.\nThis standardizes the display of a checksum field as well as any\nstatus and expert info supporting it.\n@param tree the tree to append this item to\n@param tvb the tv buffer of the current data\n@param offset start of data in tvb\n@param hf_checksum checksum field index\n@param hf_checksum_status optional checksum status field index.  If none\nexists, just pass -1\n@param bad_checksum_expert optional expert info for a bad checksum.  If\nnone exists, just pass NULL\n@param pinfo Packet info used for optional expert info.  If unused, NULL can\nbe passed\n@param computed_checksum Checksum as bytes array to verify against\n@param checksum_len Checksum size in bytes\n@param flags bitmask field of PROTO_CHECKSUM_ options. PROTO_CHECKSUM_IN_CKSUM is ignored\n@return the newly created item"]
     pub fn proto_tree_add_checksum_bytes(
         tree: *mut proto_tree,
         tvb: *mut tvbuff_t,
-        offset: guint,
+        offset: ::std::os::raw::c_uint,
         hf_checksum: ::std::os::raw::c_int,
         hf_checksum_status: ::std::os::raw::c_int,
         bad_checksum_expert: *mut expert_field,
         pinfo: *mut packet_info,
         computed_checksum: *const u8,
         checksum_len: usize,
-        flags: guint,
+        flags: ::std::os::raw::c_uint,
     ) -> *mut proto_item;
 }
 pub const proto_checksum_enum_e_PROTO_CHECKSUM_E_BAD: proto_checksum_enum_e = 0;
@@ -37090,38 +36886,37 @@ extern "C" {
     pub static proto_checksum_vals: [value_string; 0usize];
 }
 extern "C" {
-    #[doc = " Check if given string is a valid field name\n@param field_name the field name to check\n@return 0 if valid, else first illegal character"]
-    pub fn proto_check_field_name(field_name: *const gchar) -> guchar;
+    pub fn proto_check_field_name(
+        field_name: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_uchar;
 }
 extern "C" {
-    #[doc = " Check if given string is a valid field name. Accepts only lower case\n characters.\n@param field_name the field name to check\n@return 0 if valid, else first illegal character"]
-    pub fn proto_check_field_name_lower(field_name: *const gchar) -> guchar;
+    pub fn proto_check_field_name_lower(
+        field_name: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_uchar;
 }
 extern "C" {
-    #[doc = " Set the column text for a custom column\n@param tree the tree to append this item to\n@param field_id the field ids used for custom column\n@param occurrence the occurrence of the field used for custom column\n@param result the buffer to fill with the field string\n@param expr the filter expression\n@param size the size of the string buffer"]
     pub fn proto_custom_set(
         tree: *mut proto_tree,
         field_id: *mut GSList,
-        occurrence: gint,
-        result: *mut gchar,
-        expr: *mut gchar,
+        occurrence: ::std::os::raw::c_int,
+        result: *mut ::std::os::raw::c_char,
+        expr: *mut ::std::os::raw::c_char,
         size: ::std::os::raw::c_int,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Construct a display filter string for a custom column\n@param edt epan dissecting\n@param field_id the field ids used for custom column\n@param occurrence the occurrence of the field used for custom column\n@return allocated display filter string.  Needs to be freed with g_free(...)"]
     pub fn proto_custom_get_filter(
         edt: *mut epan_dissect,
         field_id: *mut GSList,
-        occurrence: gint,
-    ) -> *mut gchar;
+        occurrence: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " @}"]
     pub fn hfinfo_char_value_format_display(
         display: ::std::os::raw::c_int,
         buf: *mut ::std::os::raw::c_char,
-        value: guint32,
+        value: u32,
     ) -> *const ::std::os::raw::c_char;
 }
 pub type feature_list = *mut *mut GList;
@@ -37143,7 +36938,7 @@ extern "C" {
 pub struct enum_val_t {
     pub name: *const ::std::os::raw::c_char,
     pub description: *const ::std::os::raw::c_char,
-    pub value: gint,
+    pub value: ::std::os::raw::c_int,
 }
 #[test]
 fn bindgen_test_layout_enum_val_t() {
@@ -37193,8 +36988,8 @@ fn bindgen_test_layout_enum_val_t() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct range_admin_tag {
-    pub low: guint32,
-    pub high: guint32,
+    pub low: u32,
+    pub high: u32,
 }
 #[test]
 fn bindgen_test_layout_range_admin_tag() {
@@ -37232,14 +37027,11 @@ fn bindgen_test_layout_range_admin_tag() {
     );
 }
 pub type range_admin_t = range_admin_tag;
-#[doc = " user specified range(s)"]
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 pub struct epan_range {
-    #[doc = "< number of entries in ranges"]
-    pub nranges: guint,
-    #[doc = "< variable-length array"]
-    pub ranges: [range_admin_t; 1usize],
+    pub nranges: ::std::os::raw::c_uint,
+    pub ranges: __IncompleteArrayField<range_admin_t>,
 }
 #[test]
 fn bindgen_test_layout_epan_range() {
@@ -37247,7 +37039,7 @@ fn bindgen_test_layout_epan_range() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<epan_range>(),
-        12usize,
+        4usize,
         concat!("Size of: ", stringify!(epan_range))
     );
     assert_eq!(
@@ -37276,75 +37068,67 @@ fn bindgen_test_layout_epan_range() {
         )
     );
 }
-#[doc = " user specified range(s)"]
 pub type range_t = epan_range;
 pub const convert_ret_t_CVT_NO_ERROR: convert_ret_t = 0;
 pub const convert_ret_t_CVT_SYNTAX_ERROR: convert_ret_t = 1;
 pub const convert_ret_t_CVT_NUMBER_TOO_BIG: convert_ret_t = 2;
-#[doc = " Return value from range_convert_str()."]
 pub type convert_ret_t = ::std::os::raw::c_int;
 extern "C" {
     pub fn range_empty(scope: *mut wmem_allocator_t) -> *mut range_t;
 }
 extern "C" {
-    #[doc = " Converts a range string to a fast comparable array of ranges.\n This function allocates a range_t large enough to hold the number\n of ranges specified, and fills the array range->ranges containing\n low and high values with the number of ranges being range->nranges.\n After having called this function, the function value_is_in_range()\n determines whether a given number is within the range or not.<BR>\n In case of a single number, we make a range where low is equal to high.\n We take care on wrongly entered ranges; opposite order will be taken\n care of.\n\n The following syntax is accepted :\n\n   1-20,30-40     Range from 1 to 20, and packets 30 to 40\n   -20,30         Range from 1 to 20, and packet 30\n   20,30,40-      20, 30, and the range from 40 to the end\n   20-10,30-25    Range from 10 to 20, and from 25 to 30\n   -              All values\n @param scope memory scope for the range\n @param range the range\n @param es points to the string to be converted.\n @param max_value specifies the maximum value in a range.\n @return convert_ret_t"]
     pub fn range_convert_str(
         scope: *mut wmem_allocator_t,
         range: *mut *mut range_t,
-        es: *const gchar,
-        max_value: guint32,
+        es: *const ::std::os::raw::c_char,
+        max_value: u32,
     ) -> convert_ret_t;
 }
 extern "C" {
     pub fn range_convert_str_work(
         scope: *mut wmem_allocator_t,
         range: *mut *mut range_t,
-        es: *const gchar,
-        max_value: guint32,
-        err_on_max: gboolean,
+        es: *const ::std::os::raw::c_char,
+        max_value: u32,
+        err_on_max: bool,
     ) -> convert_ret_t;
 }
 extern "C" {
-    #[doc = " This function returns TRUE if a given value is within one of the ranges\n stored in the ranges array.\n @param range the range\n @param val the value to check\n @return TRUE if the value is in range"]
-    pub fn value_is_in_range(range: *const range_t, val: guint32) -> gboolean;
+    pub fn value_is_in_range(range: *const range_t, val: u32) -> bool;
 }
 extern "C" {
-    #[doc = " This function returns TRUE if val has successfully been added to\n a range.  This may extend an existing range or create a new one\n @param scope memory scope of range (in case of reallocation)\n @param range to add value\n @param val value to add to range\n @return TRUE if the value is successsfully added to range"]
     pub fn range_add_value(
         scope: *mut wmem_allocator_t,
         range: *mut *mut range_t,
-        val: guint32,
-    ) -> gboolean;
+        val: u32,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " This function returns TRUE if val has successfully been removed from\n a range.  This may remove an existing range.\n @param scope memory scope of range (in case of reallocation)\n @param range to remove value\n @param val value to remove within range\n @return TRUE if the value is successsfully removed to range"]
     pub fn range_remove_value(
         scope: *mut wmem_allocator_t,
         range: *mut *mut range_t,
-        val: guint32,
-    ) -> gboolean;
+        val: u32,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " This function returns TRUE if the two given range_t's are equal.\n @param a first range\n @param b second range\n @return TRUE if the value is in range"]
-    pub fn ranges_are_equal(a: *const range_t, b: *const range_t) -> gboolean;
+    pub fn ranges_are_equal(a: *const range_t, b: *const range_t) -> bool;
 }
 extern "C" {
-    #[doc = " This function calls the provided callback function for each value in\n in the range. Takes a pointer argument, which is passed to the\n callback, along with the value in the range.\n @param range the range\n @param callback the callback function\n @param ptr pointer passed to the callback"]
     pub fn range_foreach(
         range: *mut range_t,
-        callback: ::std::option::Option<unsafe extern "C" fn(val: guint32, ptr: gpointer)>,
-        ptr: gpointer,
+        callback: ::std::option::Option<
+            unsafe extern "C" fn(val: u32, ptr: *mut ::std::os::raw::c_void),
+        >,
+        ptr: *mut ::std::os::raw::c_void,
     );
 }
 extern "C" {
-    #[doc = " This function converts a range_t to a (wmem_alloc()-allocated) string."]
     pub fn range_convert_range(
         scope: *mut wmem_allocator_t,
         range: *const range_t,
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Create a (wmem-alloc()ed) copy of a range\n @param scope memory scope for the copied range\n @param src the range to copy\n @return ep allocated copy of the range"]
     pub fn range_copy(scope: *mut wmem_allocator_t, src: *const range_t) -> *mut range_t;
 }
 #[repr(C)]
@@ -37410,7 +37194,6 @@ pub struct _e_addr_resolve {
     _unused: [u8; 0],
 }
 extern "C" {
-    #[doc = " Convert a string listing name resolution types to a bitmask of\n those types.\n\n Set \"*name_resolve\" to the bitmask, and return '\\0', on success;\n return the bad character in the string on error.\n\n @param string a list of name resolution types\n @param name_resolve the bitmap of names to resolve to set\n @return '\\0' on success, the bad character in the string on error"]
     pub fn string_to_name_resolve(
         string: *const ::std::os::raw::c_char,
         name_resolve: *mut _e_addr_resolve,
@@ -37436,6 +37219,9 @@ pub const version_info_e_version_title_only: version_info_e = 1;
 pub const version_info_e_version_both: version_info_e = 2;
 pub const version_info_e_version_neither: version_info_e = 3;
 pub type version_info_e = ::std::os::raw::c_int;
+pub const splitter_layout_e_layout_vertical: splitter_layout_e = 0;
+pub const splitter_layout_e_layout_horizontal: splitter_layout_e = 1;
+pub type splitter_layout_e = ::std::os::raw::c_int;
 pub const pref_source_t_pref_default: pref_source_t = 0;
 pub const pref_source_t_pref_stashed: pref_source_t = 1;
 pub const pref_source_t_pref_current: pref_source_t = 2;
@@ -37452,7 +37238,7 @@ pub type software_update_channel_e = ::std::os::raw::c_int;
 #[derive(Debug, Copy, Clone)]
 pub struct _e_prefs {
     pub col_list: *mut GList,
-    pub num_cols: gint,
+    pub num_cols: ::std::os::raw::c_int,
     pub st_client_fg: color_t,
     pub st_client_bg: color_t,
     pub st_server_fg: color_t,
@@ -37460,108 +37246,114 @@ pub struct _e_prefs {
     pub gui_text_valid: color_t,
     pub gui_text_invalid: color_t,
     pub gui_text_deprecated: color_t,
-    pub restore_filter_after_following_stream: gboolean,
-    pub gui_toolbar_main_style: gint,
-    pub gui_font_name: *mut gchar,
+    pub restore_filter_after_following_stream: bool,
+    pub gui_toolbar_main_style: ::std::os::raw::c_int,
+    pub gui_font_name: *mut ::std::os::raw::c_char,
     pub gui_active_fg: color_t,
     pub gui_active_bg: color_t,
-    pub gui_active_style: gint,
+    pub gui_active_style: ::std::os::raw::c_int,
     pub gui_inactive_fg: color_t,
     pub gui_inactive_bg: color_t,
-    pub gui_inactive_style: gint,
+    pub gui_inactive_style: ::std::os::raw::c_int,
     pub gui_marked_fg: color_t,
     pub gui_marked_bg: color_t,
     pub gui_ignored_fg: color_t,
     pub gui_ignored_bg: color_t,
-    pub gui_colorized_fg: *mut gchar,
-    pub gui_colorized_bg: *mut gchar,
-    pub gui_geometry_save_position: gboolean,
-    pub gui_geometry_save_size: gboolean,
-    pub gui_geometry_save_maximized: gboolean,
-    pub gui_recent_df_entries_max: guint,
-    pub gui_recent_files_count_max: guint,
-    pub gui_fileopen_style: guint,
-    pub gui_fileopen_dir: *mut gchar,
-    pub gui_fileopen_preview: guint,
-    pub gui_tlskeylog_command: *mut gchar,
-    pub gui_ask_unsaved: gboolean,
-    pub gui_autocomplete_filter: gboolean,
-    pub gui_find_wrap: gboolean,
-    pub gui_window_title: *mut gchar,
-    pub gui_prepend_window_title: *mut gchar,
-    pub gui_start_title: *mut gchar,
+    pub gui_colorized_fg: *mut ::std::os::raw::c_char,
+    pub gui_colorized_bg: *mut ::std::os::raw::c_char,
+    pub gui_geometry_save_position: bool,
+    pub gui_geometry_save_size: bool,
+    pub gui_geometry_save_maximized: bool,
+    pub gui_recent_df_entries_max: ::std::os::raw::c_uint,
+    pub gui_recent_files_count_max: ::std::os::raw::c_uint,
+    pub gui_fileopen_style: ::std::os::raw::c_uint,
+    pub gui_fileopen_dir: *mut ::std::os::raw::c_char,
+    pub gui_fileopen_preview: ::std::os::raw::c_uint,
+    pub gui_tlskeylog_command: *mut ::std::os::raw::c_char,
+    pub gui_ask_unsaved: bool,
+    pub gui_autocomplete_filter: bool,
+    pub gui_find_wrap: bool,
+    pub gui_window_title: *mut ::std::os::raw::c_char,
+    pub gui_prepend_window_title: *mut ::std::os::raw::c_char,
+    pub gui_start_title: *mut ::std::os::raw::c_char,
     pub gui_version_placement: version_info_e,
-    pub gui_max_export_objects: guint,
-    pub gui_max_tree_items: guint,
-    pub gui_max_tree_depth: guint,
+    pub gui_max_export_objects: ::std::os::raw::c_uint,
+    pub gui_max_tree_items: ::std::os::raw::c_uint,
+    pub gui_max_tree_depth: ::std::os::raw::c_uint,
+    pub gui_welcome_page_show_recent: bool,
     pub gui_layout_type: layout_type_e,
     pub gui_layout_content_1: layout_pane_content_e,
     pub gui_layout_content_2: layout_pane_content_e,
     pub gui_layout_content_3: layout_pane_content_e,
-    pub gui_interfaces_hide_types: *mut gchar,
-    pub gui_interfaces_show_hidden: gboolean,
-    pub gui_interfaces_remote_display: gboolean,
-    pub gui_io_graph_automatic_update: gboolean,
-    pub gui_io_graph_enable_legend: gboolean,
-    pub gui_packet_details_show_byteview: gboolean,
-    pub capture_device: *mut gchar,
-    pub capture_devices_linktypes: *mut gchar,
-    pub capture_devices_descr: *mut gchar,
-    pub capture_devices_hide: *mut gchar,
-    pub capture_devices_monitor_mode: *mut gchar,
-    pub capture_devices_buffersize: *mut gchar,
-    pub capture_devices_snaplen: *mut gchar,
-    pub capture_devices_pmode: *mut gchar,
-    pub capture_devices_filter: *mut gchar,
-    pub capture_prom_mode: gboolean,
-    pub capture_pcap_ng: gboolean,
-    pub capture_real_time: gboolean,
-    pub capture_update_interval: guint,
-    pub capture_no_interface_load: gboolean,
-    pub capture_no_extcap: gboolean,
-    pub capture_show_info: gboolean,
+    pub gui_packet_dialog_layout: splitter_layout_e,
+    pub gui_interfaces_hide_types: *mut ::std::os::raw::c_char,
+    pub gui_interfaces_show_hidden: bool,
+    pub gui_interfaces_remote_display: bool,
+    pub gui_io_graph_automatic_update: bool,
+    pub gui_io_graph_enable_legend: bool,
+    pub gui_packet_details_show_byteview: bool,
+    pub capture_device: *mut ::std::os::raw::c_char,
+    pub capture_devices_linktypes: *mut ::std::os::raw::c_char,
+    pub capture_devices_descr: *mut ::std::os::raw::c_char,
+    pub capture_devices_hide: *mut ::std::os::raw::c_char,
+    pub capture_devices_monitor_mode: *mut ::std::os::raw::c_char,
+    pub capture_devices_buffersize: *mut ::std::os::raw::c_char,
+    pub capture_devices_snaplen: *mut ::std::os::raw::c_char,
+    pub capture_devices_pmode: *mut ::std::os::raw::c_char,
+    pub capture_devices_filter: *mut ::std::os::raw::c_char,
+    pub capture_prom_mode: bool,
+    pub capture_monitor_mode: bool,
+    pub capture_pcap_ng: bool,
+    pub capture_real_time: bool,
+    pub capture_update_interval: ::std::os::raw::c_uint,
+    pub capture_no_interface_load: bool,
+    pub capture_no_extcap: bool,
+    pub capture_show_info: bool,
     pub capture_columns: *mut GList,
-    pub tap_update_interval: guint,
-    pub display_hidden_proto_items: gboolean,
-    pub display_byte_fields_with_spaces: gboolean,
-    pub enable_incomplete_dissectors_check: gboolean,
-    pub incomplete_dissectors_check_debug: gboolean,
-    pub strict_conversation_tracking_heuristics: gboolean,
-    pub ignore_dup_frames: gboolean,
-    pub ignore_dup_frames_cache_entries: guint,
-    pub filter_expressions_old: gboolean,
-    pub gui_update_enabled: gboolean,
+    pub tap_update_interval: ::std::os::raw::c_uint,
+    pub display_hidden_proto_items: bool,
+    pub display_byte_fields_with_spaces: bool,
+    pub enable_incomplete_dissectors_check: bool,
+    pub incomplete_dissectors_check_debug: bool,
+    pub strict_conversation_tracking_heuristics: bool,
+    pub conversation_deinterlacing_key: ::std::os::raw::c_int,
+    pub ignore_dup_frames: bool,
+    pub ignore_dup_frames_cache_entries: ::std::os::raw::c_uint,
+    pub filter_expressions_old: bool,
+    pub cols_hide_new: bool,
+    pub gui_update_enabled: bool,
     pub gui_update_channel: software_update_channel_e,
-    pub gui_update_interval: gint,
-    pub gui_debounce_timer: gint,
-    pub saved_at_version: *mut gchar,
-    pub unknown_prefs: gboolean,
-    pub gui_packet_list_separator: gboolean,
-    pub gui_packet_header_column_definition: gboolean,
-    pub gui_packet_list_hover_style: gboolean,
-    pub gui_show_selected_packet: gboolean,
-    pub gui_show_file_load_time: gboolean,
+    pub gui_update_interval: ::std::os::raw::c_int,
+    pub gui_debounce_timer: ::std::os::raw::c_int,
+    pub saved_at_version: *mut ::std::os::raw::c_char,
+    pub unknown_prefs: bool,
+    pub gui_packet_list_separator: bool,
+    pub gui_packet_header_column_definition: bool,
+    pub gui_packet_list_hover_style: bool,
+    pub gui_show_selected_packet: bool,
+    pub gui_show_file_load_time: bool,
     pub gui_packet_list_elide_mode: elide_mode_e,
-    pub gui_packet_list_show_related: gboolean,
-    pub gui_packet_list_show_minimap: gboolean,
-    pub gui_packet_list_sortable: gboolean,
-    pub gui_packet_list_cached_rows_max: guint,
-    pub gui_decimal_places1: gint,
-    pub gui_decimal_places2: gint,
-    pub gui_decimal_places3: gint,
-    pub gui_rtp_player_use_disk1: gboolean,
-    pub gui_rtp_player_use_disk2: gboolean,
-    pub st_enable_burstinfo: gboolean,
-    pub st_burst_showcount: gboolean,
-    pub st_burst_resolution: gint,
-    pub st_burst_windowlen: gint,
-    pub st_sort_casesensitve: gboolean,
-    pub st_sort_rng_fixorder: gboolean,
-    pub st_sort_rng_nameonly: gboolean,
-    pub st_sort_defcolflag: gint,
-    pub st_sort_defdescending: gboolean,
-    pub st_sort_showfullname: gboolean,
-    pub extcap_save_on_start: gboolean,
+    pub gui_packet_list_show_related: bool,
+    pub gui_packet_list_show_minimap: bool,
+    pub gui_packet_list_sortable: bool,
+    pub gui_packet_list_cached_rows_max: ::std::os::raw::c_uint,
+    pub gui_decimal_places1: ::std::os::raw::c_int,
+    pub gui_decimal_places2: ::std::os::raw::c_int,
+    pub gui_decimal_places3: ::std::os::raw::c_int,
+    pub gui_rtp_player_use_disk1: bool,
+    pub gui_rtp_player_use_disk2: bool,
+    pub flow_graph_max_export_items: ::std::os::raw::c_uint,
+    pub st_enable_burstinfo: bool,
+    pub st_burst_showcount: bool,
+    pub st_burst_resolution: ::std::os::raw::c_int,
+    pub st_burst_windowlen: ::std::os::raw::c_int,
+    pub st_sort_casesensitve: bool,
+    pub st_sort_rng_fixorder: bool,
+    pub st_sort_rng_nameonly: bool,
+    pub st_sort_defcolflag: ::std::os::raw::c_int,
+    pub st_sort_defdescending: bool,
+    pub st_sort_showfullname: bool,
+    pub extcap_save_on_start: bool,
 }
 #[test]
 fn bindgen_test_layout__e_prefs() {
@@ -37569,7 +37361,7 @@ fn bindgen_test_layout__e_prefs() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_e_prefs>(),
-        584usize,
+        480usize,
         concat!("Size of: ", stringify!(_e_prefs))
     );
     assert_eq!(
@@ -37672,7 +37464,7 @@ fn bindgen_test_layout__e_prefs() {
             ::std::ptr::addr_of!((*ptr).restore_filter_after_following_stream) as usize
                 - ptr as usize
         },
-        56usize,
+        54usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37682,7 +37474,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_toolbar_main_style) as usize - ptr as usize },
-        60usize,
+        56usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37832,7 +37624,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_geometry_save_size) as usize - ptr as usize },
-        148usize,
+        145usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37842,7 +37634,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_geometry_save_maximized) as usize - ptr as usize },
-        152usize,
+        146usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37852,7 +37644,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_recent_df_entries_max) as usize - ptr as usize },
-        156usize,
+        148usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37862,7 +37654,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_recent_files_count_max) as usize - ptr as usize },
-        160usize,
+        152usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37872,7 +37664,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_fileopen_style) as usize - ptr as usize },
-        164usize,
+        156usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37882,7 +37674,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_fileopen_dir) as usize - ptr as usize },
-        168usize,
+        160usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37892,7 +37684,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_fileopen_preview) as usize - ptr as usize },
-        176usize,
+        168usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37902,7 +37694,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_tlskeylog_command) as usize - ptr as usize },
-        184usize,
+        176usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37912,7 +37704,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_ask_unsaved) as usize - ptr as usize },
-        192usize,
+        184usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37922,7 +37714,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_autocomplete_filter) as usize - ptr as usize },
-        196usize,
+        185usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37932,7 +37724,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_find_wrap) as usize - ptr as usize },
-        200usize,
+        186usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37942,7 +37734,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_window_title) as usize - ptr as usize },
-        208usize,
+        192usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37952,7 +37744,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_prepend_window_title) as usize - ptr as usize },
-        216usize,
+        200usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37962,7 +37754,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_start_title) as usize - ptr as usize },
-        224usize,
+        208usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37972,7 +37764,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_version_placement) as usize - ptr as usize },
-        232usize,
+        216usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37982,7 +37774,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_max_export_objects) as usize - ptr as usize },
-        236usize,
+        220usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -37992,7 +37784,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_max_tree_items) as usize - ptr as usize },
-        240usize,
+        224usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38002,7 +37794,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_max_tree_depth) as usize - ptr as usize },
-        244usize,
+        228usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38011,8 +37803,20 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
+        unsafe {
+            ::std::ptr::addr_of!((*ptr).gui_welcome_page_show_recent) as usize - ptr as usize
+        },
+        232usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_welcome_page_show_recent)
+        )
+    );
+    assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_layout_type) as usize - ptr as usize },
-        248usize,
+        236usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38022,7 +37826,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_layout_content_1) as usize - ptr as usize },
-        252usize,
+        240usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38032,7 +37836,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_layout_content_2) as usize - ptr as usize },
-        256usize,
+        244usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38042,7 +37846,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_layout_content_3) as usize - ptr as usize },
-        260usize,
+        248usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38051,8 +37855,18 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_packet_dialog_layout) as usize - ptr as usize },
+        252usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_packet_dialog_layout)
+        )
+    );
+    assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_interfaces_hide_types) as usize - ptr as usize },
-        264usize,
+        256usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38062,7 +37876,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_interfaces_show_hidden) as usize - ptr as usize },
-        272usize,
+        264usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38074,7 +37888,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_interfaces_remote_display) as usize - ptr as usize
         },
-        276usize,
+        265usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38086,7 +37900,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_io_graph_automatic_update) as usize - ptr as usize
         },
-        280usize,
+        266usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38096,7 +37910,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_io_graph_enable_legend) as usize - ptr as usize },
-        284usize,
+        267usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38108,7 +37922,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_packet_details_show_byteview) as usize - ptr as usize
         },
-        288usize,
+        268usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38118,7 +37932,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_device) as usize - ptr as usize },
-        296usize,
+        272usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38128,7 +37942,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_linktypes) as usize - ptr as usize },
-        304usize,
+        280usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38138,7 +37952,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_descr) as usize - ptr as usize },
-        312usize,
+        288usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38148,7 +37962,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_hide) as usize - ptr as usize },
-        320usize,
+        296usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38160,7 +37974,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).capture_devices_monitor_mode) as usize - ptr as usize
         },
-        328usize,
+        304usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38170,7 +37984,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_buffersize) as usize - ptr as usize },
-        336usize,
+        312usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38180,7 +37994,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_snaplen) as usize - ptr as usize },
-        344usize,
+        320usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38190,7 +38004,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_pmode) as usize - ptr as usize },
-        352usize,
+        328usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38200,7 +38014,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_filter) as usize - ptr as usize },
-        360usize,
+        336usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38210,7 +38024,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_prom_mode) as usize - ptr as usize },
-        368usize,
+        344usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38219,8 +38033,18 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).capture_monitor_mode) as usize - ptr as usize },
+        345usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(capture_monitor_mode)
+        )
+    );
+    assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_pcap_ng) as usize - ptr as usize },
-        372usize,
+        346usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38230,7 +38054,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_real_time) as usize - ptr as usize },
-        376usize,
+        347usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38240,7 +38064,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_update_interval) as usize - ptr as usize },
-        380usize,
+        348usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38250,7 +38074,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_no_interface_load) as usize - ptr as usize },
-        384usize,
+        352usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38260,7 +38084,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_no_extcap) as usize - ptr as usize },
-        388usize,
+        353usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38270,7 +38094,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_show_info) as usize - ptr as usize },
-        392usize,
+        354usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38280,7 +38104,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_columns) as usize - ptr as usize },
-        400usize,
+        360usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38290,7 +38114,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).tap_update_interval) as usize - ptr as usize },
-        408usize,
+        368usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38300,7 +38124,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).display_hidden_proto_items) as usize - ptr as usize },
-        412usize,
+        372usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38312,7 +38136,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).display_byte_fields_with_spaces) as usize - ptr as usize
         },
-        416usize,
+        373usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38324,7 +38148,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).enable_incomplete_dissectors_check) as usize - ptr as usize
         },
-        420usize,
+        374usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38336,7 +38160,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).incomplete_dissectors_check_debug) as usize - ptr as usize
         },
-        424usize,
+        375usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38349,7 +38173,7 @@ fn bindgen_test_layout__e_prefs() {
             ::std::ptr::addr_of!((*ptr).strict_conversation_tracking_heuristics) as usize
                 - ptr as usize
         },
-        428usize,
+        376usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38358,8 +38182,20 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
+        unsafe {
+            ::std::ptr::addr_of!((*ptr).conversation_deinterlacing_key) as usize - ptr as usize
+        },
+        380usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(conversation_deinterlacing_key)
+        )
+    );
+    assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ignore_dup_frames) as usize - ptr as usize },
-        432usize,
+        384usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38371,7 +38207,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).ignore_dup_frames_cache_entries) as usize - ptr as usize
         },
-        436usize,
+        388usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38381,7 +38217,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).filter_expressions_old) as usize - ptr as usize },
-        440usize,
+        392usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38390,8 +38226,18 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).cols_hide_new) as usize - ptr as usize },
+        393usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(cols_hide_new)
+        )
+    );
+    assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_update_enabled) as usize - ptr as usize },
-        444usize,
+        394usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38401,7 +38247,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_update_channel) as usize - ptr as usize },
-        448usize,
+        396usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38411,7 +38257,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_update_interval) as usize - ptr as usize },
-        452usize,
+        400usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38421,7 +38267,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_debounce_timer) as usize - ptr as usize },
-        456usize,
+        404usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38431,7 +38277,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).saved_at_version) as usize - ptr as usize },
-        464usize,
+        408usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38441,7 +38287,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).unknown_prefs) as usize - ptr as usize },
-        472usize,
+        416usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38451,7 +38297,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_packet_list_separator) as usize - ptr as usize },
-        476usize,
+        417usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38463,7 +38309,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_packet_header_column_definition) as usize - ptr as usize
         },
-        480usize,
+        418usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38473,7 +38319,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_packet_list_hover_style) as usize - ptr as usize },
-        484usize,
+        419usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38483,7 +38329,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_show_selected_packet) as usize - ptr as usize },
-        488usize,
+        420usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38493,7 +38339,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_show_file_load_time) as usize - ptr as usize },
-        492usize,
+        421usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38503,7 +38349,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_packet_list_elide_mode) as usize - ptr as usize },
-        496usize,
+        424usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38515,7 +38361,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_packet_list_show_related) as usize - ptr as usize
         },
-        500usize,
+        428usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38527,7 +38373,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_packet_list_show_minimap) as usize - ptr as usize
         },
-        504usize,
+        429usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38537,7 +38383,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_packet_list_sortable) as usize - ptr as usize },
-        508usize,
+        430usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38549,7 +38395,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_packet_list_cached_rows_max) as usize - ptr as usize
         },
-        512usize,
+        432usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38559,7 +38405,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_decimal_places1) as usize - ptr as usize },
-        516usize,
+        436usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38569,7 +38415,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_decimal_places2) as usize - ptr as usize },
-        520usize,
+        440usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38579,7 +38425,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_decimal_places3) as usize - ptr as usize },
-        524usize,
+        444usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38589,7 +38435,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_rtp_player_use_disk1) as usize - ptr as usize },
-        528usize,
+        448usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38599,7 +38445,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_rtp_player_use_disk2) as usize - ptr as usize },
-        532usize,
+        449usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38608,8 +38454,18 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).flow_graph_max_export_items) as usize - ptr as usize },
+        452usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(flow_graph_max_export_items)
+        )
+    );
+    assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_enable_burstinfo) as usize - ptr as usize },
-        536usize,
+        456usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38619,7 +38475,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_burst_showcount) as usize - ptr as usize },
-        540usize,
+        457usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38629,7 +38485,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_burst_resolution) as usize - ptr as usize },
-        544usize,
+        460usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38639,7 +38495,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_burst_windowlen) as usize - ptr as usize },
-        548usize,
+        464usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38649,7 +38505,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_casesensitve) as usize - ptr as usize },
-        552usize,
+        468usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38659,7 +38515,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_rng_fixorder) as usize - ptr as usize },
-        556usize,
+        469usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38669,7 +38525,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_rng_nameonly) as usize - ptr as usize },
-        560usize,
+        470usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38679,7 +38535,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_defcolflag) as usize - ptr as usize },
-        564usize,
+        472usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38689,7 +38545,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_defdescending) as usize - ptr as usize },
-        568usize,
+        476usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38699,7 +38555,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_showfullname) as usize - ptr as usize },
-        572usize,
+        477usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38709,7 +38565,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).extcap_save_on_start) as usize - ptr as usize },
-        576usize,
+        478usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -38734,38 +38590,30 @@ pub struct pref_custom_cbs {
 }
 pub type module_t = pref_module;
 extern "C" {
-    #[doc = " Sets up memory used by proto routines. Called at program startup"]
     pub fn prefs_init();
 }
 extern "C" {
-    #[doc = " Reset preferences to default values.  Called at profile change"]
     pub fn prefs_reset();
 }
 extern "C" {
-    #[doc = " Frees memory used by proto routines. Called at program shutdown"]
     pub fn prefs_cleanup();
 }
 extern "C" {
-    #[doc = " Store whether the current UI theme is dark so that we can adjust colors\n @param is_dark set to TRUE if the UI's theme is dark"]
-    pub fn prefs_set_gui_theme_is_dark(is_dark: gboolean);
+    pub fn prefs_set_gui_theme_is_dark(is_dark: bool);
 }
 extern "C" {
-    #[doc = " Register that a protocol has preferences.\n @param id the value returned by \"proto_register_protocol()\" when\n                the protocol was registered.\n @param apply_cb callback routine that is called when preferences are\n                      applied. It may be NULL, which inhibits the callback.\n @return a preferences module which can be used to register a user 'preference'"]
     pub fn prefs_register_protocol(
         id: ::std::os::raw::c_int,
         apply_cb: ::std::option::Option<unsafe extern "C" fn()>,
     ) -> *mut module_t;
 }
 extern "C" {
-    #[doc = " Register an alias for a preference module.\n @param name the preference module's alias. Only ASCII letters, numbers,\n                  underscores, hyphens, and dots may appear in the name\n @param module the module to create an alias for"]
     pub fn prefs_register_module_alias(name: *const ::std::os::raw::c_char, module: *mut module_t);
 }
 extern "C" {
-    #[doc = " Deregister preferences from a protocol.\n @param id the value returned by \"proto_register_protocol()\" when\n                the protocol was registered."]
     pub fn prefs_deregister_protocol(id: ::std::os::raw::c_int);
 }
 extern "C" {
-    #[doc = " Register that a statistical tap has preferences.\n\n @param name the name for the tap to use on the command line with \"-o\"\n             and in preference files.\n @param title is a short human-readable name for the tap.\n @param description is a longer human-readable description of the tap.\n @param apply_cb routine to call back after we apply the preferences\n @return a preferences module which can be used to register a user 'preference'"]
     pub fn prefs_register_stat(
         name: *const ::std::os::raw::c_char,
         title: *const ::std::os::raw::c_char,
@@ -38774,7 +38622,6 @@ extern "C" {
     ) -> *mut module_t;
 }
 extern "C" {
-    #[doc = " Register that a codec has preferences.\n\n @param name is a name for the codec to use on the command line with \"-o\"\n             and in preference files.\n @param title is a short human-readable name for the codec.\n @param description is a longer human-readable description of the codec.\n @param apply_cb routine to call back after we apply the preferences\n @return a preferences module which can be used to register a user 'preference'"]
     pub fn prefs_register_codec(
         name: *const ::std::os::raw::c_char,
         title: *const ::std::os::raw::c_char,
@@ -38783,7 +38630,6 @@ extern "C" {
     ) -> *mut module_t;
 }
 extern "C" {
-    #[doc = " Register that a protocol has preferences and group it under a single\n subtree\n @param subtree the tree node name for grouping preferences\n                the protocol was registered.\n @param id the value returned by \"proto_register_protocol()\" when\n                the protocol was registered.\n @param apply_cb Callback routine that is called when preferences are\n                      applied. It may be NULL, which inhibits the callback.\n @return a preferences module which can be used to register a user 'preference'"]
     pub fn prefs_register_protocol_subtree(
         subtree: *const ::std::os::raw::c_char,
         id: ::std::os::raw::c_int,
@@ -38791,35 +38637,34 @@ extern "C" {
     ) -> *mut module_t;
 }
 extern "C" {
-    #[doc = " Register that a protocol used to have preferences but no longer does,\n by creating an \"obsolete\" module for it.\n @param id the value returned by \"proto_register_protocol()\" when\n                the protocol was registered.\n @return a preferences module which can be used to register a user 'preference'"]
     pub fn prefs_register_protocol_obsolete(id: ::std::os::raw::c_int) -> *mut module_t;
 }
-#[doc = " Callback function for module list scanners."]
 pub type module_cb = ::std::option::Option<
-    unsafe extern "C" fn(module: *mut module_t, user_data: gpointer) -> guint,
+    unsafe extern "C" fn(
+        module: *mut module_t,
+        user_data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_uint,
 >;
 extern "C" {
-    #[doc = " Returns TRUE if a preferences module has any submodules\n @param module a preferences module which can be used to register a user 'preference'\n @return TRUE if a preferences module has any submodules, otherwise FALSE"]
-    pub fn prefs_module_has_submodules(module: *mut module_t) -> gboolean;
+    pub fn prefs_module_has_submodules(module: *mut module_t) -> bool;
 }
 extern "C" {
-    #[doc = " Call a callback function, with a specified argument, for each module\n in the list of all modules.  (This list does not include subtrees.)\n\n Ignores \"obsolete\" modules; their sole purpose is to allow old\n preferences for dissectors that no longer have preferences to be\n silently ignored in preference files.\n\n @param callback the callback to call\n @param user_data additional data to pass to the callback"]
-    pub fn prefs_modules_foreach(callback: module_cb, user_data: gpointer) -> guint;
+    pub fn prefs_modules_foreach(
+        callback: module_cb,
+        user_data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Call a callback function, with a specified argument, for each submodule\n of a specified module. If the module is NULL, goes through the top-level\n list in the display tree of modules.\n\n Ignores \"obsolete\" modules; their sole purpose is to allow old\n preferences for dissectors that no longer have preferences to be\n silently ignored in preference files.  Does not ignore subtrees,\n as this can be used when walking the display tree of modules.\n\n @param module the top-level module to walk through the submodules,\n               or NULL for the top-level list in the display tree of modules\n @param callback the callback to call\n @param user_data additional data to pass to the callback"]
     pub fn prefs_modules_foreach_submodules(
         module: *mut module_t,
         callback: module_cb,
-        user_data: gpointer,
-    ) -> guint;
+        user_data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Call the \"apply\" callback function for each module if any of its\n preferences have changed, and then clear the flag saying its\n preferences have changed, as the module has been notified of that\n fact."]
     pub fn prefs_apply_all();
 }
 extern "C" {
-    #[doc = " Call the \"apply\" callback function for a specific module if any of\n its preferences have changed, and then clear the flag saying its\n preferences have changed, as the module has been notified of that\n fact.\n @param module the module to call the 'apply' callback function for"]
     pub fn prefs_apply(module: *mut module_t);
 }
 #[repr(C)]
@@ -38829,61 +38674,53 @@ pub struct preference {
 }
 pub type pref_t = preference;
 extern "C" {
-    #[doc = " Returns TRUE if the provided protocol has registered preferences.\n @param name the name of the protocol to look up\n @return TRUE if the given protocol has registered preferences, otherwise FALSE"]
-    pub fn prefs_is_registered_protocol(name: *const ::std::os::raw::c_char) -> gboolean;
+    pub fn prefs_is_registered_protocol(name: *const ::std::os::raw::c_char) -> bool;
 }
 extern "C" {
-    #[doc = " Returns the module title of a registered protocol (or NULL if unknown).\n @param name the name of the protocol to look up\n @return the module title of a registered protocol, otherwise NULL"]
     pub fn prefs_get_title_by_name(
         name: *const ::std::os::raw::c_char,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Given a module name, return a pointer to its pref_module struct,\n or NULL if it's not found.\n\n @param name The preference module name.  Usually the same as the protocol\n name, e.g. \"tcp\".\n @return A pointer to the corresponding preference module, or NULL if it\n wasn't found."]
     pub fn prefs_find_module(name: *const ::std::os::raw::c_char) -> *mut module_t;
 }
 extern "C" {
-    #[doc = " Given a module and a preference name, return a pointer to the given\n module's given preference or NULL if it's not found.\n\n @param module The preference module name.  Usually the same as the protocol\n name, e.g. \"tcp\".\n @param pref The preference name, e.g. \"desegment\".\n @return A pointer to the corresponding preference, or NULL if it\n wasn't found."]
     pub fn prefs_find_preference(
         module: *mut module_t,
         pref: *const ::std::os::raw::c_char,
     ) -> *mut pref_t;
 }
 extern "C" {
-    #[doc = " Register a preference with an unsigned integral value.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title the title in the preferences dialog\n @param description the description included in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param base the base the unsigned integer is expected to be in. See strtoul(3)\n @param var pointer to the storage location that is updated when the\n                    field is changed in the preference dialog box"]
     pub fn prefs_register_uint_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
         title: *const ::std::os::raw::c_char,
         description: *const ::std::os::raw::c_char,
-        base: guint,
-        var: *mut guint,
+        base: ::std::os::raw::c_uint,
+        var: *mut ::std::os::raw::c_uint,
     );
 }
 extern "C" {
-    #[doc = " Register a preference with an Boolean value.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param var pointer to the storage location that is updated when the\n                    field is changed in the preference dialog box"]
     pub fn prefs_register_bool_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
         title: *const ::std::os::raw::c_char,
         description: *const ::std::os::raw::c_char,
-        var: *mut gboolean,
+        var: *mut bool,
     );
 }
 extern "C" {
-    #[doc = " Register a preference with an enumerated value.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param var pointer to the storage location that is updated when the\n                    field is changed in the preference dialog box\n @param enumvals a null-terminated array of enum_val_t structures\n @param radio_buttons TRUE if the field is to be displayed in the\n                  preferences dialog as a set of radio buttons,\n                  FALSE if it is to be displayed as an option menu"]
     pub fn prefs_register_enum_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
         title: *const ::std::os::raw::c_char,
         description: *const ::std::os::raw::c_char,
-        var: *mut gint,
+        var: *mut ::std::os::raw::c_int,
         enumvals: *const enum_val_t,
-        radio_buttons: gboolean,
+        radio_buttons: bool,
     );
 }
 extern "C" {
-    #[doc = " Register a preference with a character-string value.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param var pointer to the storage location that is updated when the\n                    field is changed in the preference dialog box. Note that\n          with string preferences the given pointer is overwritten\n          with a pointer to a new copy of the string during the\n          preference registration. The passed-in string may be\n          freed, but you must keep another pointer to the string\n          in order to free it"]
     pub fn prefs_register_string_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
@@ -38893,18 +38730,16 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Register a preference with a file name (string) value.\n\n File name preferences are basically like string preferences\n except that the GUI gives the user the ability to browse for the\n file.\n\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param var pointer to the storage location that is updated when the\n                    field is changed in the preference dialog box. Note that\n          the given pointer is overwritten\n          with a pointer to a new copy of the string during the\n          preference registration. The passed-in string may be\n          freed, but you must keep another pointer to the string\n          in order to free it\n @param for_writing TRUE to display a Save dialog, FALSE to display an Open dialog."]
     pub fn prefs_register_filename_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
         title: *const ::std::os::raw::c_char,
         description: *const ::std::os::raw::c_char,
         var: *mut *const ::std::os::raw::c_char,
-        for_writing: gboolean,
+        for_writing: bool,
     );
 }
 extern "C" {
-    #[doc = " Register a preference with a directory name (string) value.\n Directory name preferences are basically like string preferences\n except that the GUI gives the user the ability to browse for a\n directory.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param var pointer to the storage location that is updated when the\n                    field is changed in the preference dialog box. Note that\n          the given pointer is overwritten\n          with a pointer to a new copy of the string during the\n          preference registration. The passed-in string may be\n          freed, but you must keep another pointer to the string\n          in order to free it"]
     pub fn prefs_register_directory_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
@@ -38914,18 +38749,16 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Register a preference with a ranged value.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param var pointer to the storage location that is updated when the\n                    field is changed in the preference dialog box.\n @param max_value the maximum allowed value for a range (0 is the minimum)"]
     pub fn prefs_register_range_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
         title: *const ::std::os::raw::c_char,
         description: *const ::std::os::raw::c_char,
         var: *mut *mut range_t,
-        max_value: guint32,
+        max_value: u32,
     );
 }
 extern "C" {
-    #[doc = " Register a static text 'preference'. It can be used to add some info/explanation.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL"]
     pub fn prefs_register_static_text_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
@@ -38934,7 +38767,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Register a uat (User Accessible Table) 'preference'. It adds a button that opens the uat's window in the\n preferences tab of the module.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param uat the uat object that will be updated when the\n                    field is changed in the preference dialog box"]
     pub fn prefs_register_uat_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
@@ -38944,7 +38776,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Register a uat 'preference' for QT only. It adds a button that opens the uat's window in the\n preferences tab of the module.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param uat the uat object that will be updated when the\n                    field is changed in the preference dialog box"]
     pub fn prefs_register_uat_preference_qt(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
@@ -38954,7 +38785,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Register a color preference.  Currently does not have any \"GUI Dialog\" support\n so the color data needs to be managed independently.  Currently used by the\n \"GUI preferences\" to aid in reading/writing the preferences file, but the\n \"data\" is still managed by the specific \"GUI preferences\" dialog.\n\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param color the color object that will be updated when the\n                    field is changed in the preference dialog box"]
     pub fn prefs_register_color_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
@@ -38964,7 +38794,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Register a custom preference.  Currently does not have any \"GUI Dialog\" support\n so data needs to be managed independently.  Currently used by the\n \"GUI preferences\" to aid in reading/writing the preferences file, but the\n \"data\" is still managed by the specific \"GUI preferences\" dialog.\n\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param custom_cbs a structure with the custom preference's callbacks\n @param custom_data currently unused"]
     pub fn prefs_register_custom_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
@@ -38975,18 +38804,18 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Register a (internal) \"Decode As\" preference with a ranged value.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param var pointer to the storage location that is updated when the\n                    field is changed in the preference dialog box.\n @param max_value the maximum allowed value for a range (0 is the minimum)"]
     pub fn prefs_register_decode_as_range_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
         title: *const ::std::os::raw::c_char,
         description: *const ::std::os::raw::c_char,
         var: *mut *mut range_t,
-        max_value: guint32,
+        max_value: u32,
+        dissector_table: *const ::std::os::raw::c_char,
+        dissector_description: *const ::std::os::raw::c_char,
     );
 }
 extern "C" {
-    #[doc = " Register a preference with an password (password is never stored).\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title the title in the preferences dialog\n @param description the description included in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param var pointer to the storage location that is updated when the\n                    field is changed in the preference dialog box"]
     pub fn prefs_register_password_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
@@ -38996,129 +38825,122 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Register a preference that used to be supported but no longer is.\n\n Note that a warning will pop up if you've saved such preference to the\n preference file and you subsequently take the code out. The way to make\n a preference obsolete is to register it with prefs_register_obsolete_preference()\n\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name."]
+    pub fn prefs_register_dissector_preference(
+        module: *mut module_t,
+        name: *const ::std::os::raw::c_char,
+        title: *const ::std::os::raw::c_char,
+        description: *const ::std::os::raw::c_char,
+        var: *mut *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
     pub fn prefs_register_obsolete_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
     );
 }
 extern "C" {
-    #[doc = " Register a preference with an enumerated value.\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name.\n @param title Field's title in the preferences dialog\n @param description description to include in the preferences file\n                    and shown as tooltip in the GUI, or NULL\n @param var pointer to the storage location that is updated when the\n                    field is changed in the preference dialog box\n @param enumvals a null-terminated array of enum_val_t structures\n @param radio_buttons TRUE if the field is to be displayed in the\n                  preferences dialog as a set of radio buttons,\n                  FALSE if it is to be displayed as an option menu"]
     pub fn prefs_register_custom_preference_TCP_Analysis(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
         title: *const ::std::os::raw::c_char,
         description: *const ::std::os::raw::c_char,
-        var: *mut gint,
+        var: *mut ::std::os::raw::c_int,
         enumvals: *const enum_val_t,
-        radio_buttons: gboolean,
+        radio_buttons: bool,
     );
 }
 extern "C" {
-    #[doc = " Mark a preference that affects fields change. This works for bool, enum,\n int, string (containing filename), range preferences. UAT is not included,\n because you can specified UAT_AFFECTS_FIELDS at uat_new().\n\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param name the preference's identifier. This is appended to the name of the\n             protocol, with a \".\" between them, to create a unique identifier.\n             The identifier should not include the protocol name, as the name in\n             the preference file will already have it. Make sure that\n             only lower-case ASCII letters, numbers, underscores and\n             dots appear in the preference name."]
     pub fn prefs_set_preference_effect_fields(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
     );
 }
-pub type pref_cb =
-    ::std::option::Option<unsafe extern "C" fn(pref: *mut pref_t, user_data: gpointer) -> guint>;
+pub type pref_cb = ::std::option::Option<
+    unsafe extern "C" fn(
+        pref: *mut pref_t,
+        user_data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_uint,
+>;
 extern "C" {
-    #[doc = " Call a callback function, with a specified argument, for each preference\n in a given module.\n\n If any of the callbacks return a non-zero value, stop and return that\n value, otherwise return 0.\n\n @param module the preferences module returned by prefs_register_protocol() or\n               prefs_register_protocol_subtree()\n @param callback the callback to call\n @param user_data additional data to pass to the callback\n @return If any of the callbacks return a non-zero value, stop and return that\n         value, otherwise return 0."]
     pub fn prefs_pref_foreach(
         module: *mut module_t,
         callback: pref_cb,
-        user_data: gpointer,
-    ) -> guint;
+        user_data: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Parse through a list of comma-separated, possibly quoted strings.\n Return a list of the string data.\n\n Commas, whitespace, and the quotes surrounding entries are removed.\n Quotes and backslashes escaped with a backslash (\\\") will remain.\n\n @param str a list of comma-separated, possibly quoted strings\n @return a list of the string data, or NULL if there's an error"]
-    pub fn prefs_get_string_list(str_: *const gchar) -> *mut GList;
+    pub fn prefs_get_string_list(str_: *const ::std::os::raw::c_char) -> *mut GList;
 }
 extern "C" {
-    #[doc = " Clear the given list of string data.\n @param sl the GList to clear"]
     pub fn prefs_clear_string_list(sl: *mut GList);
 }
 extern "C" {
-    #[doc = " Fetch a short preference type name, e.g. \"Integer\".\n\n @param pref A preference.\n\n @return The preference type name. May be NULL."]
     pub fn prefs_pref_type_name(pref: *mut pref_t) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Fetch a long description of the preference type\n\n @param pref A preference.\n\n @return A description of the preference type including allowed\n values for enums. The description may include newlines. Must be\n g_free()d."]
     pub fn prefs_pref_type_description(pref: *mut pref_t) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Fetch a string representation of the preference.\n\n @param pref A preference.\n @param source Which value of the preference to return, see pref_source_t.\n\n @return A string representation of the preference. Must be g_free()d."]
     pub fn prefs_pref_to_str(
         pref: *mut pref_t,
         source: pref_source_t,
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Read the preferences file, fill in \"prefs\", and return a pointer to it.\n If we got an error (other than \"it doesn't exist\") we report it through\n the UI.\n\n This is called by epan_load_settings(); programs should call that\n rather than individually calling the routines it calls.\n\n @return a pointer to the filled in prefs object"]
     pub fn read_prefs() -> *mut e_prefs;
 }
 extern "C" {
-    #[doc = " Write out \"prefs\" to the user's preferences file, and return 0.\n\n If we got an error, stuff a pointer to the path of the preferences file\n into \"*pf_path_return\", and return the errno.\n\n @param pf_path_return The path to write preferences to or NULL for stdout\n @return 0 if success, otherwise errno"]
     pub fn write_prefs(pf_path_return: *mut *mut ::std::os::raw::c_char) -> ::std::os::raw::c_int;
 }
 pub const prefs_set_pref_e_PREFS_SET_OK: prefs_set_pref_e = 0;
 pub const prefs_set_pref_e_PREFS_SET_SYNTAX_ERR: prefs_set_pref_e = 1;
 pub const prefs_set_pref_e_PREFS_SET_NO_SUCH_PREF: prefs_set_pref_e = 2;
 pub const prefs_set_pref_e_PREFS_SET_OBSOLETE: prefs_set_pref_e = 3;
-#[doc = " Result of setting a preference."]
 pub type prefs_set_pref_e = ::std::os::raw::c_int;
 extern "C" {
-    #[doc = " Given a string of the form \"<pref name>:<pref value>\", as might appear\n as an argument to a \"-o\" option, parse it and set the preference in\n question.  Return an indication of whether it succeeded or failed\n in some fashion.\n\n For syntax errors (return value PREFS_SET_SYNTAX_ERR), details (when\n available) are written into \"errmsg\" which must be freed with g_free.\n\n @param prefarg a string of the form \"<pref name>:<pref value>\"\n @param errmsg storage for syntax error details\n @return the result from attempting to set the preference"]
     pub fn prefs_set_pref(
         prefarg: *mut ::std::os::raw::c_char,
         errmsg: *mut *mut ::std::os::raw::c_char,
     ) -> prefs_set_pref_e;
 }
 extern "C" {
-    #[doc = " Get or set a preference's obsolete status. These can be used to make a\n preference obsolete after startup so that we can fetch its value but\n keep it from showing up in the prefrences dialog.\n\n @param pref A preference.\n @return TRUE if the preference is obsolete, otherwise FALSE"]
-    pub fn prefs_get_preference_obsolete(pref: *mut pref_t) -> gboolean;
+    pub fn prefs_get_preference_obsolete(pref: *mut pref_t) -> bool;
 }
 extern "C" {
-    #[doc = " Make a preference obsolete\n\n @param pref a preference.\n @return the result from attempting to set the preference"]
     pub fn prefs_set_preference_obsolete(pref: *mut pref_t) -> prefs_set_pref_e;
 }
 extern "C" {
-    #[doc = " Get current preference uint value. This allows the preference structure\n to remain hidden from those that doesn't really need it\n\n @param module_name the preference module name. Usually the same as the protocol\n                    name, e.g. \"tcp\".\n @param pref_name the preference name, e.g. \"desegment\".\n @return the preference's value"]
     pub fn prefs_get_uint_value(
         module_name: *const ::std::os::raw::c_char,
         pref_name: *const ::std::os::raw::c_char,
-    ) -> guint;
+    ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
-    #[doc = " Get the current range preference value (maintained by pref, so it doesn't need to be freed). This allows the\n preference structure to remain hidden from those that doesn't really need it.\n\n @param module_name the preference module name. Usually the same as the protocol\n                    name, e.g. \"tcp\".\n @param pref_name the preference name, e.g. \"desegment\".\n @return the preference's value"]
     pub fn prefs_get_range_value(
         module_name: *const ::std::os::raw::c_char,
         pref_name: *const ::std::os::raw::c_char,
     ) -> *mut range_t;
 }
 extern "C" {
-    #[doc = " Returns TRUE if the specified capture device is hidden\n @param name the name of the capture device\n @return TRUE if the specified capture device is hidden, otherwise FALSE"]
-    pub fn prefs_is_capture_device_hidden(name: *const ::std::os::raw::c_char) -> gboolean;
+    pub fn prefs_is_capture_device_hidden(name: *const ::std::os::raw::c_char) -> bool;
 }
 extern "C" {
-    #[doc = " Returns TRUE if the given device should capture in monitor mode by default\n @param name the name of the capture device\n @return TRUE if the specified capture device should capture in monitor mode by default, otherwise FALSE"]
-    pub fn prefs_capture_device_monitor_mode(name: *const ::std::os::raw::c_char) -> gboolean;
+    pub fn prefs_capture_device_monitor_mode(name: *const ::std::os::raw::c_char) -> bool;
 }
 extern "C" {
-    #[doc = " Returns TRUE if the user has marked this column as visible\n\n @param column the name of the column\n @return TRUE if this column as visible, otherwise FALSE"]
-    pub fn prefs_capture_options_dialog_column_is_visible(column: *const gchar) -> gboolean;
+    pub fn prefs_capture_options_dialog_column_is_visible(
+        column: *const ::std::os::raw::c_char,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Returns TRUE if the layout pane content is enabled\n\n @param layout_pane_content the layout pane content to check\n @return TRUE if the layout pane content is enabled, otherwise FALSE"]
-    pub fn prefs_has_layout_pane_content(layout_pane_content: layout_pane_content_e) -> gboolean;
+    pub fn prefs_has_layout_pane_content(layout_pane_content: layout_pane_content_e) -> bool;
 }
 extern "C" {
-    #[doc = " Global variable holding the content of the corresponding environment variable\n to save fetching it repeatedly."]
-    pub static mut wireshark_abort_on_dissector_bug: gboolean;
+    pub static mut wireshark_abort_on_dissector_bug: bool;
 }
 extern "C" {
-    pub static mut wireshark_abort_on_too_many_items: gboolean;
+    pub static mut wireshark_abort_on_too_many_items: bool;
 }
 pub type epan_dissect_t = epan_dissect;
 #[repr(C)]
@@ -39126,38 +38948,34 @@ pub type epan_dissect_t = epan_dissect;
 pub struct epan_dfilter {
     _unused: [u8; 0],
 }
-#[doc = "  Helper routines for column utility structures and routines."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct epan_column_info {
     _unused: [u8; 0],
 }
-#[doc = " Opaque structure provided when an epan_t is created; it contains\n information needed to allow the user of libwireshark to provide\n time stamps, comments, and other information outside the packet\n data itself."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct packet_provider_data {
     _unused: [u8; 0],
 }
-#[doc = " Structure containing pointers to functions supplied by the user\n of libwireshark."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct packet_provider_funcs {
     pub get_frame_ts: ::std::option::Option<
-        unsafe extern "C" fn(
-            prov: *mut packet_provider_data,
-            frame_num: guint32,
-        ) -> *const nstime_t,
+        unsafe extern "C" fn(prov: *mut packet_provider_data, frame_num: u32) -> *const nstime_t,
     >,
     pub get_interface_name: ::std::option::Option<
         unsafe extern "C" fn(
             prov: *mut packet_provider_data,
-            interface_id: guint32,
+            interface_id: u32,
+            section_number: ::std::os::raw::c_uint,
         ) -> *const ::std::os::raw::c_char,
     >,
     pub get_interface_description: ::std::option::Option<
         unsafe extern "C" fn(
             prov: *mut packet_provider_data,
-            interface_id: guint32,
+            interface_id: u32,
+            section_number: ::std::os::raw::c_uint,
         ) -> *const ::std::os::raw::c_char,
     >,
     pub get_modified_block: ::std::option::Option<
@@ -39224,19 +39042,16 @@ fn bindgen_test_layout_packet_provider_funcs() {
     );
 }
 extern "C" {
-    #[doc = " Init the whole epan module.\n\n Must be called only once in a program.\n\n Returns TRUE on success, FALSE on failure."]
     pub fn epan_init(
         cb: register_cb,
         client_data: *mut ::std::os::raw::c_void,
-        load_plugins: gboolean,
-    ) -> gboolean;
+        load_plugins: bool,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Load all settings, from the current profile, that affect epan."]
     pub fn epan_load_settings() -> *mut e_prefs;
 }
 extern "C" {
-    #[doc = " cleanup the whole epan module, this is used to be called only once in a program"]
     pub fn epan_cleanup();
 }
 #[repr(C)]
@@ -39247,10 +39062,12 @@ pub struct epan_plugin {
     pub dissect_init: ::std::option::Option<unsafe extern "C" fn(arg1: *mut epan_dissect_t)>,
     pub dissect_cleanup: ::std::option::Option<unsafe extern "C" fn(arg1: *mut epan_dissect_t)>,
     pub cleanup: ::std::option::Option<unsafe extern "C" fn()>,
-    pub register_all_protocols:
-        ::std::option::Option<unsafe extern "C" fn(arg1: register_cb, arg2: gpointer)>,
-    pub register_all_handoffs:
-        ::std::option::Option<unsafe extern "C" fn(arg1: register_cb, arg2: gpointer)>,
+    pub register_all_protocols: ::std::option::Option<
+        unsafe extern "C" fn(arg1: register_cb, arg2: *mut ::std::os::raw::c_void),
+    >,
+    pub register_all_handoffs: ::std::option::Option<
+        unsafe extern "C" fn(arg1: register_cb, arg2: *mut ::std::os::raw::c_void),
+    >,
     pub register_all_tap_listeners: ::std::option::Option<unsafe extern "C" fn()>,
 }
 #[test]
@@ -39352,14 +39169,11 @@ extern "C" {
     pub fn epan_register_plugin(plugin: *const epan_plugin);
 }
 extern "C" {
-    #[doc = " Returns_\n     0 if plugins can be loaded for all of libwireshark (tap, dissector, epan).\n     1 if plugins are not supported by the platform.\n    -1 if plugins were disabled in the build configuration."]
     pub fn epan_plugins_supported() -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Initialize the table of conversations.  Conversations are identified by\n their endpoints; they are used for protocols such as IP, TCP, and UDP,\n where packets contain endpoint information but don't contain a single\n value indicating to which flow the packet belongs."]
     pub fn epan_conversation_init();
 }
-#[doc = " A client will create one epan_t for an entire dissection session.\n A single epan_t will be used to analyze the entire sequence of packets,\n sequentially, in a single session. A session corresponds to a single\n packet trace file. The reasons epan_t exists is that some packets in\n some protocols cannot be decoded without knowledge of previous packets.\n This inter-packet \"state\" is stored in the epan_t."]
 pub type epan_t = epan_session;
 extern "C" {
     pub fn epan_new(
@@ -39373,23 +39187,25 @@ extern "C" {
 extern "C" {
     pub fn epan_get_interface_name(
         session: *const epan_t,
-        interface_id: guint32,
+        interface_id: u32,
+        section_number: ::std::os::raw::c_uint,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn epan_get_interface_description(
         session: *const epan_t,
-        interface_id: guint32,
+        interface_id: u32,
+        section_number: ::std::os::raw::c_uint,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn epan_get_frame_ts(session: *const epan_t, frame_num: guint32) -> *const nstime_t;
+    pub fn epan_get_frame_ts(session: *const epan_t, frame_num: u32) -> *const nstime_t;
 }
 extern "C" {
     pub fn epan_free(session: *mut epan_t);
 }
 extern "C" {
-    pub fn epan_get_version() -> *const gchar;
+    pub fn epan_get_version() -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn epan_get_version_number(
@@ -39399,35 +39215,30 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Set/unset the tree to always be visible when epan_dissect_init() is called.\n This state change sticks until cleared, rather than being done per function call.\n This is currently used when Lua scripts request all fields be generated.\n By default it only becomes visible if epan_dissect_init() makes it so, usually\n only when a packet is selected.\n Setting this overrides that so it's always visible, although it will still not be\n created if create_proto_tree is false in the call to epan_dissect_init().\n Clearing this reverts the decision to epan_dissect_init() and proto_tree_visible."]
-    pub fn epan_set_always_visible(force: gboolean);
+    pub fn epan_set_always_visible(force: bool);
 }
 extern "C" {
-    #[doc = " initialize an existing single packet dissection"]
     pub fn epan_dissect_init(
         edt: *mut epan_dissect_t,
         session: *mut epan_t,
-        create_proto_tree: gboolean,
-        proto_tree_visible: gboolean,
+        create_proto_tree: bool,
+        proto_tree_visible: bool,
     );
 }
 extern "C" {
-    #[doc = " get a new single packet dissection\n should be freed using epan_dissect_free() after packet dissection completed"]
     pub fn epan_dissect_new(
         session: *mut epan_t,
-        create_proto_tree: gboolean,
-        proto_tree_visible: gboolean,
+        create_proto_tree: bool,
+        proto_tree_visible: bool,
     ) -> *mut epan_dissect_t;
 }
 extern "C" {
     pub fn epan_dissect_reset(edt: *mut epan_dissect_t);
 }
 extern "C" {
-    #[doc = " Indicate whether we should fake protocols or not"]
-    pub fn epan_dissect_fake_protocols(edt: *mut epan_dissect_t, fake_protocols: gboolean);
+    pub fn epan_dissect_fake_protocols(edt: *mut epan_dissect_t, fake_protocols: bool);
 }
 extern "C" {
-    #[doc = " run a single packet dissection"]
     pub fn epan_dissect_run(
         edt: *mut epan_dissect_t,
         file_type_subtype: ::std::os::raw::c_int,
@@ -39448,7 +39259,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " run a single file packet dissection"]
     pub fn epan_dissect_file_run(
         edt: *mut epan_dissect_t,
         rec: *mut wtap_rec,
@@ -39467,264 +39277,232 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Prime an epan_dissect_t's proto_tree using the fields/protocols used in a dfilter."]
     pub fn epan_dissect_prime_with_dfilter(edt: *mut epan_dissect_t, dfcode: *const epan_dfilter);
 }
 extern "C" {
-    #[doc = " Prime an epan_dissect_t's proto_tree with a field/protocol specified by its hfid"]
     pub fn epan_dissect_prime_with_hfid(edt: *mut epan_dissect_t, hfid: ::std::os::raw::c_int);
 }
 extern "C" {
-    #[doc = " Prime an epan_dissect_t's proto_tree with a set of fields/protocols specified by their hfids in a GArray"]
     pub fn epan_dissect_prime_with_hfid_array(edt: *mut epan_dissect_t, hfids: *mut GArray);
 }
 extern "C" {
-    #[doc = " fill the dissect run output into the packet list columns"]
     pub fn epan_dissect_fill_in_columns(
         edt: *mut epan_dissect_t,
-        fill_col_exprs: gboolean,
-        fill_fd_colums: gboolean,
+        fill_col_exprs: bool,
+        fill_fd_colums: bool,
     );
 }
 extern "C" {
-    #[doc = " Check whether a dissected packet contains a given named field"]
     pub fn epan_dissect_packet_contains_field(
         edt: *mut epan_dissect_t,
         field_name: *const ::std::os::raw::c_char,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " releases resources attached to the packet dissection. DOES NOT free the actual pointer"]
     pub fn epan_dissect_cleanup(edt: *mut epan_dissect_t);
 }
 extern "C" {
-    #[doc = " free a single packet dissection"]
     pub fn epan_dissect_free(edt: *mut epan_dissect_t);
 }
 extern "C" {
-    #[doc = " Sets custom column"]
     pub fn epan_custom_set(
         edt: *mut epan_dissect_t,
         ids: *mut GSList,
-        occurrence: gint,
-        result: *mut gchar,
-        expr: *mut gchar,
+        occurrence: ::std::os::raw::c_int,
+        result: *mut ::std::os::raw::c_char,
+        expr: *mut ::std::os::raw::c_char,
         size: ::std::os::raw::c_int,
-    ) -> *const gchar;
+    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Get compile-time information for libraries used by libwireshark."]
     pub fn epan_gather_compile_info(l: feature_list);
 }
 extern "C" {
-    #[doc = " Get runtime information for libraries used by libwireshark."]
     pub fn epan_gather_runtime_info(l: feature_list);
 }
 pub type column_info = epan_column_info;
-#[doc = "< 0) Absolute date, as YYYY-MM-DD, and time"]
 pub const COL_ABS_YMD_TIME: _bindgen_ty_1 = 0;
-#[doc = "< 1) Absolute date, as YYYY/DOY, and time"]
 pub const COL_ABS_YDOY_TIME: _bindgen_ty_1 = 1;
-#[doc = "< 2) Absolute time"]
 pub const COL_ABS_TIME: _bindgen_ty_1 = 2;
-#[doc = "< 3) Cumulative number of bytes"]
 pub const COL_CUMULATIVE_BYTES: _bindgen_ty_1 = 3;
-#[doc = "< 4) Custom column (any filter name's contents)"]
 pub const COL_CUSTOM: _bindgen_ty_1 = 4;
-#[doc = "< 5) Delta time"]
 pub const COL_DELTA_TIME: _bindgen_ty_1 = 5;
-#[doc = "< 6) Delta time displayed"]
 pub const COL_DELTA_TIME_DIS: _bindgen_ty_1 = 6;
-#[doc = "< 7) Resolved dest"]
 pub const COL_RES_DST: _bindgen_ty_1 = 7;
-#[doc = "< 8) Unresolved dest"]
 pub const COL_UNRES_DST: _bindgen_ty_1 = 8;
-#[doc = "< 9) Resolved dest port"]
 pub const COL_RES_DST_PORT: _bindgen_ty_1 = 9;
-#[doc = "< 10) Unresolved dest port"]
 pub const COL_UNRES_DST_PORT: _bindgen_ty_1 = 10;
-#[doc = "< 11) Destination address"]
 pub const COL_DEF_DST: _bindgen_ty_1 = 11;
-#[doc = "< 12) Destination port"]
 pub const COL_DEF_DST_PORT: _bindgen_ty_1 = 12;
-#[doc = "< 13) Expert Info"]
 pub const COL_EXPERT: _bindgen_ty_1 = 13;
-#[doc = "< 14) FW-1 monitor interface/direction"]
 pub const COL_IF_DIR: _bindgen_ty_1 = 14;
-#[doc = "< 15) IEEE 802.11 (and WiMax?) - Channel"]
 pub const COL_FREQ_CHAN: _bindgen_ty_1 = 15;
-#[doc = "< 16) Data link layer dest address"]
 pub const COL_DEF_DL_DST: _bindgen_ty_1 = 16;
-#[doc = "< 17) Data link layer source address"]
 pub const COL_DEF_DL_SRC: _bindgen_ty_1 = 17;
-#[doc = "< 18) Resolved DL dest"]
 pub const COL_RES_DL_DST: _bindgen_ty_1 = 18;
-#[doc = "< 19) Unresolved DL dest"]
 pub const COL_UNRES_DL_DST: _bindgen_ty_1 = 19;
-#[doc = "< 20) Resolved DL source"]
 pub const COL_RES_DL_SRC: _bindgen_ty_1 = 20;
-#[doc = "< 21) Unresolved DL source"]
 pub const COL_UNRES_DL_SRC: _bindgen_ty_1 = 21;
-#[doc = "< 22) IEEE 802.11 - received signal strength"]
 pub const COL_RSSI: _bindgen_ty_1 = 22;
-#[doc = "< 23) IEEE 802.11 - TX rate in Mbps"]
 pub const COL_TX_RATE: _bindgen_ty_1 = 23;
-#[doc = "< 24) IP DSCP Value"]
 pub const COL_DSCP_VALUE: _bindgen_ty_1 = 24;
-#[doc = "< 25) Description"]
 pub const COL_INFO: _bindgen_ty_1 = 25;
-#[doc = "< 26) Resolved net dest"]
 pub const COL_RES_NET_DST: _bindgen_ty_1 = 26;
-#[doc = "< 27) Unresolved net dest"]
 pub const COL_UNRES_NET_DST: _bindgen_ty_1 = 27;
-#[doc = "< 28) Resolved net source"]
 pub const COL_RES_NET_SRC: _bindgen_ty_1 = 28;
-#[doc = "< 29) Unresolved net source"]
 pub const COL_UNRES_NET_SRC: _bindgen_ty_1 = 29;
-#[doc = "< 30) Network layer dest address"]
 pub const COL_DEF_NET_DST: _bindgen_ty_1 = 30;
-#[doc = "< 31) Network layer source address"]
 pub const COL_DEF_NET_SRC: _bindgen_ty_1 = 31;
-#[doc = "< 32) Packet list item number"]
 pub const COL_NUMBER: _bindgen_ty_1 = 32;
-#[doc = "< 33) Packet length in bytes"]
 pub const COL_PACKET_LENGTH: _bindgen_ty_1 = 33;
-#[doc = "< 34) Protocol"]
 pub const COL_PROTOCOL: _bindgen_ty_1 = 34;
-#[doc = "< 35) Relative time"]
 pub const COL_REL_TIME: _bindgen_ty_1 = 35;
-#[doc = "< 36) Source address"]
 pub const COL_DEF_SRC: _bindgen_ty_1 = 36;
-#[doc = "< 37) Source port"]
 pub const COL_DEF_SRC_PORT: _bindgen_ty_1 = 37;
-#[doc = "< 38) Resolved source"]
 pub const COL_RES_SRC: _bindgen_ty_1 = 38;
-#[doc = "< 39) Unresolved source"]
 pub const COL_UNRES_SRC: _bindgen_ty_1 = 39;
-#[doc = "< 40) Resolved source port"]
 pub const COL_RES_SRC_PORT: _bindgen_ty_1 = 40;
-#[doc = "< 41) Unresolved source port"]
 pub const COL_UNRES_SRC_PORT: _bindgen_ty_1 = 41;
-#[doc = "< 42) UTC date, as YYYY-MM-DD, and time"]
 pub const COL_UTC_YMD_TIME: _bindgen_ty_1 = 42;
-#[doc = "< 43) UTC date, as YYYY/DOY, and time"]
 pub const COL_UTC_YDOY_TIME: _bindgen_ty_1 = 43;
-#[doc = "< 44) UTC time"]
 pub const COL_UTC_TIME: _bindgen_ty_1 = 44;
-#[doc = "< 45) Command line-specified time (default relative)"]
 pub const COL_CLS_TIME: _bindgen_ty_1 = 45;
-#[doc = "< 46) Should always be last"]
 pub const NUM_COL_FMTS: _bindgen_ty_1 = 46;
-#[doc = " All of the possible columns in summary listing.\n\n NOTE1: The entries MUST remain in this order, or else you need to reorder\n        the slist[] and dlist[] arrays in column.c to match!\n\n NOTE2: Please add the COL_XYZ entry in the appropriate spot, such that the\n        dlist[] array remains in alphabetical order!"]
 pub type _bindgen_ty_1 = ::std::os::raw::c_int;
 extern "C" {
-    #[doc = " Are the columns writable?\n\n @param cinfo the current packet row\n @param col the writable column, -1 for checking the state of all columns\n @return TRUE if it's writable, FALSE if not"]
-    pub fn col_get_writable(cinfo: *mut column_info, col: gint) -> gboolean;
+    pub fn col_get_writable(cinfo: *mut column_info, col: ::std::os::raw::c_int) -> bool;
 }
 extern "C" {
-    #[doc = " Set the columns writable.\n\n @param cinfo the current packet row\n @param col the column to set, -1 for all\n @param writable TRUE if it's writable, FALSE if not"]
-    pub fn col_set_writable(cinfo: *mut column_info, col: gint, writable: gboolean);
+    pub fn col_set_writable(cinfo: *mut column_info, col: ::std::os::raw::c_int, writable: bool);
 }
 extern "C" {
-    #[doc = " Sets a fence for the current column content,\n so this content won't be affected by further col_... function calls.\n\n This can be useful if a protocol is more than once in a single packet,\n e.g. multiple HTTP calls in a single TCP packet.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO"]
-    pub fn col_set_fence(cinfo: *mut column_info, col: gint);
+    pub fn col_set_fence(cinfo: *mut column_info, col: ::std::os::raw::c_int);
 }
 extern "C" {
-    #[doc = " Clears a fence for the current column content\n\n This can be useful if a protocol wants to remove whatever\n a previous protocol has added to the column.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO"]
-    pub fn col_clear_fence(cinfo: *mut column_info, col: gint);
+    pub fn col_clear_fence(cinfo: *mut column_info, col: ::std::os::raw::c_int);
 }
 extern "C" {
-    #[doc = " Gets the text of a column element.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n\n @return the text string"]
-    pub fn col_get_text(cinfo: *mut column_info, col: gint) -> *const gchar;
-}
-extern "C" {
-    #[doc = " Clears the text of a column element.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO"]
-    pub fn col_clear(cinfo: *mut column_info, col: gint);
-}
-extern "C" {
-    #[doc = " Set (replace) the text of a column element, the text won't be formatted or copied.\n\n Use this for simple static strings like protocol names. Don't use for untrusted strings\n or strings that may contain unprintable characters.\n\n Usually used to set const strings!\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n @param str the string to set"]
-    pub fn col_set_str(cinfo: *mut column_info, col: gint, str_: *const gchar);
-}
-extern "C" {
-    #[doc = " Add (replace) the text of a column element, the text will be formatted and copied.\n\n Unprintable characters according to isprint() are escaped.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n @param str the string to add"]
-    pub fn col_add_str(cinfo: *mut column_info, col: gint, str_: *const gchar);
-}
-extern "C" {
-    pub fn col_add_lstr(cinfo: *mut column_info, el: gint, str_: *const gchar, ...);
-}
-extern "C" {
-    #[doc = " Add (replace) the text of a column element, the text will be formatted and copied.\n\n Unprintable characters according to isprint() are escaped.\n\n Same function as col_add_str() but using a printf-like format string.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n @param format the format string\n @param ... the variable number of parameters"]
-    pub fn col_add_fstr(cinfo: *mut column_info, col: gint, format: *const gchar, ...);
-}
-extern "C" {
-    #[doc = " Append the given text to a column element, the text will be formatted and copied.\n\n Unprintable characters according to isprint() are escaped.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n @param str the string to append"]
-    pub fn col_append_str(cinfo: *mut column_info, col: gint, str_: *const gchar);
-}
-extern "C" {
-    #[doc = " Append <abbrev>=<val> to a column element, the text will be copied.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n @param abbrev the string to append\n @param val the value to append\n @param sep an optional separator to _prepend_ to abbrev"]
-    pub fn col_append_str_uint(
+    pub fn col_get_text(
         cinfo: *mut column_info,
-        col: gint,
-        abbrev: *const gchar,
-        val: guint32,
-        sep: *const gchar,
+        col: ::std::os::raw::c_int,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn col_clear(cinfo: *mut column_info, col: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn col_set_str(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        str_: *const ::std::os::raw::c_char,
     );
 }
 extern "C" {
-    #[doc = " Append a transport port pair to a column element, the text will be copied.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n @param typ the port type to resolve, e.g. PT_UDP\n @param src the source port value to append\n @param dst the destination port value to append"]
-    pub fn col_append_ports(
+    pub fn col_add_str(
         cinfo: *mut column_info,
-        col: gint,
-        typ: port_type,
-        src: guint16,
-        dst: guint16,
+        col: ::std::os::raw::c_int,
+        str_: *const ::std::os::raw::c_char,
     );
 }
 extern "C" {
-    #[doc = " Append a frame number and signal that we have updated\n column information.\n\n @param pinfo the current packet info\n @param col the column to use, e.g. COL_INFO\n @param fmt_str format string, e.g. \"reassembled in %u\".\n @param frame_num frame number"]
-    pub fn col_append_frame_number(
-        pinfo: *mut packet_info,
-        col: gint,
-        fmt_str: *const gchar,
-        frame_num: guint,
-    );
-}
-extern "C" {
-    pub fn col_append_lstr(cinfo: *mut column_info, el: gint, str_: *const gchar, ...);
-}
-extern "C" {
-    #[doc = " Append the given text to a column element, the text will be formatted and copied.\n\n Unprintable characters according to isprint() are escaped.\n\n Same function as col_append_str() but using a printf-like format string.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n @param format the format string\n @param ... the variable number of parameters"]
-    pub fn col_append_fstr(cinfo: *mut column_info, col: gint, format: *const gchar, ...);
-}
-extern "C" {
-    #[doc = " Prepend the given text to a column element, the text will be formatted and copied.\n\n Unprintable characters according to isprint() are escaped.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n @param format the format string\n @param ... the variable number of parameters"]
-    pub fn col_prepend_fstr(cinfo: *mut column_info, col: gint, format: *const gchar, ...);
-}
-extern "C" {
-    #[doc = " Prepend the given text to a column element, the text will be formatted and copied.\n\n Unprintable characters according to isprint() are escaped.\n\n This function is similar to col_prepend_fstr() but this function will\n unconditionally set a fence to the end of the prepended data even if there\n were no fence before.\n The col_prepend_fstr() will only prepend the data before the fence IF\n there is already a fence created. This function will create a fence in case\n it does not yet exist."]
-    pub fn col_prepend_fence_fstr(cinfo: *mut column_info, col: gint, format: *const gchar, ...);
-}
-extern "C" {
-    #[doc = " Append the given text (prepended by a separator) to a column element.\n\n Unprintable characters according to isprint() are escaped.\n\n Much like col_append_str() but will prepend the given separator if the column isn't empty.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n @param sep the separator string or NULL for default: \", \"\n @param str the string to append"]
-    pub fn col_append_sep_str(
+    pub fn col_add_lstr(
         cinfo: *mut column_info,
-        col: gint,
-        sep: *const gchar,
-        str_: *const gchar,
-    );
-}
-extern "C" {
-    #[doc = " Append the given text (prepended by a separator) to a column element.\n\n Unprintable characters according to isprint() are escaped.\n\n Much like col_append_fstr() but will prepend the given separator if the column isn't empty.\n\n @param cinfo the current packet row\n @param col the column to use, e.g. COL_INFO\n @param sep the separator string or NULL for default: \", \"\n @param format the format string\n @param ... the variable number of parameters"]
-    pub fn col_append_sep_fstr(
-        cinfo: *mut column_info,
-        col: gint,
-        sep: *const gchar,
-        format: *const gchar,
+        el: ::std::os::raw::c_int,
+        str_: *const ::std::os::raw::c_char,
         ...
     );
 }
 extern "C" {
-    #[doc = " Set the given (relative) time to a column element.\n\n Used by dissectors to set the time in a column\n\n @param cinfo\t\tthe current packet row\n @param col\t\tthe column to use, e.g. COL_INFO\n @param ts\t\tthe time to set in the column\n @param fieldname\tthe fieldname to use for creating a filter (when\n\t\t\t  applying/preparing/copying as filter)"]
+    pub fn col_add_fstr(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        format: *const ::std::os::raw::c_char,
+        ...
+    );
+}
+extern "C" {
+    pub fn col_append_str(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        str_: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn col_append_str_uint(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        abbrev: *const ::std::os::raw::c_char,
+        val: u32,
+        sep: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn col_append_ports(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        typ: port_type,
+        src: u16,
+        dst: u16,
+    );
+}
+extern "C" {
+    pub fn col_append_frame_number(
+        pinfo: *mut packet_info,
+        col: ::std::os::raw::c_int,
+        fmt_str: *const ::std::os::raw::c_char,
+        frame_num: ::std::os::raw::c_uint,
+    );
+}
+extern "C" {
+    pub fn col_append_lstr(
+        cinfo: *mut column_info,
+        el: ::std::os::raw::c_int,
+        str_: *const ::std::os::raw::c_char,
+        ...
+    );
+}
+extern "C" {
+    pub fn col_append_fstr(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        format: *const ::std::os::raw::c_char,
+        ...
+    );
+}
+extern "C" {
+    pub fn col_prepend_fstr(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        format: *const ::std::os::raw::c_char,
+        ...
+    );
+}
+extern "C" {
+    pub fn col_prepend_fence_fstr(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        format: *const ::std::os::raw::c_char,
+        ...
+    );
+}
+extern "C" {
+    pub fn col_append_sep_str(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        sep: *const ::std::os::raw::c_char,
+        str_: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn col_append_sep_fstr(
+        cinfo: *mut column_info,
+        col: ::std::os::raw::c_int,
+        sep: *const ::std::os::raw::c_char,
+        format: *const ::std::os::raw::c_char,
+        ...
+    );
+}
+extern "C" {
     pub fn col_set_time(
         cinfo: *mut column_info,
         col: ::std::os::raw::c_int,
@@ -39733,285 +39511,11 @@ extern "C" {
     );
 }
 extern "C" {
-    pub fn set_fd_time(epan: *const epan_session, fd: *mut frame_data, buf: *mut gchar);
-}
-#[doc = " For BASE_UNIT_STRING, the display format for adding units"]
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct unit_name_string {
-    #[doc = "< name to use for 1 unit"]
-    pub singular: *mut ::std::os::raw::c_char,
-    #[doc = "< name to use for < 1 or > 1 units"]
-    pub plural: *mut ::std::os::raw::c_char,
-}
-#[test]
-fn bindgen_test_layout_unit_name_string() {
-    const UNINIT: ::std::mem::MaybeUninit<unit_name_string> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<unit_name_string>(),
-        16usize,
-        concat!("Size of: ", stringify!(unit_name_string))
+    pub fn set_fd_time(
+        epan: *const epan_session,
+        fd: *mut frame_data,
+        buf: *mut ::std::os::raw::c_char,
     );
-    assert_eq!(
-        ::std::mem::align_of::<unit_name_string>(),
-        8usize,
-        concat!("Alignment of ", stringify!(unit_name_string))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).singular) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(unit_name_string),
-            "::",
-            stringify!(singular)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).plural) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(unit_name_string),
-            "::",
-            stringify!(plural)
-        )
-    );
-}
-extern "C" {
-    #[doc = " Returns the unit string appropriate for the 32 bit value.\n\n From the given unit_name_string return the appropriate string pointer\n @param[in] value The value for which to get the appropriate string\n @param[in] units The unit_name_string containing the relevant strings\n @return          Pointer to the appropriate string"]
-    pub fn unit_name_string_get_value(
-        value: guint32,
-        units: *const unit_name_string,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    #[doc = " Returns the unit string appropriate for the 64 bit value.\n\n From the given unit_name_string return the appropriate string pointer\n @param[in] value The value for which to get the appropriate string\n @param[in] units The unit_name_string containing the relevant strings\n @return          Pointer to the appropriate string"]
-    pub fn unit_name_string_get_value64(
-        value: guint64,
-        units: *const unit_name_string,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    #[doc = " Returns the unit string appropriate for the double value.\n\n From the given unit_name_string return the appropriate string pointer\n @param[in] value The value for which to get the appropriate string\n @param[in] units The unit_name_string containing the relevant strings\n @return          Pointer to the appropriate string"]
-    pub fn unit_name_string_get_double(
-        value: f64,
-        units: *const unit_name_string,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub static units_foot_feet: unit_name_string;
-}
-extern "C" {
-    pub static units_bit_bits: unit_name_string;
-}
-extern "C" {
-    pub static units_byte_bytes: unit_name_string;
-}
-extern "C" {
-    pub static units_byte_bytespsecond: unit_name_string;
-}
-extern "C" {
-    pub static units_octet_octets: unit_name_string;
-}
-extern "C" {
-    pub static units_word_words: unit_name_string;
-}
-extern "C" {
-    pub static units_tick_ticks: unit_name_string;
-}
-extern "C" {
-    pub static units_meters: unit_name_string;
-}
-extern "C" {
-    pub static units_meter_meters: unit_name_string;
-}
-extern "C" {
-    pub static units_centimeters: unit_name_string;
-}
-extern "C" {
-    pub static units_centimeter_centimeters: unit_name_string;
-}
-extern "C" {
-    pub static units_millimeters: unit_name_string;
-}
-extern "C" {
-    pub static units_millimeter_millimeters: unit_name_string;
-}
-extern "C" {
-    pub static units_week_weeks: unit_name_string;
-}
-extern "C" {
-    pub static units_day_days: unit_name_string;
-}
-extern "C" {
-    pub static units_hour_hours: unit_name_string;
-}
-extern "C" {
-    pub static units_hours: unit_name_string;
-}
-extern "C" {
-    pub static units_minute_minutes: unit_name_string;
-}
-extern "C" {
-    pub static units_minutes: unit_name_string;
-}
-extern "C" {
-    pub static units_second_seconds: unit_name_string;
-}
-extern "C" {
-    pub static units_seconds: unit_name_string;
-}
-extern "C" {
-    pub static units_millisecond_milliseconds: unit_name_string;
-}
-extern "C" {
-    pub static units_milliseconds: unit_name_string;
-}
-extern "C" {
-    pub static units_microsecond_microseconds: unit_name_string;
-}
-extern "C" {
-    pub static units_microseconds: unit_name_string;
-}
-extern "C" {
-    pub static units_nanosecond_nanoseconds: unit_name_string;
-}
-extern "C" {
-    pub static units_nanoseconds: unit_name_string;
-}
-extern "C" {
-    pub static units_nanometers: unit_name_string;
-}
-extern "C" {
-    pub static units_degree_degrees: unit_name_string;
-}
-extern "C" {
-    pub static units_degree_celsius: unit_name_string;
-}
-extern "C" {
-    pub static units_degree_bearing: unit_name_string;
-}
-extern "C" {
-    pub static units_centibels: unit_name_string;
-}
-extern "C" {
-    pub static units_decibels: unit_name_string;
-}
-extern "C" {
-    pub static units_dbm: unit_name_string;
-}
-extern "C" {
-    pub static units_dbi: unit_name_string;
-}
-extern "C" {
-    pub static units_dbhz: unit_name_string;
-}
-extern "C" {
-    pub static units_mbm: unit_name_string;
-}
-extern "C" {
-    pub static units_percent: unit_name_string;
-}
-extern "C" {
-    pub static units_khz: unit_name_string;
-}
-extern "C" {
-    pub static units_ghz: unit_name_string;
-}
-extern "C" {
-    pub static units_mhz: unit_name_string;
-}
-extern "C" {
-    pub static units_hz: unit_name_string;
-}
-extern "C" {
-    pub static units_hz_s: unit_name_string;
-}
-extern "C" {
-    pub static units_kbit: unit_name_string;
-}
-extern "C" {
-    pub static units_kbps: unit_name_string;
-}
-extern "C" {
-    pub static units_kibps: unit_name_string;
-}
-extern "C" {
-    pub static units_pkts: unit_name_string;
-}
-extern "C" {
-    pub static units_pkts_per_sec: unit_name_string;
-}
-extern "C" {
-    pub static units_km: unit_name_string;
-}
-extern "C" {
-    pub static units_kmh: unit_name_string;
-}
-extern "C" {
-    pub static units_m_s: unit_name_string;
-}
-extern "C" {
-    pub static units_cm_s: unit_name_string;
-}
-extern "C" {
-    pub static units_mm_s: unit_name_string;
-}
-extern "C" {
-    pub static units_milliamps: unit_name_string;
-}
-extern "C" {
-    pub static units_microwatts: unit_name_string;
-}
-extern "C" {
-    pub static units_volt: unit_name_string;
-}
-extern "C" {
-    pub static units_grams_per_second: unit_name_string;
-}
-extern "C" {
-    pub static units_meter_sec: unit_name_string;
-}
-extern "C" {
-    pub static units_meter_sec_squared: unit_name_string;
-}
-extern "C" {
-    pub static units_bit_sec: unit_name_string;
-}
-extern "C" {
-    pub static units_segment_remaining: unit_name_string;
-}
-extern "C" {
-    pub static units_frame_frames: unit_name_string;
-}
-extern "C" {
-    pub static units_revolutions_per_minute: unit_name_string;
-}
-extern "C" {
-    pub static units_kilopascal: unit_name_string;
-}
-extern "C" {
-    pub static units_newton_metre: unit_name_string;
-}
-extern "C" {
-    pub static units_liter_per_hour: unit_name_string;
-}
-extern "C" {
-    pub static units_amp: unit_name_string;
-}
-extern "C" {
-    pub static units_watthour: unit_name_string;
-}
-extern "C" {
-    pub static units_watt: unit_name_string;
-}
-extern "C" {
-    pub static units_bpm: unit_name_string;
-}
-extern "C" {
-    pub static units_calorie: unit_name_string;
 }
 extern "C" {
     pub fn packet_init();
@@ -40051,32 +39555,39 @@ pub type dissector_cb_t = ::std::option::Option<
         arg5: *mut ::std::os::raw::c_void,
     ) -> ::std::os::raw::c_int,
 >;
-#[doc = " Type of a heuristic dissector, used in heur_dissector_add().\n\n @param tvb the tvbuff with the (remaining) packet data\n @param pinfo the packet info of this packet (additional info)\n @param tree the protocol tree to be build or NULL\n @return TRUE if the packet was recognized by the sub-dissector (stop dissection here)"]
 pub type heur_dissector_t = ::std::option::Option<
     unsafe extern "C" fn(
         tvb: *mut tvbuff_t,
         pinfo: *mut packet_info,
         tree: *mut proto_tree,
         arg1: *mut ::std::os::raw::c_void,
-    ) -> gboolean,
+    ) -> bool,
 >;
 pub const heuristic_enable_e_HEURISTIC_DISABLE: heuristic_enable_e = 0;
 pub const heuristic_enable_e_HEURISTIC_ENABLE: heuristic_enable_e = 1;
 pub type heuristic_enable_e = ::std::os::raw::c_int;
 pub type DATFunc = ::std::option::Option<
     unsafe extern "C" fn(
-        table_name: *const gchar,
+        table_name: *const ::std::os::raw::c_char,
         selector_type: ftenum_t,
-        key: gpointer,
-        value: gpointer,
-        user_data: gpointer,
+        key: *mut ::std::os::raw::c_void,
+        value: *mut ::std::os::raw::c_void,
+        user_data: *mut ::std::os::raw::c_void,
     ),
 >;
 pub type DATFunc_handle = ::std::option::Option<
-    unsafe extern "C" fn(table_name: *const gchar, value: gpointer, user_data: gpointer),
+    unsafe extern "C" fn(
+        table_name: *const ::std::os::raw::c_char,
+        value: *mut ::std::os::raw::c_void,
+        user_data: *mut ::std::os::raw::c_void,
+    ),
 >;
 pub type DATFunc_table = ::std::option::Option<
-    unsafe extern "C" fn(table_name: *const gchar, ui_name: *const gchar, user_data: gpointer),
+    unsafe extern "C" fn(
+        table_name: *const ::std::os::raw::c_char,
+        ui_name: *const ::std::os::raw::c_char,
+        user_data: *mut ::std::os::raw::c_void,
+    ),
 >;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -40091,38 +39602,36 @@ extern "C" {
     pub fn dtbl_entry_get_initial_handle(entry: *mut dtbl_entry_t) -> dissector_handle_t;
 }
 extern "C" {
-    #[doc = " Iterate over dissectors in a table with non-default \"decode as\" settings.\n\n Walk one dissector table calling a user supplied function only on\n any entry that has been changed from its original state.\n\n @param[in] table_name The name of the dissector table, e.g. \"ip.proto\".\n @param[in] func The function to call for each dissector.\n @param[in] user_data User data to pass to the function."]
     pub fn dissector_table_foreach_changed(
         table_name: *const ::std::os::raw::c_char,
         func: DATFunc,
-        user_data: gpointer,
+        user_data: *mut ::std::os::raw::c_void,
     );
 }
 extern "C" {
-    #[doc = " Iterate over dissectors in a table.\n\n Walk one dissector table's hash table calling a user supplied function\n on each entry.\n\n @param[in] table_name The name of the dissector table, e.g. \"ip.proto\".\n @param[in] func The function to call for each dissector.\n @param[in] user_data User data to pass to the function."]
     pub fn dissector_table_foreach(
         table_name: *const ::std::os::raw::c_char,
         func: DATFunc,
-        user_data: gpointer,
+        user_data: *mut ::std::os::raw::c_void,
     );
 }
 extern "C" {
-    #[doc = " Iterate over dissectors with non-default \"decode as\" settings.\n\n Walk all dissector tables calling a user supplied function only on\n any \"decode as\" entry that has been changed from its original state.\n\n @param[in] func The function to call for each dissector.\n @param[in] user_data User data to pass to the function."]
-    pub fn dissector_all_tables_foreach_changed(func: DATFunc, user_data: gpointer);
+    pub fn dissector_all_tables_foreach_changed(
+        func: DATFunc,
+        user_data: *mut ::std::os::raw::c_void,
+    );
 }
 extern "C" {
-    #[doc = " Iterate over dissectors in a table by handle.\n\n Walk one dissector table's list of handles calling a user supplied\n function on each entry.\n\n @param[in] table_name The name of the dissector table, e.g. \"ip.proto\".\n @param[in] func The function to call for each dissector.\n @param[in] user_data User data to pass to the function."]
     pub fn dissector_table_foreach_handle(
         table_name: *const ::std::os::raw::c_char,
         func: DATFunc_handle,
-        user_data: gpointer,
+        user_data: *mut ::std::os::raw::c_void,
     );
 }
 extern "C" {
-    #[doc = " Iterate over all dissector tables.\n\n Walk the set of dissector tables calling a user supplied function on each\n table.\n @param[in] func The function to call for each table.\n @param[in] user_data User data to pass to the function.\n @param[in] compare_key_func Function used to sort the set of tables before\n calling the function.  No sorting is done if NULL."]
     pub fn dissector_all_tables_foreach_table(
         func: DATFunc_table,
-        user_data: gpointer,
+        user_data: *mut ::std::os::raw::c_void,
         compare_key_func: GCompareFunc,
     );
 }
@@ -40146,14 +39655,12 @@ extern "C" {
     ) -> dissector_table_t;
 }
 extern "C" {
-    #[doc = " Register a dissector table alias.\n This is for dissectors whose original name has changed, e.g. SSL to TLS.\n @param dissector_table dissector table returned by register_dissector_table.\n @param alias_name alias for the dissector table name."]
     pub fn register_dissector_table_alias(
         dissector_table: dissector_table_t,
         alias_name: *const ::std::os::raw::c_char,
     );
 }
 extern "C" {
-    #[doc = " Deregister the dissector table by table name."]
     pub fn deregister_dissector_table(name: *const ::std::os::raw::c_char);
 }
 extern "C" {
@@ -40176,14 +39683,14 @@ extern "C" {
 extern "C" {
     pub fn dissector_add_uint(
         name: *const ::std::os::raw::c_char,
-        pattern: guint32,
+        pattern: u32,
         handle: dissector_handle_t,
     );
 }
 extern "C" {
     pub fn dissector_add_uint_with_preference(
         name: *const ::std::os::raw::c_char,
-        pattern: guint32,
+        pattern: u32,
         handle: dissector_handle_t,
     );
 }
@@ -40204,7 +39711,7 @@ extern "C" {
 extern "C" {
     pub fn dissector_delete_uint(
         name: *const ::std::os::raw::c_char,
-        pattern: guint32,
+        pattern: u32,
         handle: dissector_handle_t,
     );
 }
@@ -40221,23 +39728,20 @@ extern "C" {
 extern "C" {
     pub fn dissector_change_uint(
         abbrev: *const ::std::os::raw::c_char,
-        pattern: guint32,
+        pattern: u32,
         handle: dissector_handle_t,
     );
 }
 extern "C" {
-    pub fn dissector_reset_uint(name: *const ::std::os::raw::c_char, pattern: guint32);
+    pub fn dissector_reset_uint(name: *const ::std::os::raw::c_char, pattern: u32);
 }
 extern "C" {
-    pub fn dissector_is_uint_changed(
-        sub_dissectors: dissector_table_t,
-        uint_val: guint32,
-    ) -> gboolean;
+    pub fn dissector_is_uint_changed(sub_dissectors: dissector_table_t, uint_val: u32) -> bool;
 }
 extern "C" {
     pub fn dissector_try_uint(
         sub_dissectors: dissector_table_t,
-        uint_val: guint32,
+        uint_val: u32,
         tvb: *mut tvbuff_t,
         pinfo: *mut packet_info,
         tree: *mut proto_tree,
@@ -40246,62 +39750,63 @@ extern "C" {
 extern "C" {
     pub fn dissector_try_uint_new(
         sub_dissectors: dissector_table_t,
-        uint_val: guint32,
+        uint_val: u32,
         tvb: *mut tvbuff_t,
         pinfo: *mut packet_info,
         tree: *mut proto_tree,
-        add_proto_name: gboolean,
+        add_proto_name: bool,
         data: *mut ::std::os::raw::c_void,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Look for a given value in a given uint dissector table and, if found,\n return the current dissector handle for that value.\n\n @param[in] sub_dissectors Dissector table to search.\n @param[in] uint_val Value to match, e.g. the port number for the TCP dissector.\n @return The matching dissector handle on success, NULL if no match is found."]
     pub fn dissector_get_uint_handle(
         sub_dissectors: dissector_table_t,
-        uint_val: guint32,
+        uint_val: u32,
     ) -> dissector_handle_t;
 }
 extern "C" {
-    #[doc = " Look for a given value in a given uint dissector table and, if found,\n return the default dissector handle for that value.\n\n @param[in] name Dissector table name.\n @param[in] uint_val Value to match, e.g. the port number for the TCP dissector.\n @return The matching dissector handle on success, NULL if no match is found."]
     pub fn dissector_get_default_uint_handle(
         name: *const ::std::os::raw::c_char,
-        uint_val: guint32,
+        uint_val: u32,
     ) -> dissector_handle_t;
 }
 extern "C" {
     pub fn dissector_add_string(
         name: *const ::std::os::raw::c_char,
-        pattern: *const gchar,
+        pattern: *const ::std::os::raw::c_char,
         handle: dissector_handle_t,
     );
 }
 extern "C" {
     pub fn dissector_delete_string(
         name: *const ::std::os::raw::c_char,
-        pattern: *const gchar,
+        pattern: *const ::std::os::raw::c_char,
         handle: dissector_handle_t,
     );
 }
 extern "C" {
     pub fn dissector_change_string(
         name: *const ::std::os::raw::c_char,
-        pattern: *const gchar,
+        pattern: *const ::std::os::raw::c_char,
         handle: dissector_handle_t,
     );
 }
 extern "C" {
-    pub fn dissector_reset_string(name: *const ::std::os::raw::c_char, pattern: *const gchar);
+    pub fn dissector_reset_string(
+        name: *const ::std::os::raw::c_char,
+        pattern: *const ::std::os::raw::c_char,
+    );
 }
 extern "C" {
     pub fn dissector_is_string_changed(
         subdissectors: dissector_table_t,
-        string: *const gchar,
-    ) -> gboolean;
+        string: *const ::std::os::raw::c_char,
+    ) -> bool;
 }
 extern "C" {
     pub fn dissector_try_string(
         sub_dissectors: dissector_table_t,
-        string: *const gchar,
+        string: *const ::std::os::raw::c_char,
         tvb: *mut tvbuff_t,
         pinfo: *mut packet_info,
         tree: *mut proto_tree,
@@ -40311,26 +39816,24 @@ extern "C" {
 extern "C" {
     pub fn dissector_try_string_new(
         sub_dissectors: dissector_table_t,
-        string: *const gchar,
+        string: *const ::std::os::raw::c_char,
         tvb: *mut tvbuff_t,
         pinfo: *mut packet_info,
         tree: *mut proto_tree,
-        add_proto_name: gboolean,
+        add_proto_name: bool,
         data: *mut ::std::os::raw::c_void,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Look for a given value in a given string dissector table and, if found,\n return the current dissector handle for that value.\n\n @param[in] sub_dissectors Dissector table to search.\n @param[in] string Value to match, e.g. the OID for the BER dissector.\n @return The matching dissector handle on success, NULL if no match is found."]
     pub fn dissector_get_string_handle(
         sub_dissectors: dissector_table_t,
-        string: *const gchar,
+        string: *const ::std::os::raw::c_char,
     ) -> dissector_handle_t;
 }
 extern "C" {
-    #[doc = " Look for a given value in a given string dissector table and, if found,\n return the default dissector handle for that value.\n\n @param[in] name Dissector table name.\n @param[in] string Value to match, e.g. the OID for the BER dissector.\n @return The matching dissector handle on success, NULL if no match is found."]
     pub fn dissector_get_default_string_handle(
         name: *const ::std::os::raw::c_char,
-        string: *const gchar,
+        string: *const ::std::os::raw::c_char,
     ) -> dissector_handle_t;
 }
 extern "C" {
@@ -40341,7 +39844,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Look for a given key in a given \"custom\" dissector table and, if found,\n return the current dissector handle for that key.\n\n @param[in] sub_dissectors Dissector table to search.\n @param[in] key Value to match, e.g. RPC key for its subdissectors\n @return The matching dissector handle on success, NULL if no match is found."]
     pub fn dissector_get_custom_table_handle(
         sub_dissectors: dissector_table_t,
         key: *mut ::std::os::raw::c_void,
@@ -40351,7 +39853,7 @@ extern "C" {
 #[derive(Debug, Copy, Clone)]
 pub struct _guid_key {
     pub guid: e_guid_t,
-    pub ver: guint16,
+    pub ver: u16,
 }
 #[test]
 fn bindgen_test_layout__guid_key() {
@@ -40412,12 +39914,18 @@ extern "C" {
         tvb: *mut tvbuff_t,
         pinfo: *mut packet_info,
         tree: *mut proto_tree,
-        add_proto_name: gboolean,
+        add_proto_name: bool,
         data: *mut ::std::os::raw::c_void,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Look for a given value in a given guid dissector table and, if found,\n return the current dissector handle for that value.\n\n @param[in] sub_dissectors Dissector table to search.\n @param[in] guid_val Value to match, e.g. the GUID number for the GUID dissector.\n @return The matching dissector handle on success, NULL if no match is found."]
+    pub fn dissector_delete_guid(
+        name: *const ::std::os::raw::c_char,
+        guid_val: *mut guid_key,
+        handle: dissector_handle_t,
+    );
+}
+extern "C" {
     pub fn dissector_get_guid_handle(
         sub_dissectors: dissector_table_t,
         guid_val: *mut guid_key,
@@ -40437,7 +39945,7 @@ extern "C" {
         tvb: *mut tvbuff_t,
         pinfo: *mut packet_info,
         tree: *mut proto_tree,
-        add_proto_name: gboolean,
+        add_proto_name: bool,
         data: *mut ::std::os::raw::c_void,
     ) -> ::std::os::raw::c_int;
 }
@@ -40466,28 +39974,23 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Get the list of handles for a dissector table"]
     pub fn dissector_table_get_dissector_handles(dissector_table: dissector_table_t)
         -> *mut GSList;
 }
 extern "C" {
-    #[doc = " Get a handle to dissector out of a dissector table given the description\n of what the dissector dissects."]
     pub fn dissector_table_get_dissector_handle(
         dissector_table: dissector_table_t,
-        description: *const gchar,
+        description: *const ::std::os::raw::c_char,
     ) -> dissector_handle_t;
 }
 extern "C" {
-    #[doc = " Get a dissector table's type"]
     pub fn dissector_table_get_type(dissector_table: dissector_table_t) -> ftenum_t;
 }
 extern "C" {
-    #[doc = " Mark a dissector table as allowing \"Decode As\""]
     pub fn dissector_table_allow_decode_as(dissector_table: dissector_table_t);
 }
 extern "C" {
-    #[doc = " Returns TRUE if dissector table allows \"Decode As\""]
-    pub fn dissector_table_supports_decode_as(dissector_table: dissector_table_t) -> gboolean;
+    pub fn dissector_table_supports_decode_as(dissector_table: dissector_table_t) -> bool;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -40500,10 +40003,10 @@ pub type heur_dissector_list_t = *mut heur_dissector_list;
 pub struct heur_dtbl_entry {
     pub dissector: heur_dissector_t,
     pub protocol: *mut protocol_t,
-    pub list_name: *mut gchar,
-    pub display_name: *const gchar,
-    pub short_name: *mut gchar,
-    pub enabled: gboolean,
+    pub list_name: *mut ::std::os::raw::c_char,
+    pub display_name: *const ::std::os::raw::c_char,
+    pub short_name: *mut ::std::os::raw::c_char,
+    pub enabled: bool,
     pub enabled_by_default: bool,
 }
 #[test]
@@ -40582,7 +40085,7 @@ fn bindgen_test_layout_heur_dtbl_entry() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).enabled_by_default) as usize - ptr as usize },
-        44usize,
+        41usize,
         concat!(
             "Offset of field: ",
             stringify!(heur_dtbl_entry),
@@ -40593,47 +40096,58 @@ fn bindgen_test_layout_heur_dtbl_entry() {
 }
 pub type heur_dtbl_entry_t = heur_dtbl_entry;
 extern "C" {
-    #[doc = " A protocol uses this function to register a heuristic sub-dissector list.\n  Call this in the parent dissectors proto_register function.\n\n @param name the name of this protocol\n @param proto the value obtained when registering the protocol"]
+    pub fn register_heur_dissector_list_with_description(
+        name: *const ::std::os::raw::c_char,
+        ui_name: *const ::std::os::raw::c_char,
+        proto: ::std::os::raw::c_int,
+    ) -> heur_dissector_list_t;
+}
+extern "C" {
+    pub fn heur_dissector_list_get_description(
+        list: heur_dissector_list_t,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
     pub fn register_heur_dissector_list(
         name: *const ::std::os::raw::c_char,
         proto: ::std::os::raw::c_int,
     ) -> heur_dissector_list_t;
 }
+extern "C" {
+    pub fn deregister_heur_dissector_list(name: *const ::std::os::raw::c_char);
+}
 pub type DATFunc_heur = ::std::option::Option<
     unsafe extern "C" fn(
-        table_name: *const gchar,
+        table_name: *const ::std::os::raw::c_char,
         entry: *mut heur_dtbl_entry,
-        user_data: gpointer,
+        user_data: *mut ::std::os::raw::c_void,
     ),
 >;
 pub type DATFunc_heur_table = ::std::option::Option<
     unsafe extern "C" fn(
         table_name: *const ::std::os::raw::c_char,
         table: *mut heur_dissector_list,
-        user_data: gpointer,
+        user_data: *mut ::std::os::raw::c_void,
     ),
 >;
 extern "C" {
-    #[doc = " Iterate over heuristic dissectors in a table.\n\n Walk one heuristic dissector table's list calling a user supplied function\n on each entry.\n\n @param[in] table_name The name of the dissector table, e.g. \"tcp\".\n @param[in] func The function to call for each dissector.\n @param[in] user_data User data to pass to the function."]
     pub fn heur_dissector_table_foreach(
         table_name: *const ::std::os::raw::c_char,
         func: DATFunc_heur,
-        user_data: gpointer,
+        user_data: *mut ::std::os::raw::c_void,
     );
 }
 extern "C" {
-    #[doc = " Iterate over all heuristic dissector tables.\n\n Walk the set of heuristic dissector tables calling a user supplied function\n on each table.\n @param[in] func The function to call for each table.\n @param[in] user_data User data to pass to the function.\n @param[in] compare_key_func Function used to sort the set of tables before\n calling the function.  No sorting is done if NULL."]
     pub fn dissector_all_heur_tables_foreach_table(
         func: DATFunc_heur_table,
-        user_data: gpointer,
+        user_data: *mut ::std::os::raw::c_void,
         compare_key_func: GCompareFunc,
     );
 }
 extern "C" {
-    pub fn has_heur_dissector_list(name: *const gchar) -> gboolean;
+    pub fn has_heur_dissector_list(name: *const ::std::os::raw::c_char) -> bool;
 }
 extern "C" {
-    #[doc = " Try all the dissectors in a given heuristic dissector list. This is done,\n  until we find one that recognizes the protocol.\n  Call this while the parent dissector running.\n\n @param sub_dissectors the sub-dissector list\n @param tvb the tvbuff with the (remaining) packet data\n @param pinfo the packet info of this packet (additional info)\n @param tree the protocol tree to be build or NULL\n @param hdtbl_entry returns the last tried dissectors hdtbl_entry.\n @param data parameter to pass to subdissector\n @return TRUE if the packet was recognized by the sub-dissector (stop dissection here)"]
     pub fn dissector_try_heuristic(
         sub_dissectors: heur_dissector_list_t,
         tvb: *mut tvbuff_t,
@@ -40641,20 +40155,17 @@ extern "C" {
         tree: *mut proto_tree,
         hdtbl_entry: *mut *mut heur_dtbl_entry_t,
         data: *mut ::std::os::raw::c_void,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Find a heuristic dissector table by table name.\n\n @param name name of the dissector table\n @return pointer to the table on success, NULL if no such table exists"]
     pub fn find_heur_dissector_list(name: *const ::std::os::raw::c_char) -> heur_dissector_list_t;
 }
 extern "C" {
-    #[doc = " Find a heuristic dissector by the unique short protocol name provided during registration.\n\n @param short_name short name of the protocol to look at\n @return pointer to the heuristic dissector entry, NULL if not such dissector exists"]
     pub fn find_heur_dissector_by_unique_short_name(
         short_name: *const ::std::os::raw::c_char,
     ) -> *mut heur_dtbl_entry_t;
 }
 extern "C" {
-    #[doc = " Add a sub-dissector to a heuristic dissector list.\n  Call this in the proto_handoff function of the sub-dissector.\n\n @param name the name of the heuristic dissector table into which to register the dissector, e.g. \"tcp\"\n @param dissector the sub-dissector to be registered\n @param display_name the string used to present heuristic to user, e.g. \"HTTP over TCP\"\n @param internal_name the string used for \"internal\" use to identify heuristic, e.g. \"http_tcp\"\n @param proto the protocol id of the sub-dissector\n @param enable initially enabled or not"]
     pub fn heur_dissector_add(
         name: *const ::std::os::raw::c_char,
         dissector: heur_dissector_t,
@@ -40665,7 +40176,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Remove a sub-dissector from a heuristic dissector list.\n  Call this in the prefs_reinit function of the sub-dissector.\n\n @param name the name of the \"parent\" protocol, e.g. \"tcp\"\n @param dissector the sub-dissector to be unregistered\n @param proto the protocol id of the sub-dissector"]
     pub fn heur_dissector_delete(
         name: *const ::std::os::raw::c_char,
         dissector: heur_dissector_t,
@@ -40673,7 +40183,6 @@ extern "C" {
     );
 }
 extern "C" {
-    #[doc = " Register a new dissector."]
     pub fn register_dissector(
         name: *const ::std::os::raw::c_char,
         dissector: dissector_t,
@@ -40681,7 +40190,6 @@ extern "C" {
     ) -> dissector_handle_t;
 }
 extern "C" {
-    #[doc = " Register a new dissector with a description."]
     pub fn register_dissector_with_description(
         name: *const ::std::os::raw::c_char,
         description: *const ::std::os::raw::c_char,
@@ -40690,7 +40198,6 @@ extern "C" {
     ) -> dissector_handle_t;
 }
 extern "C" {
-    #[doc = " Register a new dissector with a callback pointer."]
     pub fn register_dissector_with_data(
         name: *const ::std::os::raw::c_char,
         dissector: dissector_cb_t,
@@ -40699,17 +40206,14 @@ extern "C" {
     ) -> dissector_handle_t;
 }
 extern "C" {
-    #[doc = " Deregister a dissector."]
     pub fn deregister_dissector(name: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    #[doc = " Get the long name of the protocol for a dissector handle."]
     pub fn dissector_handle_get_protocol_long_name(
         handle: dissector_handle_t,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Get the short name of the protocol for a dissector handle."]
     pub fn dissector_handle_get_protocol_short_name(
         handle: dissector_handle_t,
     ) -> *const ::std::os::raw::c_char;
@@ -40720,39 +40224,37 @@ extern "C" {
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Get the description for what the dissector for a dissector handle dissects."]
     pub fn dissector_handle_get_description(
         handle: dissector_handle_t,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Get the index of the protocol for a dissector handle."]
     pub fn dissector_handle_get_protocol_index(handle: dissector_handle_t)
         -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Get a GList of all registered dissector names."]
     pub fn get_dissector_names() -> *mut GList;
 }
 extern "C" {
-    #[doc = " Find a dissector by name."]
     pub fn find_dissector(name: *const ::std::os::raw::c_char) -> dissector_handle_t;
 }
 extern "C" {
-    #[doc = " Find a dissector by name and add parent protocol as a dependency."]
     pub fn find_dissector_add_dependency(
         name: *const ::std::os::raw::c_char,
         parent_proto: ::std::os::raw::c_int,
     ) -> dissector_handle_t;
 }
 extern "C" {
-    #[doc = " Get a dissector name from handle."]
     pub fn dissector_handle_get_dissector_name(
         handle: dissector_handle_t,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    #[doc = " Create an anonymous handle for a dissector."]
+    pub fn dissector_handle_get_pref_suffix(
+        handle: dissector_handle_t,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
     pub fn create_dissector_handle(
         dissector: dissector_t,
         proto: ::std::os::raw::c_int,
@@ -40784,7 +40286,6 @@ extern "C" {
     pub fn dissector_dump_dissectors();
 }
 extern "C" {
-    #[doc = " Call a dissector through a handle and if no dissector was found\n pass it over to the \"data\" dissector instead.\n\n   @param handle The dissector to call.\n   @param  tvb The buffer to dissect.\n   @param  pinfo Packet Info.\n   @param  tree The protocol tree.\n   @param  data parameter to pass to dissector\n   @return  If the protocol for that handle isn't enabled call the data\n   dissector. Otherwise, if the handle refers to a new-style\n   dissector, call the dissector and return its return value, otherwise call\n   it and return the length of the tvbuff pointed to by the argument."]
     pub fn call_dissector_with_data(
         handle: dissector_handle_t,
         tvb: *mut tvbuff_t,
@@ -40809,7 +40310,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Call a dissector through a handle but if no dissector was found\n just return 0 and do not call the \"data\" dissector instead.\n\n   @param handle The dissector to call.\n   @param  tvb The buffer to dissect.\n   @param  pinfo Packet Info.\n   @param  tree The protocol tree.\n   @param  data parameter to pass to dissector\n   @return  If the protocol for that handle isn't enabled, return 0 without\n   calling the dissector. Otherwise, if the handle refers to a new-style\n   dissector, call the dissector and return its return value, otherwise call\n   it and return the length of the tvbuff pointed to by the argument."]
     pub fn call_dissector_only(
         handle: dissector_handle_t,
         tvb: *mut tvbuff_t,
@@ -40819,7 +40319,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = "   @param heur_dtbl_entry The heur_dtbl_entry of the dissector to call.\n   @param  tvb The buffer to dissect.\n   @param  pinfo Packet Info.\n   @param  tree The protocol tree.\n   @param  data parameter to pass to dissector"]
     pub fn call_heur_dissector_direct(
         heur_dtbl_entry: *mut heur_dtbl_entry_t,
         tvb: *mut tvbuff_t,
@@ -40835,21 +40334,18 @@ pub struct depend_dissector_list {
 }
 pub type depend_dissector_list_t = *mut depend_dissector_list;
 extern "C" {
-    #[doc = " Register a protocol dependency\n This is done automatically when registering with a dissector or\n heuristic table.  This is for \"manual\" registration when a dissector\n ends up calling another through call_dissector (or similar) so\n dependencies can be determined\n\n   @param parent \"Parent\" protocol short name\n   @param dependent \"Dependent\" protocol short name\n   @return  return TRUE if dependency was successfully registered"]
     pub fn register_depend_dissector(
         parent: *const ::std::os::raw::c_char,
         dependent: *const ::std::os::raw::c_char,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Unregister a protocol dependency\n This is done automatically when removing from a dissector or\n heuristic table.  This is for \"manual\" deregistration for things\n like Lua.\n\n   @param parent \"Parent\" protocol short name\n   @param dependent \"Dependent\" protocol short name\n   @return  return TRUE if dependency was successfully unregistered"]
     pub fn deregister_depend_dissector(
         parent: *const ::std::os::raw::c_char,
         dependent: *const ::std::os::raw::c_char,
-    ) -> gboolean;
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " Find the list of protocol dependencies\n\n   @param name Protocol short name to search for\n   @return  return list of dependent was successfully registered"]
     pub fn find_depend_dissector_list(
         name: *const ::std::os::raw::c_char,
     ) -> depend_dissector_list_t;
@@ -40861,14 +40357,12 @@ extern "C" {
     pub fn dissect_cleanup();
 }
 extern "C" {
-    pub fn set_actual_length(tvb: *mut tvbuff_t, specified_len: guint);
+    pub fn set_actual_length(tvb: *mut tvbuff_t, specified_len: ::std::os::raw::c_uint);
 }
 extern "C" {
-    #[doc = " Allow protocols to register \"init\" routines, which are called before\n we make a pass through a capture file and dissect all its packets\n (e.g., when we read in a new capture file, or run a \"filter packets\"\n or \"colorize packets\" pass over the current capture file or when the\n preferences are changed)."]
     pub fn register_init_routine(func: ::std::option::Option<unsafe extern "C" fn()>);
 }
 extern "C" {
-    #[doc = " Allows protocols to register \"cleanup\" routines, which are called\n after closing a capture file (or when preferences are changed, in\n that case these routines are called before the init routines are\n executed). It can be used to release resources that are allocated in\n an \"init\" routine."]
     pub fn register_cleanup_routine(func: ::std::option::Option<unsafe extern "C" fn()>);
 }
 extern "C" {
@@ -40923,13 +40417,12 @@ extern "C" {
     pub fn free_data_sources(pinfo: *mut packet_info);
 }
 extern "C" {
-    pub fn mark_frame_as_depended_upon(fd: *mut frame_data, frame_num: guint32);
+    pub fn mark_frame_as_depended_upon(fd: *mut frame_data, frame_num: u32);
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct frame_data_s {
     pub file_type_subtype: ::std::os::raw::c_int,
-    #[doc = "< NULL if not available"]
     pub pkt_block: wtap_block_t,
     pub color_edt: *mut epan_dissect,
 }
@@ -40982,7 +40475,6 @@ pub type frame_data_t = frame_data_s;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct file_data_s {
-    #[doc = "< NULL if not available"]
     pub pkt_block: wtap_block_t,
     pub color_edt: *mut epan_dissect,
 }
@@ -41044,7 +40536,7 @@ extern "C" {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ethertype_data_s {
-    pub etype: guint16,
+    pub etype: u16,
     pub payload_offset: ::std::os::raw::c_int,
     pub fh_tree: *mut proto_tree,
     pub trailer_id: ::std::os::raw::c_int,
@@ -41132,7 +40624,7 @@ extern "C" {
     pub fn deregister_postdissector(handle: dissector_handle_t);
 }
 extern "C" {
-    pub fn have_postdissector() -> gboolean;
+    pub fn have_postdissector() -> bool;
 }
 extern "C" {
     pub fn call_all_postdissectors(
@@ -41142,55 +40634,59 @@ extern "C" {
     );
 }
 extern "C" {
-    pub fn postdissectors_want_hfids() -> gboolean;
+    pub fn postdissectors_want_hfids() -> bool;
 }
 extern "C" {
     pub fn prime_epan_dissect_with_postdissector_wanted_hfids(edt: *mut epan_dissect_t);
 }
-#[doc = " callback function definition: return formatted label string"]
-pub type build_label_func =
-    ::std::option::Option<unsafe extern "C" fn(pinfo: *mut packet_info, result: *mut gchar)>;
-#[doc = " callback function definition: return value used to pass to dissector table"]
-pub type build_valid_func =
-    ::std::option::Option<unsafe extern "C" fn(pinfo: *mut packet_info) -> gpointer>;
+extern "C" {
+    pub fn increment_dissection_depth(pinfo: *mut packet_info);
+}
+extern "C" {
+    pub fn decrement_dissection_depth(pinfo: *mut packet_info);
+}
+pub type build_label_func = ::std::option::Option<
+    unsafe extern "C" fn(pinfo: *mut packet_info, result: *mut ::std::os::raw::c_char),
+>;
+pub type build_valid_func = ::std::option::Option<
+    unsafe extern "C" fn(pinfo: *mut packet_info) -> *mut ::std::os::raw::c_void,
+>;
 pub type decode_as_add_to_list_func = ::std::option::Option<
     unsafe extern "C" fn(
-        table_name: *const gchar,
-        proto_name: *const gchar,
-        value: gpointer,
-        user_data: gpointer,
+        table_name: *const ::std::os::raw::c_char,
+        proto_name: *const ::std::os::raw::c_char,
+        value: *mut ::std::os::raw::c_void,
+        user_data: *mut ::std::os::raw::c_void,
     ),
 >;
 pub type decode_as_populate_list_func = ::std::option::Option<
     unsafe extern "C" fn(
-        table_name: *const gchar,
+        table_name: *const ::std::os::raw::c_char,
         add_to_list: decode_as_add_to_list_func,
-        ui_element: gpointer,
+        ui_element: *mut ::std::os::raw::c_void,
     ),
 >;
-pub type decode_as_free_func = ::std::option::Option<unsafe extern "C" fn(value: gpointer)>;
-#[doc = " callback function definition: Clear value from dissector table"]
+pub type decode_as_free_func =
+    ::std::option::Option<unsafe extern "C" fn(value: *mut ::std::os::raw::c_void)>;
 pub type decode_as_reset_func = ::std::option::Option<
-    unsafe extern "C" fn(name: *const gchar, pattern: gconstpointer) -> gboolean,
+    unsafe extern "C" fn(
+        name: *const ::std::os::raw::c_char,
+        pattern: *const ::std::os::raw::c_void,
+    ) -> bool,
 >;
-#[doc = " callback function definition: Apply value to dissector table"]
 pub type decode_as_change_func = ::std::option::Option<
     unsafe extern "C" fn(
-        name: *const gchar,
-        pattern: gconstpointer,
-        handle: gconstpointer,
-        list_name: *const gchar,
-    ) -> gboolean,
+        name: *const ::std::os::raw::c_char,
+        pattern: *const ::std::os::raw::c_void,
+        handle: *const ::std::os::raw::c_void,
+        list_name: *const ::std::os::raw::c_char,
+    ) -> bool,
 >;
-#[doc = "Contains all of the function pointers (typically just 1) that\nprovide the text explaining the name and use of the value field that will\nbe passed to the dissector table to change the dissection output."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct decode_as_value_s {
-    #[doc = "< function pointer to the function used to create the label"]
     pub label_func: build_label_func,
-    #[doc = "< Number of values"]
-    pub num_values: guint,
-    #[doc = "< Function used to build the value to go into the table. Retreive from current frame"]
+    pub num_values: ::std::os::raw::c_uint,
     pub build_values: *mut build_valid_func,
 }
 #[test]
@@ -41238,33 +40734,20 @@ fn bindgen_test_layout_decode_as_value_s() {
         )
     );
 }
-#[doc = "Contains all of the function pointers (typically just 1) that\nprovide the text explaining the name and use of the value field that will\nbe passed to the dissector table to change the dissection output."]
 pub type decode_as_value_t = decode_as_value_s;
-#[doc = "Pulls everything together including the dissector (protocol) name, the\n\"layer type\" of the dissector, the dissector table name, the function pointer\nvalues as well as handlers for populating, applying and reseting the changes\nto the dissector table through Decode As GUI functionality. For dissector\ntables that are an integer or string type, the provided \"default\" handling\nfunctions should suffice."]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct decode_as_s {
-    #[doc = "< Protocol name"]
     pub name: *const ::std::os::raw::c_char,
-    #[doc = "< Disector table name"]
-    pub table_name: *const gchar,
-    #[doc = "< Number of index in the decode_as_value_t struct"]
-    pub num_items: guint,
-    #[doc = "< Which display function to use first, set to zero if only one function"]
-    pub default_index_value: guint,
-    #[doc = "< The array of function pointers, see decode_as_value_t"]
+    pub table_name: *const ::std::os::raw::c_char,
+    pub num_items: ::std::os::raw::c_uint,
+    pub default_index_value: ::std::os::raw::c_uint,
     pub values: *mut decode_as_value_t,
-    #[doc = "< String to prepend the value, NULL if none"]
     pub pre_value_str: *const ::std::os::raw::c_char,
-    #[doc = "< String to append the value, NULL if none"]
     pub post_value_str: *const ::std::os::raw::c_char,
-    #[doc = "< function pointer to the function used to populate the list, NULL if none"]
     pub populate_list: decode_as_populate_list_func,
-    #[doc = "< function pointer to the function used resetting the value, NULL if none"]
     pub reset_value: decode_as_reset_func,
-    #[doc = "< function pointer to the function used resetting the value, NULL if none"]
     pub change_value: decode_as_change_func,
-    #[doc = "< function pointer to the function used freeing the entry, NULL if none"]
     pub free_func: decode_as_free_func,
 }
 #[test]
@@ -41392,67 +40875,61 @@ fn bindgen_test_layout_decode_as_s() {
         )
     );
 }
-#[doc = "Pulls everything together including the dissector (protocol) name, the\n\"layer type\" of the dissector, the dissector table name, the function pointer\nvalues as well as handlers for populating, applying and reseting the changes\nto the dissector table through Decode As GUI functionality. For dissector\ntables that are an integer or string type, the provided \"default\" handling\nfunctions should suffice."]
 pub type decode_as_t = decode_as_s;
 extern "C" {
-    #[doc = " register a \"Decode As\".  A copy of the decode_as_t will be maintained by the decode_as module"]
     pub fn register_decode_as(reg: *mut decode_as_t);
 }
 extern "C" {
-    #[doc = " Register a \"Decode As\" entry for the special case where there is no\n  indication for the next protocol (such as port number etc.).\n  For now, this will use a uint32 dissector table internally and\n  assign all registered protocols to 0. The framework to do this can\n  be kept internal to epan.\n\n @param proto The protocol ID to create the dissector table.\n @param table_name The table name in which this dissector is found.\n @param ui_name UI name for created dissector table.\n @param label_func Pointer to optional function to generate prompt text\n  for dissector.  If NULL, \"Next level protocol as\" is used.\n\n @return Created dissector table with Decode As support"]
     pub fn register_decode_as_next_proto(
         proto: ::std::os::raw::c_int,
-        table_name: *const gchar,
-        ui_name: *const gchar,
+        table_name: *const ::std::os::raw::c_char,
+        ui_name: *const ::std::os::raw::c_char,
         label_func: build_label_func,
     ) -> *mut dissector_table;
 }
 extern "C" {
     pub fn decode_as_default_populate_list(
-        table_name: *const gchar,
+        table_name: *const ::std::os::raw::c_char,
         add_to_list: decode_as_add_to_list_func,
-        ui_element: gpointer,
+        ui_element: *mut ::std::os::raw::c_void,
     );
 }
 extern "C" {
-    pub fn decode_as_default_reset(name: *const gchar, pattern: gconstpointer) -> gboolean;
+    pub fn decode_as_default_reset(
+        name: *const ::std::os::raw::c_char,
+        pattern: *const ::std::os::raw::c_void,
+    ) -> bool;
 }
 extern "C" {
     pub fn decode_as_default_change(
-        name: *const gchar,
-        pattern: gconstpointer,
-        handle: gconstpointer,
-        list_name: *const gchar,
-    ) -> gboolean;
+        name: *const ::std::os::raw::c_char,
+        pattern: *const ::std::os::raw::c_void,
+        handle: *const ::std::os::raw::c_void,
+        list_name: *const ::std::os::raw::c_char,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = " List of registered decode_as_t structs.\n For UI code only. Should not be directly accessed by dissectors."]
     pub static mut decode_as_list: *mut GList;
 }
 extern "C" {
-    #[doc = " Reset the \"decode as\" entries and reload ones of the current profile.\n This is called by epan_load_settings(); programs should call that\n rather than individually calling the routines it calls."]
     pub fn load_decode_as_entries();
 }
 extern "C" {
-    #[doc = " Write out the \"decode as\" entries of the current profile."]
-    pub fn save_decode_as_entries(err: *mut *mut gchar) -> ::std::os::raw::c_int;
+    pub fn save_decode_as_entries(err: *mut *mut ::std::os::raw::c_char) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    #[doc = " Clear all \"decode as\" settings."]
     pub fn decode_clear_all();
 }
 extern "C" {
-    #[doc = " Frees memory used by \"decode as\" routines. Called at program shutdown."]
     pub fn decode_cleanup();
 }
 extern "C" {
-    #[doc = " This routine creates one entry in the list of protocol dissector\n that need to be reset. It is called by the g_hash_table_foreach\n routine once for each changed entry in a dissector table.\n Unfortunately it cannot delete the entry immediately as this screws\n up the foreach function, so it builds a list of dissectors to be\n reset once the foreach routine finishes.\n\n @param table_name The table name in which this dissector is found.\n\n @param selector_type The type of the selector in that dissector table\n\n @param key A pointer to the key for this entry in the dissector\n hash table.  This is generally the numeric selector of the\n protocol, i.e. the ethernet type code, IP port number, TCP port\n number, etc.\n\n @param value A pointer to the value for this entry in the dissector\n hash table.  This is an opaque pointer that can only be handed back\n to routine in the file packet.c - but it's unused.\n\n @param user_data Unused."]
     pub fn decode_build_reset_list(
-        table_name: *const gchar,
+        table_name: *const ::std::os::raw::c_char,
         selector_type: ftenum_t,
-        key: gpointer,
-        value: gpointer,
-        user_data: gpointer,
+        key: *mut ::std::os::raw::c_void,
+        value: *mut ::std::os::raw::c_void,
+        user_data: *mut ::std::os::raw::c_void,
     );
 }
 #[repr(C)]
@@ -41466,7 +40943,6 @@ pub struct __crt_multibyte_data {
     pub _address: u8,
 }
 pub type __builtin_va_list = *mut ::std::os::raw::c_char;
-#[doc = "< Data that can be used for address+port conversations, including wildcarding"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct conversation_addr_port_endpoints {

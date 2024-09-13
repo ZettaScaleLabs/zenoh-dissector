@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup the Wireshark library
         id: wireshark_lib
@@ -51,7 +51,7 @@ jobs:
               echo "WIRESHARK_LIB_DIR=${{ github.workspace }}" >> $GITHUB_OUTPUT
               ;;
             *windows*)
-              echo "WIRESHARK_LIB_DIR=" >> $GITHUB_OUTPUT
+              echo "WIRESHARK_LIB_DIR=C:\Development\wireshark-4.2.3" >> $GITHUB_OUTPUT
               ;;
           esac
 
@@ -85,7 +85,7 @@ jobs:
           esac
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.job.target }}
           path: ${{ matrix.job.target }}.zip
@@ -96,15 +96,18 @@ jobs:
     needs: builds
     runs-on: [ self-hosted, ubuntu-20.04 ]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download the artifacts of previous builds
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: ARTIFACTS
 
       - name: Generate the release note
         run: |
           echo "Compute sha256sum"
-          mkdir zip_files
+          mkdir -p zip_files
           cp ARTIFACTS/*/*.zip zip_files
           cd zip_files
           export SHA256SUM=$(sha256sum *.zip)
@@ -112,8 +115,8 @@ jobs:
           cd -
 
           echo "Record zenoh version"
-          export PKG_VER=$(cargo pkgid | cut -d "#" -f2)
           command -v jq &> /dev/null || sudo apt install jq -y
+          export PKG_VER=$(cargo metadata | jq -r '.packages[] | select(.name == "zenoh-dissector") | .version')
           export ZENOH_VER=$(cargo metadata | jq -r '.packages[] | select(.name == "zenoh-protocol") | .version')
           envsubst < ${GITHUB_WORKSPACE}/.github/workflows/release-note.md > release-note.md
 

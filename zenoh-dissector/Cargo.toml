@@ -6,14 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-epan-sys = { workspace = true }
-zenoh-protocol = { workspace = true }
-zenoh-codec = { workspace = true }
-zenoh-buffers = { workspace = true }
 anyhow = { workspace = true }
 convert_case = { workspace = true }
 env_logger = { workspace = true }
+epan-sys = { workspace = true }
 log = { workspace = true }
+zenoh-buffers = { workspace = true }
+zenoh-codec = { workspace = true }
+zenoh-protocol = { workspace = true }
+zenoh-transport = { workspace = true }
 
 
 [lib]

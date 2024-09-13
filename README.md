@@ -4,12 +4,14 @@
 [Zenoh](http://zenoh.io/) protocol dissector for Wireshark.
 
 
-> :warning: For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/ZettaScaleLabs/zenoh-dissector/tree/v0.7.2-rc).
-> :warning: The plugin currently requires the Wireshark library version 4.2.
+> [!WARNING]
+> For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/ZettaScaleLabs/zenoh-dissector/tree/v0.7.2-rc).
+>
+> The plugin currently requires the Wireshark library version 4.4.
 
 ## Prerequisites
 
-You must have Wireshark 4.2 installed on your platform. Please refer to the [download page](https://www.wireshark.org/download.html) or follow the
+You must have Wireshark 4.4 installed on your platform. Please refer to the [download page](https://www.wireshark.org/download.html) or follow the
 installation commands below.
 
 
@@ -60,6 +62,7 @@ zenoh-dissector is written in [Rust](https://www.rust-lang.org/), therefore the 
 cargo build --release
 ```
 
+> [!NOTE]
 > (Optional) Choose your custom Wireshark library
 > In case you want to build your Wireshark from source and link to this library while building zenoh-dissector.
 > We also support this way via setting enviromental variable. Note that users need to ensure this library can be found
@@ -86,19 +89,19 @@ cargo build --release
 
 - Linux (Ubuntu)
     ```bash
-    mkdir -p ~/.local/lib/wireshark/plugins/4.2/epan
-    cp ./target/release/libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.2/epan/libzenoh_dissector.so
+    mkdir -p ~/.local/lib/wireshark/plugins/4.4/epan
+    cp ./target/release/libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.4/epan/libzenoh_dissector.so
     ```
 
 - macOS
     ```bash
-    mkdir -p ~/.local/lib/wireshark/plugins/4-2/epan
-    cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/4-2/epan/libzenoh_dissector.so
+    mkdir -p ~/.local/lib/wireshark/plugins/4-4/epan
+    cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/4-4/epan/libzenoh_dissector.so
     ```
 
 - Windows
     ```powershell
-    $epan_dir = "$Env:APPDATA\Wireshark\plugins\4.2\epan"
+    $epan_dir = "$Env:APPDATA\Wireshark\plugins\4.4\epan"
     if (-Not (Test-Path $epan_dir)) {
         mkdir -p $epan_dir
     }
@@ -147,6 +150,18 @@ Example outpout
 Take the pub/sub as a example. One can check [here](https://github.com/eclipse-zenoh/zenoh#how-to-build-it) for the building instructions.
 
 ![demo-pubsub](./assets/demo-pubsub.png)
+
+### Preferences
+
+One can  change the setting either via Edit > Preferences > Protocols > Zenoh or by a mouse right click > Protocol Preferneces > ZenohProtocols on any packet of zenoh protocol.
+
+We currently support
+
+- TCP/UDP Port selection.
+- (Experimental) Message decompression.
+  > [!WARNING]
+  > If you saw a message like "Failed to decode possibly due to the experimental compression preference.",
+  those messages might not be compressed, please disable the compression preference to properly decode them.
 
 ## License
 
