@@ -274,8 +274,7 @@ unsafe extern "C" fn dissect_main(
                     break;
                 }
 
-                let mut rbatch =
-                    utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION)?;
+                let mut rbatch = utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION)?;
 
                 // Skip two bytes for the batch_size
                 tree_args.start += 2;
