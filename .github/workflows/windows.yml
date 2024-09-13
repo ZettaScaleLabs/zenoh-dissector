@@ -62,6 +62,9 @@ jobs:
       # - name: Install Python if needed
       #   run: try { python -V } catch { gsudo choco install --force --no-progress python3 --version=3.11 }
 
+      - name: Setup rust-cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Install Rust toolchain
         run: |
           rustup show
