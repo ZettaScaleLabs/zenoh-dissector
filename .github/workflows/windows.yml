@@ -54,6 +54,8 @@ jobs:
               gsudo choco install -y --force --no-progress $pkg
             }
           }
+          # WARN: Force update wireshark
+          gsudo choco install -y --force --no-progress wireshark
 
       # # WARN: Wireshark building seems to fail on Python 3.13
       # # WARN: Use python"3" according to https://stackoverflow.com/a/74408229
