@@ -62,41 +62,41 @@ jobs:
       # - name: Install Python if needed
       #   run: try { python -V } catch { gsudo choco install --force --no-progress python3 --version=3.11 }
 
-      # - name: Install Rust toolchain
-      #   run: |
-      #     rustup show
-      #     rustup component add rustfmt clippy
-      #
-      # - name: Code format check
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: fmt
-      #     args: -- --check
-      #
-      # - name: Clippy
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: clippy
-      #     args: --all-targets -- -D warnings
-      #
-      # - name: Build
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: build
-      #     args: --release
-      #
-      # - name: Place the plugin
-      #   run: |
-      #     $epan_dir = "$Env:APPDATA\Wireshark\plugins\${{ env.WIRESHARK_VERSION }}\epan"
-      #     if (-Not (Test-Path $epan_dir)) {
-      #       mkdir -p $epan_dir
-      #     }
-      #     cp .\target\release\zenoh_dissector.dll $epan_dir
-      #
-      # - name: Test the sample data
-      #   run: |
-      #     & 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap
-      #     if((& 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap | Select-String -pattern "zenoh").length -ne 7) {return 1}
+      - name: Install Rust toolchain
+        run: |
+          rustup show
+          rustup component add rustfmt clippy
+
+      - name: Code format check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
+
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets -- -D warnings
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Place the plugin
+        run: |
+          $epan_dir = "$Env:APPDATA\Wireshark\plugins\${{ env.WIRESHARK_VERSION }}\epan"
+          if (-Not (Test-Path $epan_dir)) {
+            mkdir -p $epan_dir
+          }
+          cp .\target\release\zenoh_dissector.dll $epan_dir
+
+      - name: Test the sample data
+        run: |
+          & 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap
+          if((& 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap | Select-String -pattern "zenoh").length -ne 7) {return 1}
 
       - name: Clean up
         if: always()
