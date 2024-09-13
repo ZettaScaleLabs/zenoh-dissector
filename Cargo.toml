@@ -32,4 +32,5 @@ epan-sys = { path = "epan-sys"}
 log = "0.4.22"
 zenoh-buffers = { git="https://github.com/eclipse-zenoh/zenoh" }
 zenoh-codec = { git="https://github.com/eclipse-zenoh/zenoh" }
-zenoh-protocol = { git="https://github.com/eclipse-zenoh/zenoh", features = ["transport_compression"] }
+zenoh-protocol = { git="https://github.com/eclipse-zenoh/zenoh" }
+zenoh-transport = { git="https://github.com/eclipse-zenoh/zenoh", features = ["transport_compression"] }
