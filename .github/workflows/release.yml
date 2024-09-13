@@ -51,7 +51,7 @@ jobs:
               echo "WIRESHARK_LIB_DIR=${{ github.workspace }}" >> $GITHUB_OUTPUT
               ;;
             *windows*)
-              echo "WIRESHARK_LIB_DIR=C:\Development\wireshark-4.2.3" >> $GITHUB_OUTPUT
+              echo "WIRESHARK_LIB_DIR=" >> $GITHUB_OUTPUT
               ;;
           esac
 
