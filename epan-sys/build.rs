@@ -38,11 +38,23 @@ fn link_wireshark() -> Result<()> {
 
     // Follow the given environmental variable WIRESHARK_LIB_DIR
     println!("cargo:rerun-if-env-changed=WIRESHARK_LIB_DIR");
-    if let Ok(libws_dir) = env::var("WIRESHARK_LIB_DIR") {
-        println!("cargo:rustc-link-search=native={}", libws_dir);
-    } else {
+
+    let build_from_source = {
+        if let Ok(libws_dir) = env::var("WIRESHARK_LIB_DIR") {
+            if libws_dir != "" {
+                println!("cargo:rustc-link-search=native={}", libws_dir);
+                false
+            } else {
+                true
+            }
+        } else {
+            true
+        }
+    };
+
+    if build_from_source {
         // WARN: We can't build from source with cmake if WIRESHARK_LIB_DIR is set. That's why we
-        // need to separate these two branches.
+        // need to separate the branches.
 
         // WARN: eventually we don't use this directly due to the privilege issue.
         // instead, we will link the /applications/wireshark.app/contents/frameworks/libwireshark.*.dylib
