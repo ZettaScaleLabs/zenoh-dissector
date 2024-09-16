@@ -56,6 +56,7 @@ jobs:
           esac
 
       - name: Build
+        if: ${{! contains(matrix.job.target, 'windows') }}
         uses: actions-rs/cargo@v1
         with:
           command: build
@@ -63,6 +64,15 @@ jobs:
         env:
           CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
           WIRESHARK_LIB_DIR: ${{ steps.wireshark_lib.outputs.WIRESHARK_LIB_DIR }}
+
+      - name: Build from source on Windows
+        if: contains(matrix.job.target, 'windows')
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+        env:
+          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
       - name: Packaging
         id: package
