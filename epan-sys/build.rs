@@ -41,11 +41,11 @@ fn link_wireshark() -> Result<()> {
 
     let build_from_source = {
         if let Ok(libws_dir) = env::var("WIRESHARK_LIB_DIR") {
-            if libws_dir != "" {
+            if libws_dir.is_empty() {
+                true
+            } else {
                 println!("cargo:rustc-link-search=native={}", libws_dir);
                 false
-            } else {
-                true
             }
         } else {
             true
