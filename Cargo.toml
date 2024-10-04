@@ -30,7 +30,7 @@ convert_case = "0.6.0"
 env_logger = "0.11.5"
 epan-sys = { path = "epan-sys"}
 log = "0.4.22"
-zenoh-buffers = { version="1.0.0-beta.3" }
-zenoh-codec = { version="1.0.0-beta.3" }
-zenoh-protocol = { version="1.0.0-beta.3" }
-zenoh-transport = { version="1.0.0-beta.3", features = ["transport_compression"] }
+zenoh-buffers = { version="1.0.0-beta.4" }
+zenoh-codec = { version="1.0.0-beta.4" }
+zenoh-protocol = { version="1.0.0-beta.4" }
+zenoh-transport = { version="1.0.0-beta.4", features = ["transport_compression"] }
