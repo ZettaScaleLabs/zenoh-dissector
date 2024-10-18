@@ -49,6 +49,7 @@ mod impl_for_transport {
             batch_size: BatchSize,
             cookie: ZSlice,
             ext_qos: Option<QoS>,
+            ext_qos_link: Option<QoSLink>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLink>,
         }
@@ -63,6 +64,7 @@ mod impl_for_transport {
             resolution: Resolution,
             batch_size: BatchSize,
             ext_qos: Option<QoS>,
+            ext_qos_link: Option<QoSLink>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLink>,
         }

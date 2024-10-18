@@ -13,10 +13,7 @@
 #
 [workspace]
 resolver = "2"
-members = [
-  "zenoh-dissector",
-  "epan-sys"
-]
+members = ["zenoh-dissector", "epan-sys"]
 
 [workspace.package]
 version = "0.2.0"
@@ -28,9 +25,11 @@ edition = "2021"
 anyhow = "1.0.89"
 convert_case = "0.6.0"
 env_logger = "0.11.5"
-epan-sys = { path = "epan-sys"}
+epan-sys = { path = "epan-sys" }
 log = "0.4.22"
-zenoh-buffers = { git = "https://github.com/eclipse-zenoh/zenoh" }
-zenoh-codec = { git = "https://github.com/eclipse-zenoh/zenoh" }
-zenoh-protocol = { git = "https://github.com/eclipse-zenoh/zenoh" }
-zenoh-transport = { git = "https://github.com/eclipse-zenoh/zenoh", features = ["transport_compression"] }
+zenoh-buffers = { git = "https://github.com/eclipse-zenoh/zenoh", branch = "main" }
+zenoh-codec = { git = "https://github.com/eclipse-zenoh/zenoh", branch = "main" }
+zenoh-protocol = { git = "https://github.com/eclipse-zenoh/zenoh", branch = "main" }
+zenoh-transport = { git = "https://github.com/eclipse-zenoh/zenoh", branch = "main", features = [
+  "transport_compression",
+] }
