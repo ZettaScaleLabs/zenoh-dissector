@@ -5,7 +5,7 @@
 
 
 > [!WARNING]
-> For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/ZettaScaleLabs/zenoh-dissector/tree/v0.7.2-rc).
+> For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/eclipse-zenoh/zenoh-dissector/tree/v0.7.2-rc).
 >
 > The plugin currently requires the Wireshark library version 4.4.
 
@@ -17,7 +17,7 @@ installation commands below.
 
 ## Installation
 
-We highly recommend following the instructions in the [releases](https://github.com/ZettaScaleLabs/zenoh-dissector/releases).
+We highly recommend following the instructions in the [releases](https://github.com/eclipse-zenoh/zenoh-dissector/releases).
 Or you can follow the following instructions to build your own plugin.
 
 ## (Optional) Build the zenoh-dissector from source
