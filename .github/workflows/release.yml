@@ -17,26 +17,57 @@ name: Release
 on:
   schedule:
     - cron: "0 0 * * 1-5"
-  push:
-    tags:
-      - "[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
+    inputs:
+      live-run:
+        type: boolean
+        description: Live-run
+        required: false
+        default: false
+      version:
+        type: string
+        description: Release number
+        required: false
+      zenoh-version:
+        type: string
+        description: Zenoh Release number
+        required: false
+      branch:
+        type: string
+        description: Release branch
+        required: false
 
 jobs:
+  tag:
+    name: Branch, Bump & tag crates
+    uses: eclipse-zenoh/ci/.github/workflows/branch-bump-tag-crates.yml@main
+    with:
+      repo: ${{ github.repository }}
+      live-run: ${{ inputs.live-run || false }}
+      version: ${{ inputs.version }}
+      branch: ${{ inputs.branch }}
+      bump-deps-version: ${{ inputs.zenoh-version }}
+      bump-deps-pattern: ${{ inputs.zenoh-version && 'zenoh.*' || '^$' }}
+      bump-deps-branch: ${{ inputs.zenoh-version && format('release/{0}', inputs.zenoh-version) || '' }}
+    secrets: inherit
+
   builds:
     name: Build for ${{ matrix.job.target }} on ${{ matrix.job.os }}
-    runs-on: [ self-hosted, "${{ matrix.job.os }}" ]
+    runs-on: ${{ matrix.job.os }}
+    needs: tag
     strategy:
       fail-fast: false
       matrix:
         job:
           - { target: x86_64-unknown-linux-gnu, arch: amd64, os: ubuntu-20.04 }
-          - { target: aarch64-apple-darwin, arch: darwin, os: macos }
+          - { target: aarch64-apple-darwin, arch: darwin, os: macos-14 }
           - { target: x86_64-pc-windows-msvc, arch: win64, os: windows-10 }
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.tag.outputs.branch }}
 
       - name: Setup the Wireshark library
         id: wireshark_lib
@@ -57,20 +88,14 @@ jobs:
 
       - name: Build
         if: ${{! contains(matrix.job.target, 'windows') }}
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
+        run: cargo build --release
         env:
           CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
           WIRESHARK_LIB_DIR: ${{ steps.wireshark_lib.outputs.WIRESHARK_LIB_DIR }}
 
       - name: Build from source on Windows
         if: contains(matrix.job.target, 'windows')
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
+        run: cargo build --release
         env:
           CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
@@ -102,12 +127,15 @@ jobs:
           if-no-files-found: error
 
   publish:
+    if: ${{ inputs.live-run || false }}
     name: Release publication
-    needs: builds
-    runs-on: [ self-hosted, ubuntu-20.04 ]
+    needs: [tag, builds]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.tag.outputs.branch }}
 
       - name: Download the artifacts of previous builds
         uses: actions/download-artifact@v4
@@ -140,4 +168,4 @@ jobs:
           body_path: release-note.md
           append_body: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN_WORKFLOW }}
