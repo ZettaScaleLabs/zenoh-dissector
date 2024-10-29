@@ -149,7 +149,7 @@ jobs:
         id: package
         shell: bash
         run: |
-          PKG_NAME=zenoh-dissector-${{ needs.tag.outputs.version }}-${{ matrix.build.target }}-standalone.zip"
+          PKG_NAME="zenoh-dissector-${{ needs.tag.outputs.version }}-${{ matrix.build.target }}-standalone.zip"
           PKG_PATH="${GITHUB_WORKSPACE}/${{ matrix.build.target }}.zip"
           echo "Packaging ${PKG_PATH}:"
           case ${{ matrix.build.target }} in
