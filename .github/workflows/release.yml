@@ -210,8 +210,8 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          draft: true
-          prerelease: true
+          draft: false
+          prerelease: false
           files: ARTIFACTS/*/*.zip
           generate_release_notes: true
           body_path: release-note.md
