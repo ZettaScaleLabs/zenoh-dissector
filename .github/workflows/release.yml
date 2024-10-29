@@ -162,7 +162,7 @@ jobs:
               ;;
             *windows*)
               PKG_PATH="${PKG_PATH//\\//}"
-              zip -j ${PKG_PATH} target/release/zenoh_dissector.dll
+              7z -y a ${PKG_PATH} target/release/zenoh_dissector.dll
               ;;
           esac
           echo "name=$PKG_NAME" >> "$GITHUB_OUTPUT"
