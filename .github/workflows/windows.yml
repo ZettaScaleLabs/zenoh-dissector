@@ -45,15 +45,15 @@ jobs:
           $install_list = @("xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "7zip")
           ForEach ($pkg in $install_list.split(" ")) {
             if (-Not ($installed.contains($pkg))) {
-              gsudo choco install -y --force --no-progress $pkg
+              choco install -y --force --no-progress $pkg
             }
           }
-          gsudo choco install -y --no-progress wireshark --version 4.2.0
+          choco install -y --no-progress wireshark --version 4.2.0
 
       # # WARN: Wireshark building seems to fail on Python 3.13
       # # WARN: Use python"3" according to https://stackoverflow.com/a/74408229
       # - name: Install Python if needed
-      #   run: try { python -V } catch { gsudo choco install --force --no-progress python3 --version=3.11 }
+      #   run: try { python -V } catch { choco install --force --no-progress python3 --version=3.11 }
 
       - name: Code format check
         run: cargo fmt -- --check
