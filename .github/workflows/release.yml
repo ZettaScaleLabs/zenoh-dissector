@@ -39,17 +39,37 @@ on:
 
 jobs:
   tag:
-    name: Branch, Bump & tag crates
-    uses: eclipse-zenoh/ci/.github/workflows/branch-bump-tag-crates.yml@main
-    with:
-      repo: ${{ github.repository }}
-      live-run: ${{ inputs.live-run || false }}
-      version: ${{ inputs.version }}
-      branch: ${{ inputs.branch }}
-      bump-deps-version: ${{ inputs.zenoh-version }}
-      bump-deps-pattern: ${{ inputs.zenoh-version && 'zenoh.*' || '^$' }}
-      bump-deps-branch: ${{ inputs.zenoh-version && format('release/{0}', inputs.zenoh-version) || '' }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.create-release-branch.outputs.version }}
+      branch: ${{ steps.create-release-branch.outputs.branch }}
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:wireshark-dev/stable
+          sudo apt install -y wireshark-dev
+          sudo apt install -y --allow-change-held-packages wireshark
+
+      - id: create-release-branch
+        uses: eclipse-zenoh/ci/create-release-branch@main
+        with:
+          repo: ${{ github.repository }}
+          live-run: ${{ inputs.live-run }}
+          version: ${{ inputs.version }}
+          branch: ${{ inputs.branch }}
+          github-token: ${{ secrets.BOT_TOKEN_WORKFLOW }}
+
+      - uses: eclipse-zenoh/ci/bump-crates@main
+        with:
+          repo: ${{ github.repository }}
+          live-run: ${{ inputs.live-run }}
+          version: ${{ steps.create-release-branch.outputs.version }}
+          branch: ${{ steps.create-release-branch.outputs.branch }}
+          bump-deps-pattern: ${{ inputs.zenoh-version && 'zenoh.*' || '^$' }}
+          bump-deps-version: ${{ inputs.zenoh-version }}
+          bump-deps-branch: ${{ inputs.zenoh-version && format('release/{0}', inputs.zenoh-version) || '' }}
+          github-token: ${{ secrets.BOT_TOKEN_WORKFLOW }}
 
   builds:
     name: Build for ${{ matrix.job.target }} on ${{ matrix.job.os }}
