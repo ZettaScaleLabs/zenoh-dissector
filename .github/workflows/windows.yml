@@ -29,15 +29,8 @@ env:
 
 jobs:
   check:
-    name: Run checks on self-hosted Windows
-    runs-on: [self-hosted, "${{ matrix.os }}"]
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - windows-10
-          - windows-11
-
+    name: Run checks on Windows
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
 
@@ -47,38 +40,24 @@ jobs:
           $install_list = @("xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "7zip")
           ForEach ($pkg in $install_list.split(" ")) {
             if (-Not ($installed.contains($pkg))) {
-              gsudo choco install -y --force --no-progress $pkg
+              choco install -y --force --no-progress $pkg
             }
           }
-          gsudo choco install -y --no-progress wireshark --version 4.2.0
+          choco install -y --no-progress wireshark --version 4.2.0
 
       # # WARN: Wireshark building seems to fail on Python 3.13
       # # WARN: Use python"3" according to https://stackoverflow.com/a/74408229
       # - name: Install Python if needed
-      #   run: try { python -V } catch { gsudo choco install --force --no-progress python3 --version=3.11 }
-
-      - name: Install Rust toolchain
-        run: |
-          rustup show
-          rustup component add rustfmt clippy
+      #   run: try { python -V } catch { choco install --force --no-progress python3 --version=3.11 }
 
       - name: Code format check
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: -- --check
+        run: cargo fmt -- --check
 
       - name: Clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets -- -D warnings
+        run: cargo clippy --all-targets -- --deny warnings
 
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
+        run: cargo build --release
 
       - name: Place the plugin
         run: |
@@ -92,9 +71,3 @@ jobs:
         run: |
           & 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap
           if((& 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap | Select-String -pattern "zenoh").length -ne 7) {return 1}
-
-      - name: Clean up
-        if: always()
-        uses: actions-rs/cargo@v1
-        with:
-          command: clean

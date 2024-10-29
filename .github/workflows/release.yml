@@ -17,32 +17,109 @@ name: Release
 on:
   schedule:
     - cron: "0 0 * * 1-5"
-  push:
-    tags:
-      - "[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
+    inputs:
+      live-run:
+        type: boolean
+        description: Live-run
+        required: false
+        default: false
+      version:
+        type: string
+        description: Release number
+        required: false
+      zenoh-version:
+        type: string
+        description: Zenoh Release number
+        required: false
+      branch:
+        type: string
+        description: Release branch
+        required: false
 
 jobs:
+  tag:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.create-release-branch.outputs.version }}
+      branch: ${{ steps.create-release-branch.outputs.branch }}
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:wireshark-dev/stable
+          sudo apt install -y wireshark-dev
+          sudo apt install -y --allow-change-held-packages wireshark
+
+      - id: create-release-branch
+        uses: eclipse-zenoh/ci/create-release-branch@main
+        with:
+          repo: ${{ github.repository }}
+          live-run: ${{ inputs.live-run }}
+          version: ${{ inputs.version }}
+          branch: ${{ inputs.branch }}
+          github-token: ${{ secrets.BOT_TOKEN_WORKFLOW }}
+
+      - uses: eclipse-zenoh/ci/bump-crates@main
+        with:
+          repo: ${{ github.repository }}
+          live-run: ${{ inputs.live-run }}
+          version: ${{ steps.create-release-branch.outputs.version }}
+          branch: ${{ steps.create-release-branch.outputs.branch }}
+          bump-deps-pattern: ${{ inputs.zenoh-version && 'zenoh.*' || '^$' }}
+          bump-deps-version: ${{ inputs.zenoh-version }}
+          bump-deps-branch: ${{ inputs.zenoh-version && format('release/{0}', inputs.zenoh-version) || '' }}
+          github-token: ${{ secrets.BOT_TOKEN_WORKFLOW }}
+
   builds:
-    name: Build for ${{ matrix.job.target }} on ${{ matrix.job.os }}
-    runs-on: [ self-hosted, "${{ matrix.job.os }}" ]
+    name: Build for ${{ matrix.build.target }} on ${{ matrix.build.os }}
+    runs-on: ${{ matrix.build.os }}
+    needs: tag
     strategy:
       fail-fast: false
       matrix:
-        job:
-          - { target: x86_64-unknown-linux-gnu, arch: amd64, os: ubuntu-20.04 }
-          - { target: aarch64-apple-darwin, arch: darwin, os: macos }
-          - { target: x86_64-pc-windows-msvc, arch: win64, os: windows-10 }
+        build:
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-20.04 }
+          - { target: aarch64-apple-darwin, os: macos-14 }
+          - { target: x86_64-pc-windows-msvc, os: windows-2022 }
 
     steps:
+      - if: contains(matrix.build.os, 'ubuntu')
+        name: Install dependencies (Ubuntu)
+        run: |
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:wireshark-dev/stable
+          sudo apt install -y wireshark-dev
+          sudo apt install -y --allow-change-held-packages wireshark
+
+      - if: contains(matrix.build.os, 'windows')
+        name: Install dependencies (Windows)
+        run: |
+          $installed = (choco list -l -r --id-only) -join " "
+          $install_list = @("xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "7zip")
+          ForEach ($pkg in $install_list.split(" ")) {
+            if (-Not ($installed.contains($pkg))) {
+              choco install -y --force --no-progress $pkg
+            }
+          }
+          choco install -y --no-progress wireshark --version 4.2.0
+
+      - if: contains(matrix.build.os, 'macos')
+        name: Install dependencies (macOS)
+        run: |
+          brew install --cask wireshark
+          ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
+
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.tag.outputs.branch }}
 
       - name: Setup the Wireshark library
-        id: wireshark_lib
+        id: wireshark-lib
         shell: bash
         run: |
-          case ${{ matrix.job.target }} in
+          case ${{ matrix.build.target }} in
             *linux*)
               echo "WIRESHARK_LIB_DIR=" >> $GITHUB_OUTPUT
               ;;
@@ -56,21 +133,15 @@ jobs:
           esac
 
       - name: Build
-        if: ${{! contains(matrix.job.target, 'windows') }}
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
+        if: ${{! contains(matrix.build.target, 'windows') }}
+        run: cargo build --release
         env:
           CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-          WIRESHARK_LIB_DIR: ${{ steps.wireshark_lib.outputs.WIRESHARK_LIB_DIR }}
+          WIRESHARK_LIB_DIR: ${{ steps.wireshark-lib.outputs.WIRESHARK_LIB_DIR }}
 
       - name: Build from source on Windows
-        if: contains(matrix.job.target, 'windows')
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
+        if: contains(matrix.build.target, 'windows')
+        run: cargo build --release
         env:
           CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
@@ -78,36 +149,42 @@ jobs:
         id: package
         shell: bash
         run: |
-          PKG_NAME="${GITHUB_WORKSPACE}/${{ matrix.job.target }}.zip"
-          echo "Packaging ${PKG_NAME}:"
-          case ${{ matrix.job.target }} in
+          PKG_NAME="zenoh-dissector-${{ needs.tag.outputs.version }}-${{ matrix.build.target }}-standalone.zip"
+          PKG_PATH="${GITHUB_WORKSPACE}/${{ matrix.build.target }}.zip"
+          echo "Packaging ${PKG_PATH}:"
+          case ${{ matrix.build.target }} in
             *linux*)
-              zip -j ${PKG_NAME} target/release/libzenoh_dissector.so
+              zip -j ${PKG_PATH} target/release/libzenoh_dissector.so
               ;;
             *apple*)
               mv target/release/libzenoh_dissector.dylib target/release/libzenoh_dissector.so
-              zip -j ${PKG_NAME} target/release/libzenoh_dissector.so
+              zip -j ${PKG_PATH} target/release/libzenoh_dissector.so
               ;;
             *windows*)
-              PKG_NAME="${PKG_NAME//\\//}"
-              zip -j ${PKG_NAME} target/release/zenoh_dissector.dll
+              PKG_PATH="${PKG_PATH//\\//}"
+              7z -y a ${PKG_PATH} target/release/zenoh_dissector.dll
               ;;
           esac
+          echo "name=$PKG_NAME" >> "$GITHUB_OUTPUT"
+          echo "path=$PKG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.job.target }}
-          path: ${{ matrix.job.target }}.zip
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.path }}
           if-no-files-found: error
 
   publish:
+    if: ${{ inputs.live-run || false }}
     name: Release publication
-    needs: builds
-    runs-on: [ self-hosted, ubuntu-20.04 ]
+    needs: [tag, builds]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.tag.outputs.branch }}
 
       - name: Download the artifacts of previous builds
         uses: actions/download-artifact@v4
@@ -133,11 +210,11 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          draft: true
-          prerelease: true
+          draft: false
+          prerelease: false
           files: ARTIFACTS/*/*.zip
           generate_release_notes: true
           body_path: release-note.md
           append_body: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN_WORKFLOW }}

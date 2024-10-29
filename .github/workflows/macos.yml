@@ -30,21 +30,15 @@ env:
 
 jobs:
   check:
-    name: Run checks on self-hosted macOS
-    runs-on: [ self-hosted, macOS ]
+    name: Run checks on macOS
+    runs-on: macos-latest
     strategy:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-
       - name: Code format check
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: -- --check
+        run: cargo fmt -- --check
 
       - name: Install Wireshark
         run: |
@@ -52,16 +46,10 @@ jobs:
           ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
 
       - name: Clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets -- -D warnings
+        run: cargo clippy --all-targets -- --deny warnings
 
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
+        run: cargo build --release
 
       - name: Place the plugin
         run: |
@@ -71,9 +59,3 @@ jobs:
       - name: Test the sample data
         run: |
           [ $(tshark -r assets/sample-data.pcap | grep Zenoh | wc -l) -eq 7 ] || return 1
-
-      - name: Clean up
-        if: always()
-        uses: actions-rs/cargo@v1
-        with:
-          command: clean
