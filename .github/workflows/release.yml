@@ -81,7 +81,7 @@ jobs:
         job:
           - { target: x86_64-unknown-linux-gnu, arch: amd64, os: ubuntu-20.04 }
           - { target: aarch64-apple-darwin, arch: darwin, os: macos-14 }
-          - { target: x86_64-pc-windows-msvc, arch: win64, os: windows-10 }
+          - { target: x86_64-pc-windows-msvc, arch: win64, os: windows-2019 }
 
     steps:
       - if: contains(matrix.job.os, 'ubuntu')
@@ -99,10 +99,10 @@ jobs:
           $install_list = @("xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "7zip")
           ForEach ($pkg in $install_list.split(" ")) {
             if (-Not ($installed.contains($pkg))) {
-              gsudo choco install -y --force --no-progress $pkg
+              choco install -y --force --no-progress $pkg
             }
           }
-          gsudo choco install -y --no-progress wireshark --version 4.2.0
+          choco install -y --no-progress wireshark --version 4.2.0
 
       - if: contains(matrix.job.os, 'macos')
         name: Install dependencies
