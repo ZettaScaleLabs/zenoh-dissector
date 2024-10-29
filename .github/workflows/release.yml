@@ -165,8 +165,8 @@ jobs:
               zip -j ${PKG_PATH} target/release/zenoh_dissector.dll
               ;;
           esac
-          echo "name=$PKG_NAME" >> $GITHUB_OUPUT
-          echo "path=$PKG_PATH" >> $GITHUB_OUPUT
+          echo "name=$PKG_NAME" >> "$GITHUB_OUTPUT"
+          echo "path=$PKG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
