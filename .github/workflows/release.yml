@@ -216,5 +216,6 @@ jobs:
           generate_release_notes: true
           body_path: release-note.md
           append_body: true
+          tag_name: ${{ inputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN_WORKFLOW }}
