@@ -85,7 +85,7 @@ cargo build --release
 >     ```
 >     Add the library into  `LD_LIBRARY_PATH` for linux or `DYLD_LIBRARY_PATH` for macOS.
 
-### Move the plugin to Wireshark's pluing folder
+### Move the plugin to Wireshark's plugin folder
 
 - Linux (Ubuntu)
     ```bash

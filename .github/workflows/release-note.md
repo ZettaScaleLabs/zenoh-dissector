@@ -10,21 +10,21 @@ Download and extract the corresponding zip file
 ### Linux
 
 ```bash
-mkdir -p ~/.local/lib/wireshark/plugins/4.2/epan
-cp libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.2/epan/libzenoh_dissector.so
+mkdir -p ~/.local/lib/wireshark/plugins/4.4/epan
+cp libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.4/epan/libzenoh_dissector.so
 ```
 
 ### macOS
 
 ```bash
-mkdir -p ~/.local/lib/wireshark/plugins/4-2/epan
-cp libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4-2/epan/libzenoh_dissector.so
+mkdir -p ~/.local/lib/wireshark/plugins/4-4/epan
+cp libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4-4/epan/libzenoh_dissector.so
 ```
 
 ### Windows
 
 ```powershell
-$${empty}epan_dir = "$${empty}Env:APPDATA\Wireshark\plugins\4.2\epan"
+$${empty}epan_dir = "$${empty}Env:APPDATA\Wireshark\plugins\4.4\epan"
 if (-Not (Test-Path $${empty}epan_dir)) {
     mkdir -p $${empty}epan_dir
 }
