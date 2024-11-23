@@ -891,7 +891,7 @@ pub const PTHREAD_ONCE_INIT: u32 = 0;
 pub const PTHREAD_BARRIER_SERIAL_THREAD: i32 = -1;
 pub const WIRESHARK_VERSION_MAJOR: u32 = 4;
 pub const WIRESHARK_VERSION_MINOR: u32 = 4;
-pub const WIRESHARK_VERSION_MICRO: u32 = 0;
+pub const WIRESHARK_VERSION_MICRO: u32 = 2;
 pub const _STDIO_H: u32 = 1;
 pub const _____fpos_t_defined: u32 = 1;
 pub const ____mbstate_t_defined: u32 = 1;
@@ -37440,6 +37440,9 @@ extern "C" {
         name: *const ::std::os::raw::c_char,
         length: ::std::os::raw::c_int,
     );
+}
+extern "C" {
+    pub fn fvalue_set_protocol_length(fv: *mut fvalue_t, length: ::std::os::raw::c_int);
 }
 extern "C" {
     pub fn fvalue_set_uinteger(fv: *mut fvalue_t, value: u32);
