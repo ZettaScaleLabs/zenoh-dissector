@@ -136,6 +136,7 @@ pub const __USE_ATFILE: u32 = 1;
 pub const __USE_FORTIFY_LEVEL: u32 = 0;
 pub const __GLIBC_USE_DEPRECATED_GETS: u32 = 0;
 pub const __GLIBC_USE_DEPRECATED_SCANF: u32 = 0;
+pub const __GLIBC_USE_C2X_STRTOL: u32 = 0;
 pub const _STDC_PREDEF_H: u32 = 1;
 pub const __STDC_IEC_559__: u32 = 1;
 pub const __STDC_IEC_60559_BFP__: u32 = 201404;
@@ -144,7 +145,7 @@ pub const __STDC_IEC_60559_COMPLEX__: u32 = 201404;
 pub const __STDC_ISO_10646__: u32 = 201706;
 pub const __GNU_LIBRARY__: u32 = 6;
 pub const __GLIBC__: u32 = 2;
-pub const __GLIBC_MINOR__: u32 = 35;
+pub const __GLIBC_MINOR__: u32 = 39;
 pub const _SYS_CDEFS_H: u32 = 1;
 pub const __glibc_c99_flexarr_available: u32 = 1;
 pub const __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI: u32 = 0;
@@ -169,6 +170,7 @@ pub const _BITS_TIME64_H: u32 = 1;
 pub const _BITS_WCHAR_H: u32 = 1;
 pub const _BITS_STDINT_INTN_H: u32 = 1;
 pub const _BITS_STDINT_UINTN_H: u32 = 1;
+pub const _BITS_STDINT_LEAST_H: u32 = 1;
 pub const INT8_MIN: i32 = -128;
 pub const INT16_MIN: i32 = -32768;
 pub const INT32_MIN: i32 = -2147483648;
@@ -363,15 +365,16 @@ pub const SCNiPTR: &[u8; 3] = b"li\0";
 pub const SCNoPTR: &[u8; 3] = b"lo\0";
 pub const SCNuPTR: &[u8; 3] = b"lu\0";
 pub const SCNxPTR: &[u8; 3] = b"lx\0";
+pub const __bool_true_false_are_defined: u32 = 1;
 pub const true_: u32 = 1;
 pub const false_: u32 = 0;
-pub const __bool_true_false_are_defined: u32 = 1;
 pub const _STRING_H: u32 = 1;
 pub const _BITS_TYPES_LOCALE_T_H: u32 = 1;
 pub const _BITS_TYPES___LOCALE_T_H: u32 = 1;
 pub const _STRINGS_H: u32 = 1;
 pub const G_ANALYZER_ANALYZING: u32 = 0;
 pub const FALSE: u32 = 0;
+pub const G_HAVE_GNUC_VISIBILITY: u32 = 1;
 pub const _LIBC_LIMITS_H_: u32 = 1;
 pub const MB_LEN_MAX: u32 = 16;
 pub const _BITS_POSIX1_LIM_H: u32 = 1;
@@ -475,12 +478,11 @@ pub const G_GINTPTR_MODIFIER: &[u8; 2] = b"l\0";
 pub const G_GINTPTR_FORMAT: &[u8; 3] = b"li\0";
 pub const G_GUINTPTR_FORMAT: &[u8; 3] = b"lu\0";
 pub const GLIB_MAJOR_VERSION: u32 = 2;
-pub const GLIB_MINOR_VERSION: u32 = 72;
-pub const GLIB_MICRO_VERSION: u32 = 4;
+pub const GLIB_MINOR_VERSION: u32 = 80;
+pub const GLIB_MICRO_VERSION: u32 = 0;
 pub const G_VA_COPY_AS_ARRAY: u32 = 1;
 pub const G_HAVE_ISO_VARARGS: u32 = 1;
 pub const G_HAVE_GROWING_STACK: u32 = 0;
-pub const G_HAVE_GNUC_VISIBILITY: u32 = 1;
 pub const G_HAVE_GNUC_VARARGS: u32 = 1;
 pub const G_MODULE_SUFFIX: &[u8; 3] = b"so\0";
 pub const G_PID_FORMAT: &[u8; 2] = b"i\0";
@@ -536,7 +538,6 @@ pub const G_PDP_ENDIAN: u32 = 3412;
 pub const G_IEEE754_FLOAT_BIAS: u32 = 127;
 pub const G_IEEE754_DOUBLE_BIAS: u32 = 1023;
 pub const G_LOG_2_BASE_10: f64 = 0.3010299956639812;
-pub const __GNUC_VA_LIST: u32 = 1;
 pub const _STDLIB_H: u32 = 1;
 pub const WNOHANG: u32 = 1;
 pub const WUNTRACED: u32 = 2;
@@ -694,6 +695,8 @@ pub const G_PRIORITY_DEFAULT_IDLE: u32 = 200;
 pub const G_PRIORITY_LOW: u32 = 300;
 pub const G_SOURCE_REMOVE: u32 = 0;
 pub const G_UNICHAR_MAX_DECOMPOSITION_LENGTH: u32 = 18;
+pub const G_STR_DELIMITERS: &[u8; 8] = b"_-|> <.\0";
+pub const G_ASCII_DTOSTR_BUF_SIZE: u32 = 39;
 pub const G_KEY_FILE_DESKTOP_GROUP: &[u8; 14] = b"Desktop Entry\0";
 pub const G_KEY_FILE_DESKTOP_KEY_TYPE: &[u8; 5] = b"Type\0";
 pub const G_KEY_FILE_DESKTOP_KEY_VERSION: &[u8; 8] = b"Version\0";
@@ -726,8 +729,6 @@ pub const G_CSET_a_2_z: &[u8; 27] = b"abcdefghijklmnopqrstuvwxyz\0";
 pub const G_CSET_DIGITS: &[u8; 11] = b"0123456789\0";
 pub const G_CSET_LATINC : & [u8 ; 31] = b"\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD8\xD9\xDA\xDB\xDC\xDD\xDE\0" ;
 pub const G_CSET_LATINS : & [u8 ; 33] = b"\xDF\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF\0" ;
-pub const G_STR_DELIMITERS: &[u8; 8] = b"_-|> <.\0";
-pub const G_ASCII_DTOSTR_BUF_SIZE: u32 = 39;
 pub const _ERRNO_H: u32 = 1;
 pub const _BITS_ERRNO_H: u32 = 1;
 pub const EPERM: u32 = 1;
@@ -902,6 +903,7 @@ pub const __struct_FILE_defined: u32 = 1;
 pub const _IO_EOF_SEEN: u32 = 16;
 pub const _IO_ERR_SEEN: u32 = 32;
 pub const _IO_USER_LOCK: u32 = 32768;
+pub const __cookie_io_functions_t_defined: u32 = 1;
 pub const _IOFBF: u32 = 0;
 pub const _IOLBF: u32 = 1;
 pub const _IONBF: u32 = 2;
@@ -911,9 +913,9 @@ pub const SEEK_SET: u32 = 0;
 pub const SEEK_CUR: u32 = 1;
 pub const SEEK_END: u32 = 2;
 pub const P_tmpdir: &[u8; 5] = b"/tmp\0";
-pub const _BITS_STDIO_LIM_H: u32 = 1;
 pub const L_tmpnam: u32 = 20;
 pub const TMP_MAX: u32 = 238328;
+pub const _BITS_STDIO_LIM_H: u32 = 1;
 pub const FILENAME_MAX: u32 = 4096;
 pub const L_ctermid: u32 = 9;
 pub const FOPEN_MAX: u32 = 16;
@@ -2128,6 +2130,12 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
+    pub fn strchrnul(
+        __s: *const ::std::os::raw::c_char,
+        __c: ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
     pub fn strcspn(
         __s: *const ::std::os::raw::c_char,
         __reject: *const ::std::os::raw::c_char,
@@ -2172,6 +2180,34 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
+    pub fn strcasestr(
+        __haystack: *const ::std::os::raw::c_char,
+        __needle: *const ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn memmem(
+        __haystack: *const ::std::os::raw::c_void,
+        __haystacklen: usize,
+        __needle: *const ::std::os::raw::c_void,
+        __needlelen: usize,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn __mempcpy(
+        __dest: *mut ::std::os::raw::c_void,
+        __src: *const ::std::os::raw::c_void,
+        __n: usize,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn mempcpy(
+        __dest: *mut ::std::os::raw::c_void,
+        __src: *const ::std::os::raw::c_void,
+        __n: ::std::os::raw::c_ulong,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
     pub fn strlen(__s: *const ::std::os::raw::c_char) -> ::std::os::raw::c_ulong;
 }
 extern "C" {
@@ -2205,7 +2241,7 @@ extern "C" {
     pub fn bcopy(
         __src: *const ::std::os::raw::c_void,
         __dest: *mut ::std::os::raw::c_void,
-        __n: usize,
+        __n: ::std::os::raw::c_ulong,
     );
 }
 extern "C" {
@@ -2297,6 +2333,20 @@ extern "C" {
         __src: *const ::std::os::raw::c_char,
         __n: ::std::os::raw::c_ulong,
     ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn strlcpy(
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
+        __n: usize,
+    ) -> usize;
+}
+extern "C" {
+    pub fn strlcat(
+        __dest: *mut ::std::os::raw::c_char,
+        __src: *const ::std::os::raw::c_char,
+        __n: usize,
+    ) -> usize;
 }
 pub type wchar_t = ::std::os::raw::c_int;
 #[repr(C)]
@@ -2748,6 +2798,9 @@ pub type GCompareDataFunc = ::std::option::Option<
 >;
 pub type GEqualFunc =
     ::std::option::Option<unsafe extern "C" fn(a: gconstpointer, b: gconstpointer) -> gboolean>;
+pub type GEqualFuncFull = ::std::option::Option<
+    unsafe extern "C" fn(a: gconstpointer, b: gconstpointer, user_data: gpointer) -> gboolean,
+>;
 pub type GDestroyNotify = ::std::option::Option<unsafe extern "C" fn(data: gpointer)>;
 pub type GFunc = ::std::option::Option<unsafe extern "C" fn(data: gpointer, user_data: gpointer)>;
 pub type GHashFunc = ::std::option::Option<unsafe extern "C" fn(key: gconstpointer) -> guint>;
@@ -3193,6 +3246,21 @@ extern "C" {
     ) -> *mut GArray;
 }
 extern "C" {
+    pub fn g_array_new_take(
+        data: gpointer,
+        len: gsize,
+        clear: gboolean,
+        element_size: gsize,
+    ) -> *mut GArray;
+}
+extern "C" {
+    pub fn g_array_new_take_zero_terminated(
+        data: gpointer,
+        clear: gboolean,
+        element_size: gsize,
+    ) -> *mut GArray;
+}
+extern "C" {
     pub fn g_array_steal(array: *mut GArray, len: *mut gsize) -> gpointer;
 }
 extern "C" {
@@ -3273,6 +3341,22 @@ extern "C" {
     pub fn g_ptr_array_new_with_free_func(element_free_func: GDestroyNotify) -> *mut GPtrArray;
 }
 extern "C" {
+    pub fn g_ptr_array_new_take(
+        data: *mut gpointer,
+        len: gsize,
+        element_free_func: GDestroyNotify,
+    ) -> *mut GPtrArray;
+}
+extern "C" {
+    pub fn g_ptr_array_new_from_array(
+        data: *mut gpointer,
+        len: gsize,
+        copy_func: GCopyFunc,
+        copy_func_user_data: gpointer,
+        element_free_func: GDestroyNotify,
+    ) -> *mut GPtrArray;
+}
+extern "C" {
     pub fn g_ptr_array_steal(array: *mut GPtrArray, len: *mut gsize) -> *mut gpointer;
 }
 extern "C" {
@@ -3288,6 +3372,27 @@ extern "C" {
 extern "C" {
     pub fn g_ptr_array_new_full(
         reserved_size: guint,
+        element_free_func: GDestroyNotify,
+    ) -> *mut GPtrArray;
+}
+extern "C" {
+    pub fn g_ptr_array_new_null_terminated(
+        reserved_size: guint,
+        element_free_func: GDestroyNotify,
+        null_terminated: gboolean,
+    ) -> *mut GPtrArray;
+}
+extern "C" {
+    pub fn g_ptr_array_new_take_null_terminated(
+        data: *mut gpointer,
+        element_free_func: GDestroyNotify,
+    ) -> *mut GPtrArray;
+}
+extern "C" {
+    pub fn g_ptr_array_new_from_null_terminated_array(
+        data: *mut gpointer,
+        copy_func: GCopyFunc,
+        copy_func_user_data: gpointer,
         element_free_func: GDestroyNotify,
     ) -> *mut GPtrArray;
 }
@@ -3359,6 +3464,16 @@ extern "C" {
     );
 }
 extern "C" {
+    pub fn g_ptr_array_sort_values(array: *mut GPtrArray, compare_func: GCompareFunc);
+}
+extern "C" {
+    pub fn g_ptr_array_sort_values_with_data(
+        array: *mut GPtrArray,
+        compare_func: GCompareDataFunc,
+        user_data: gpointer,
+    );
+}
+extern "C" {
     pub fn g_ptr_array_foreach(array: *mut GPtrArray, func: GFunc, user_data: gpointer);
 }
 extern "C" {
@@ -3375,6 +3490,9 @@ extern "C" {
         equal_func: GEqualFunc,
         index_: *mut guint,
     ) -> gboolean;
+}
+extern "C" {
+    pub fn g_ptr_array_is_null_terminated(array: *mut GPtrArray) -> gboolean;
 }
 extern "C" {
     pub fn g_byte_array_new() -> *mut GByteArray;
@@ -3461,6 +3579,17 @@ extern "C" {
     ) -> gboolean;
 }
 extern "C" {
+    pub fn g_atomic_int_compare_and_exchange_full(
+        atomic: *mut gint,
+        oldval: gint,
+        newval: gint,
+        preval: *mut gint,
+    ) -> gboolean;
+}
+extern "C" {
+    pub fn g_atomic_int_exchange(atomic: *mut gint, newval: gint) -> gint;
+}
+extern "C" {
     pub fn g_atomic_int_add(atomic: *mut gint, val: gint) -> gint;
 }
 extern "C" {
@@ -3486,22 +3615,36 @@ extern "C" {
     ) -> gboolean;
 }
 extern "C" {
-    pub fn g_atomic_pointer_add(atomic: *mut ::std::os::raw::c_void, val: gssize) -> gssize;
+    pub fn g_atomic_pointer_compare_and_exchange_full(
+        atomic: *mut ::std::os::raw::c_void,
+        oldval: gpointer,
+        newval: gpointer,
+        preval: *mut ::std::os::raw::c_void,
+    ) -> gboolean;
 }
 extern "C" {
-    pub fn g_atomic_pointer_and(atomic: *mut ::std::os::raw::c_void, val: gsize) -> gsize;
+    pub fn g_atomic_pointer_exchange(
+        atomic: *mut ::std::os::raw::c_void,
+        newval: gpointer,
+    ) -> gpointer;
 }
 extern "C" {
-    pub fn g_atomic_pointer_or(atomic: *mut ::std::os::raw::c_void, val: gsize) -> gsize;
+    pub fn g_atomic_pointer_add(atomic: *mut ::std::os::raw::c_void, val: gssize) -> gintptr;
 }
 extern "C" {
-    pub fn g_atomic_pointer_xor(atomic: *mut ::std::os::raw::c_void, val: gsize) -> gsize;
+    pub fn g_atomic_pointer_and(atomic: *mut ::std::os::raw::c_void, val: gsize) -> guintptr;
+}
+extern "C" {
+    pub fn g_atomic_pointer_or(atomic: *mut ::std::os::raw::c_void, val: gsize) -> guintptr;
+}
+extern "C" {
+    pub fn g_atomic_pointer_xor(atomic: *mut ::std::os::raw::c_void, val: gsize) -> guintptr;
 }
 extern "C" {
     pub fn g_atomic_int_exchange_and_add(atomic: *mut gint, val: gint) -> gint;
 }
-pub type va_list = __builtin_va_list;
 pub type __gnuc_va_list = __builtin_va_list;
+pub type va_list = __builtin_va_list;
 pub type GQuark = guint32;
 extern "C" {
     pub fn g_quark_try_string(string: *const gchar) -> GQuark;
@@ -3790,6 +3933,8 @@ pub const GFormatSizeFlags_G_FORMAT_SIZE_DEFAULT: GFormatSizeFlags = 0;
 pub const GFormatSizeFlags_G_FORMAT_SIZE_LONG_FORMAT: GFormatSizeFlags = 1;
 pub const GFormatSizeFlags_G_FORMAT_SIZE_IEC_UNITS: GFormatSizeFlags = 2;
 pub const GFormatSizeFlags_G_FORMAT_SIZE_BITS: GFormatSizeFlags = 4;
+pub const GFormatSizeFlags_G_FORMAT_SIZE_ONLY_VALUE: GFormatSizeFlags = 8;
+pub const GFormatSizeFlags_G_FORMAT_SIZE_ONLY_UNIT: GFormatSizeFlags = 16;
 pub type GFormatSizeFlags = ::std::os::raw::c_uint;
 extern "C" {
     pub fn g_format_size_full(size: guint64, flags: GFormatSizeFlags) -> *mut gchar;
@@ -5435,6 +5580,15 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    pub fn arc4random() -> __uint32_t;
+}
+extern "C" {
+    pub fn arc4random_buf(__buf: *mut ::std::os::raw::c_void, __size: usize);
+}
+extern "C" {
+    pub fn arc4random_uniform(__upper_bound: __uint32_t) -> __uint32_t;
+}
+extern "C" {
     pub fn malloc(__size: ::std::os::raw::c_ulong) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
@@ -6000,7 +6154,7 @@ extern "C" {
     pub fn g_thread_self() -> *mut GThread;
 }
 extern "C" {
-    pub fn g_thread_exit(retval: gpointer);
+    pub fn g_thread_exit(retval: gpointer) -> !;
 }
 extern "C" {
     pub fn g_thread_join(thread: *mut GThread) -> gpointer;
@@ -6097,6 +6251,12 @@ extern "C" {
 }
 extern "C" {
     pub fn g_once_init_leave(location: *mut ::std::os::raw::c_void, result: gsize);
+}
+extern "C" {
+    pub fn g_once_init_enter_pointer(location: *mut ::std::os::raw::c_void) -> gboolean;
+}
+extern "C" {
+    pub fn g_once_init_leave_pointer(location: *mut ::std::os::raw::c_void, result: gpointer);
 }
 extern "C" {
     pub fn g_get_num_processors() -> guint;
@@ -6991,6 +7151,7 @@ pub const SEGV_ADIDERR: _bindgen_ty_4 = 6;
 pub const SEGV_ADIPERR: _bindgen_ty_4 = 7;
 pub const SEGV_MTEAERR: _bindgen_ty_4 = 8;
 pub const SEGV_MTESERR: _bindgen_ty_4 = 9;
+pub const SEGV_CPERR: _bindgen_ty_4 = 10;
 pub type _bindgen_ty_4 = ::std::os::raw::c_uint;
 pub const BUS_ADRALN: _bindgen_ty_5 = 1;
 pub const BUS_ADRERR: _bindgen_ty_5 = 2;
@@ -8784,10 +8945,30 @@ extern "C" {
     pub fn g_pointer_bit_lock(address: *mut ::std::os::raw::c_void, lock_bit: gint);
 }
 extern "C" {
+    pub fn g_pointer_bit_lock_and_get(address: gpointer, lock_bit: guint, out_ptr: *mut guintptr);
+}
+extern "C" {
     pub fn g_pointer_bit_trylock(address: *mut ::std::os::raw::c_void, lock_bit: gint) -> gboolean;
 }
 extern "C" {
     pub fn g_pointer_bit_unlock(address: *mut ::std::os::raw::c_void, lock_bit: gint);
+}
+extern "C" {
+    pub fn g_pointer_bit_lock_mask_ptr(
+        ptr: gpointer,
+        lock_bit: guint,
+        set: gboolean,
+        preserve_mask: guintptr,
+        preserve_ptr: gpointer,
+    ) -> gpointer;
+}
+extern "C" {
+    pub fn g_pointer_bit_unlock_and_set(
+        address: *mut ::std::os::raw::c_void,
+        lock_bit: guint,
+        ptr: gpointer,
+        preserve_mask: guintptr,
+    );
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -8869,6 +9050,12 @@ extern "C" {
 }
 extern "C" {
     pub fn g_date_time_new_from_unix_utc(t: gint64) -> *mut GDateTime;
+}
+extern "C" {
+    pub fn g_date_time_new_from_unix_local_usec(usecs: gint64) -> *mut GDateTime;
+}
+extern "C" {
+    pub fn g_date_time_new_from_unix_utc_usec(usecs: gint64) -> *mut GDateTime;
 }
 extern "C" {
     pub fn g_date_time_new_from_timeval_local(tv: *const GTimeVal) -> *mut GDateTime;
@@ -9008,6 +9195,9 @@ extern "C" {
     pub fn g_date_time_to_unix(datetime: *mut GDateTime) -> gint64;
 }
 extern "C" {
+    pub fn g_date_time_to_unix_usec(datetime: *mut GDateTime) -> gint64;
+}
+extern "C" {
     pub fn g_date_time_to_timeval(datetime: *mut GDateTime, tv: *mut GTimeVal) -> gboolean;
 }
 extern "C" {
@@ -9060,6 +9250,9 @@ extern "C" {
 }
 extern "C" {
     pub fn g_bookmark_file_free(bookmark: *mut GBookmarkFile);
+}
+extern "C" {
+    pub fn g_bookmark_file_copy(bookmark: *mut GBookmarkFile) -> *mut GBookmarkFile;
 }
 extern "C" {
     pub fn g_bookmark_file_load_from_file(
@@ -9684,6 +9877,13 @@ extern "C" {
         destroy_func: GDestroyNotify,
     );
 }
+extern "C" {
+    pub fn g_datalist_id_remove_multiple(
+        datalist: *mut *mut GData,
+        keys: *mut GQuark,
+        n_keys: gsize,
+    );
+}
 pub type GDuplicateFunc =
     ::std::option::Option<unsafe extern "C" fn(data: gpointer, user_data: gpointer) -> gpointer>;
 extern "C" {
@@ -10150,13 +10350,13 @@ pub struct __dirstream {
 }
 pub type DIR = __dirstream;
 extern "C" {
+    pub fn closedir(__dirp: *mut DIR) -> ::std::os::raw::c_int;
+}
+extern "C" {
     pub fn opendir(__name: *const ::std::os::raw::c_char) -> *mut DIR;
 }
 extern "C" {
     pub fn fdopendir(__fd: ::std::os::raw::c_int) -> *mut DIR;
-}
-extern "C" {
-    pub fn closedir(__dirp: *mut DIR) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn readdir(__dirp: *mut DIR) -> *mut dirent;
@@ -10223,6 +10423,12 @@ extern "C" {
 }
 extern "C" {
     pub fn g_dir_close(dir: *mut GDir);
+}
+extern "C" {
+    pub fn g_dir_ref(dir: *mut GDir) -> *mut GDir;
+}
+extern "C" {
+    pub fn g_dir_unref(dir: *mut GDir);
 }
 extern "C" {
     pub fn g_getenv(variable: *const gchar) -> *const gchar;
@@ -10426,6 +10632,9 @@ extern "C" {
     pub fn g_free(mem: gpointer);
 }
 extern "C" {
+    pub fn g_free_sized(mem: gpointer, size: usize);
+}
+extern "C" {
     pub fn g_clear_pointer(pp: *mut gpointer, destroy: GDestroyNotify);
 }
 extern "C" {
@@ -10472,6 +10681,9 @@ extern "C" {
 }
 extern "C" {
     pub fn g_aligned_free(mem: gpointer);
+}
+extern "C" {
+    pub fn g_aligned_free_sized(mem: gpointer, alignment: usize, size: usize);
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -11096,6 +11308,12 @@ extern "C" {
     pub fn g_hash_table_steal_all(hash_table: *mut GHashTable);
 }
 extern "C" {
+    pub fn g_hash_table_steal_all_keys(hash_table: *mut GHashTable) -> *mut GPtrArray;
+}
+extern "C" {
+    pub fn g_hash_table_steal_all_values(hash_table: *mut GHashTable) -> *mut GPtrArray;
+}
+extern "C" {
     pub fn g_hash_table_lookup(hash_table: *mut GHashTable, key: gconstpointer) -> gpointer;
 }
 extern "C" {
@@ -11147,6 +11365,12 @@ extern "C" {
         hash_table: *mut GHashTable,
         length: *mut guint,
     ) -> *mut gpointer;
+}
+extern "C" {
+    pub fn g_hash_table_get_keys_as_ptr_array(hash_table: *mut GHashTable) -> *mut GPtrArray;
+}
+extern "C" {
+    pub fn g_hash_table_get_values_as_ptr_array(hash_table: *mut GHashTable) -> *mut GPtrArray;
 }
 extern "C" {
     pub fn g_hash_table_iter_init(iter: *mut GHashTableIter, hash_table: *mut GHashTable);
@@ -11869,6 +12093,7 @@ pub type GSourcePrivate = _GSourcePrivate;
 pub type GSourceCallbackFuncs = _GSourceCallbackFuncs;
 pub type GSourceFuncs = _GSourceFuncs;
 pub type GSourceFunc = ::std::option::Option<unsafe extern "C" fn(user_data: gpointer) -> gboolean>;
+pub type GSourceOnceFunc = ::std::option::Option<unsafe extern "C" fn(user_data: gpointer)>;
 pub type GChildWatchFunc =
     ::std::option::Option<unsafe extern "C" fn(pid: GPid, wait_status: gint, user_data: gpointer)>;
 pub type GSourceDisposeFunc = ::std::option::Option<unsafe extern "C" fn(source: *mut GSource)>;
@@ -12477,6 +12702,9 @@ extern "C" {
     pub fn g_timeout_add(interval: guint, function: GSourceFunc, data: gpointer) -> guint;
 }
 extern "C" {
+    pub fn g_timeout_add_once(interval: guint, function: GSourceOnceFunc, data: gpointer) -> guint;
+}
+extern "C" {
     pub fn g_timeout_add_seconds_full(
         priority: gint,
         interval: guint,
@@ -12487,6 +12715,13 @@ extern "C" {
 }
 extern "C" {
     pub fn g_timeout_add_seconds(interval: guint, function: GSourceFunc, data: gpointer) -> guint;
+}
+extern "C" {
+    pub fn g_timeout_add_seconds_once(
+        interval: guint,
+        function: GSourceOnceFunc,
+        data: gpointer,
+    ) -> guint;
 }
 extern "C" {
     pub fn g_child_watch_add_full(
@@ -12510,6 +12745,9 @@ extern "C" {
         data: gpointer,
         notify: GDestroyNotify,
     ) -> guint;
+}
+extern "C" {
+    pub fn g_idle_add_once(function: GSourceOnceFunc, data: gpointer) -> guint;
 }
 extern "C" {
     pub fn g_idle_remove_by_data(data: gpointer) -> gboolean;
@@ -12618,6 +12856,11 @@ pub const GUnicodeBreakType_G_UNICODE_BREAK_REGIONAL_INDICATOR: GUnicodeBreakTyp
 pub const GUnicodeBreakType_G_UNICODE_BREAK_EMOJI_BASE: GUnicodeBreakType = 40;
 pub const GUnicodeBreakType_G_UNICODE_BREAK_EMOJI_MODIFIER: GUnicodeBreakType = 41;
 pub const GUnicodeBreakType_G_UNICODE_BREAK_ZERO_WIDTH_JOINER: GUnicodeBreakType = 42;
+pub const GUnicodeBreakType_G_UNICODE_BREAK_AKSARA: GUnicodeBreakType = 43;
+pub const GUnicodeBreakType_G_UNICODE_BREAK_AKSARA_PRE_BASE: GUnicodeBreakType = 44;
+pub const GUnicodeBreakType_G_UNICODE_BREAK_AKSARA_START: GUnicodeBreakType = 45;
+pub const GUnicodeBreakType_G_UNICODE_BREAK_VIRAMA_FINAL: GUnicodeBreakType = 46;
+pub const GUnicodeBreakType_G_UNICODE_BREAK_VIRAMA: GUnicodeBreakType = 47;
 pub type GUnicodeBreakType = ::std::os::raw::c_uint;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_INVALID_CODE: GUnicodeScript = -1;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_COMMON: GUnicodeScript = 0;
@@ -12783,6 +13026,8 @@ pub const GUnicodeScript_G_UNICODE_SCRIPT_TANGSA: GUnicodeScript = 159;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_TOTO: GUnicodeScript = 160;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_VITHKUQI: GUnicodeScript = 161;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_MATH: GUnicodeScript = 162;
+pub const GUnicodeScript_G_UNICODE_SCRIPT_KAWI: GUnicodeScript = 163;
+pub const GUnicodeScript_G_UNICODE_SCRIPT_NAG_MUNDARI: GUnicodeScript = 164;
 pub type GUnicodeScript = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_unicode_script_to_iso15924(script: GUnicodeScript) -> guint32;
@@ -12929,6 +13174,9 @@ extern "C" {
     pub fn g_utf8_strncpy(dest: *mut gchar, src: *const gchar, n: gsize) -> *mut gchar;
 }
 extern "C" {
+    pub fn g_utf8_truncate_middle(string: *const gchar, truncate_length: gsize) -> *mut gchar;
+}
+extern "C" {
     pub fn g_utf8_strchr(p: *const gchar, len: gssize, c: gunichar) -> *mut gchar;
 }
 extern "C" {
@@ -13045,6 +13293,253 @@ extern "C" {
 extern "C" {
     pub fn g_utf8_make_valid(str_: *const gchar, len: gssize) -> *mut gchar;
 }
+pub const GAsciiType_G_ASCII_ALNUM: GAsciiType = 1;
+pub const GAsciiType_G_ASCII_ALPHA: GAsciiType = 2;
+pub const GAsciiType_G_ASCII_CNTRL: GAsciiType = 4;
+pub const GAsciiType_G_ASCII_DIGIT: GAsciiType = 8;
+pub const GAsciiType_G_ASCII_GRAPH: GAsciiType = 16;
+pub const GAsciiType_G_ASCII_LOWER: GAsciiType = 32;
+pub const GAsciiType_G_ASCII_PRINT: GAsciiType = 64;
+pub const GAsciiType_G_ASCII_PUNCT: GAsciiType = 128;
+pub const GAsciiType_G_ASCII_SPACE: GAsciiType = 256;
+pub const GAsciiType_G_ASCII_UPPER: GAsciiType = 512;
+pub const GAsciiType_G_ASCII_XDIGIT: GAsciiType = 1024;
+pub type GAsciiType = ::std::os::raw::c_uint;
+extern "C" {
+    pub static g_ascii_table: *const guint16;
+}
+extern "C" {
+    pub fn g_ascii_tolower(c: gchar) -> gchar;
+}
+extern "C" {
+    pub fn g_ascii_toupper(c: gchar) -> gchar;
+}
+extern "C" {
+    pub fn g_ascii_digit_value(c: gchar) -> gint;
+}
+extern "C" {
+    pub fn g_ascii_xdigit_value(c: gchar) -> gint;
+}
+extern "C" {
+    pub fn g_strdelimit(
+        string: *mut gchar,
+        delimiters: *const gchar,
+        new_delimiter: gchar,
+    ) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strcanon(
+        string: *mut gchar,
+        valid_chars: *const gchar,
+        substitutor: gchar,
+    ) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strerror(errnum: gint) -> *const gchar;
+}
+extern "C" {
+    pub fn g_strsignal(signum: gint) -> *const gchar;
+}
+extern "C" {
+    pub fn g_strreverse(string: *mut gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strlcpy(dest: *mut gchar, src: *const gchar, dest_size: gsize) -> gsize;
+}
+extern "C" {
+    pub fn g_strlcat(dest: *mut gchar, src: *const gchar, dest_size: gsize) -> gsize;
+}
+extern "C" {
+    pub fn g_strstr_len(
+        haystack: *const gchar,
+        haystack_len: gssize,
+        needle: *const gchar,
+    ) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strrstr(haystack: *const gchar, needle: *const gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strrstr_len(
+        haystack: *const gchar,
+        haystack_len: gssize,
+        needle: *const gchar,
+    ) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_str_has_suffix(str_: *const gchar, suffix: *const gchar) -> gboolean;
+}
+extern "C" {
+    pub fn g_str_has_prefix(str_: *const gchar, prefix: *const gchar) -> gboolean;
+}
+extern "C" {
+    pub fn g_strtod(nptr: *const gchar, endptr: *mut *mut gchar) -> gdouble;
+}
+extern "C" {
+    pub fn g_ascii_strtod(nptr: *const gchar, endptr: *mut *mut gchar) -> gdouble;
+}
+extern "C" {
+    pub fn g_ascii_strtoull(nptr: *const gchar, endptr: *mut *mut gchar, base: guint) -> guint64;
+}
+extern "C" {
+    pub fn g_ascii_strtoll(nptr: *const gchar, endptr: *mut *mut gchar, base: guint) -> gint64;
+}
+extern "C" {
+    pub fn g_ascii_dtostr(buffer: *mut gchar, buf_len: gint, d: gdouble) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_ascii_formatd(
+        buffer: *mut gchar,
+        buf_len: gint,
+        format: *const gchar,
+        d: gdouble,
+    ) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strchug(string: *mut gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strchomp(string: *mut gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_ascii_strcasecmp(s1: *const gchar, s2: *const gchar) -> gint;
+}
+extern "C" {
+    pub fn g_ascii_strncasecmp(s1: *const gchar, s2: *const gchar, n: gsize) -> gint;
+}
+extern "C" {
+    pub fn g_ascii_strdown(str_: *const gchar, len: gssize) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_ascii_strup(str_: *const gchar, len: gssize) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_str_is_ascii(str_: *const gchar) -> gboolean;
+}
+extern "C" {
+    pub fn g_strcasecmp(s1: *const gchar, s2: *const gchar) -> gint;
+}
+extern "C" {
+    pub fn g_strncasecmp(s1: *const gchar, s2: *const gchar, n: guint) -> gint;
+}
+extern "C" {
+    pub fn g_strdown(string: *mut gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strup(string: *mut gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strdup(str_: *const gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strdup_printf(format: *const gchar, ...) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strdup_vprintf(format: *const gchar, args: *mut __va_list_tag) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strndup(str_: *const gchar, n: gsize) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strnfill(length: gsize, fill_char: gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strconcat(string1: *const gchar, ...) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strjoin(separator: *const gchar, ...) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strcompress(source: *const gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strescape(source: *const gchar, exceptions: *const gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_memdup(mem: gconstpointer, byte_size: guint) -> gpointer;
+}
+extern "C" {
+    pub fn g_memdup2(mem: gconstpointer, byte_size: gsize) -> gpointer;
+}
+pub type GStrv = *mut *mut gchar;
+extern "C" {
+    pub fn g_strsplit(
+        string: *const gchar,
+        delimiter: *const gchar,
+        max_tokens: gint,
+    ) -> *mut *mut gchar;
+}
+extern "C" {
+    pub fn g_strsplit_set(
+        string: *const gchar,
+        delimiters: *const gchar,
+        max_tokens: gint,
+    ) -> *mut *mut gchar;
+}
+extern "C" {
+    pub fn g_strjoinv(separator: *const gchar, str_array: *mut *mut gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_strfreev(str_array: *mut *mut gchar);
+}
+extern "C" {
+    pub fn g_strdupv(str_array: *mut *mut gchar) -> *mut *mut gchar;
+}
+extern "C" {
+    pub fn g_strv_length(str_array: *mut *mut gchar) -> guint;
+}
+extern "C" {
+    pub fn g_stpcpy(dest: *mut gchar, src: *const ::std::os::raw::c_char) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_str_to_ascii(str_: *const gchar, from_locale: *const gchar) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_str_tokenize_and_fold(
+        string: *const gchar,
+        translit_locale: *const gchar,
+        ascii_alternates: *mut *mut *mut gchar,
+    ) -> *mut *mut gchar;
+}
+extern "C" {
+    pub fn g_str_match_string(
+        search_term: *const gchar,
+        potential_hit: *const gchar,
+        accept_alternates: gboolean,
+    ) -> gboolean;
+}
+extern "C" {
+    pub fn g_strv_contains(strv: *const *const gchar, str_: *const gchar) -> gboolean;
+}
+extern "C" {
+    pub fn g_strv_equal(strv1: *const *const gchar, strv2: *const *const gchar) -> gboolean;
+}
+pub const GNumberParserError_G_NUMBER_PARSER_ERROR_INVALID: GNumberParserError = 0;
+pub const GNumberParserError_G_NUMBER_PARSER_ERROR_OUT_OF_BOUNDS: GNumberParserError = 1;
+pub type GNumberParserError = ::std::os::raw::c_uint;
+extern "C" {
+    pub fn g_number_parser_error_quark() -> GQuark;
+}
+extern "C" {
+    pub fn g_ascii_string_to_signed(
+        str_: *const gchar,
+        base: guint,
+        min: gint64,
+        max: gint64,
+        out_num: *mut gint64,
+        error: *mut *mut GError,
+    ) -> gboolean;
+}
+extern "C" {
+    pub fn g_ascii_string_to_unsigned(
+        str_: *const gchar,
+        base: guint,
+        min: guint64,
+        max: guint64,
+        out_num: *mut guint64,
+        error: *mut *mut GError,
+    ) -> gboolean;
+}
 pub type GString = _GString;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -13102,6 +13597,9 @@ extern "C" {
     pub fn g_string_new(init: *const gchar) -> *mut GString;
 }
 extern "C" {
+    pub fn g_string_new_take(init: *mut gchar) -> *mut GString;
+}
+extern "C" {
     pub fn g_string_new_len(init: *const gchar, len: gssize) -> *mut GString;
 }
 extern "C" {
@@ -13109,6 +13607,9 @@ extern "C" {
 }
 extern "C" {
     pub fn g_string_free(string: *mut GString, free_segment: gboolean) -> *mut gchar;
+}
+extern "C" {
+    pub fn g_string_free_and_steal(string: *mut GString) -> *mut gchar;
 }
 extern "C" {
     pub fn g_string_free_to_bytes(string: *mut GString) -> *mut GBytes;
@@ -13262,6 +13763,7 @@ pub const GSeekType_G_SEEK_CUR: GSeekType = 0;
 pub const GSeekType_G_SEEK_SET: GSeekType = 1;
 pub const GSeekType_G_SEEK_END: GSeekType = 2;
 pub type GSeekType = ::std::os::raw::c_uint;
+pub const GIOFlags_G_IO_FLAG_NONE: GIOFlags = 0;
 pub const GIOFlags_G_IO_FLAG_APPEND: GIOFlags = 1;
 pub const GIOFlags_G_IO_FLAG_NONBLOCK: GIOFlags = 2;
 pub const GIOFlags_G_IO_FLAG_IS_READABLE: GIOFlags = 4;
@@ -14340,6 +14842,7 @@ pub type GMarkupError = ::std::os::raw::c_uint;
 extern "C" {
     pub fn g_markup_error_quark() -> GQuark;
 }
+pub const GMarkupParseFlags_G_MARKUP_DEFAULT_FLAGS: GMarkupParseFlags = 0;
 pub const GMarkupParseFlags_G_MARKUP_DO_NOT_USE_THIS_UNSUPPORTED_FLAG: GMarkupParseFlags = 1;
 pub const GMarkupParseFlags_G_MARKUP_TREAT_CDATA_AS_TEXT: GMarkupParseFlags = 2;
 pub const GMarkupParseFlags_G_MARKUP_PREFIX_ERROR_POSITION: GMarkupParseFlags = 4;
@@ -14662,7 +15165,7 @@ extern "C" {
     ) -> *mut GVariantType;
 }
 extern "C" {
-    pub fn g_variant_type_checked_(arg1: *const gchar) -> *const GVariantType;
+    pub fn g_variant_type_checked_(type_string: *const gchar) -> *const GVariantType;
 }
 extern "C" {
     pub fn g_variant_type_string_get_depth_(type_string: *const gchar) -> gsize;
@@ -14984,7 +15487,7 @@ pub type GVariantIter = _GVariantIter;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GVariantIter {
-    pub x: [gsize; 16usize],
+    pub x: [guintptr; 16usize],
 }
 #[test]
 fn bindgen_test_layout__GVariantIter() {
@@ -15053,14 +15556,14 @@ pub struct _GVariantBuilder {
 #[derive(Copy, Clone)]
 pub union _GVariantBuilder__bindgen_ty_1 {
     pub s: _GVariantBuilder__bindgen_ty_1__bindgen_ty_1,
-    pub x: [gsize; 16usize],
+    pub x: [guintptr; 16usize],
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GVariantBuilder__bindgen_ty_1__bindgen_ty_1 {
     pub partial_magic: gsize,
     pub type_: *const GVariantType,
-    pub y: [gsize; 14usize],
+    pub y: [guintptr; 14usize],
 }
 #[test]
 fn bindgen_test_layout__GVariantBuilder__bindgen_ty_1__bindgen_ty_1() {
@@ -15297,14 +15800,14 @@ pub struct _GVariantDict {
 #[derive(Copy, Clone)]
 pub union _GVariantDict__bindgen_ty_1 {
     pub s: _GVariantDict__bindgen_ty_1__bindgen_ty_1,
-    pub x: [gsize; 16usize],
+    pub x: [guintptr; 16usize],
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GVariantDict__bindgen_ty_1__bindgen_ty_1 {
     pub asv: *mut GVariant,
     pub partial_magic: gsize,
-    pub y: [gsize; 14usize],
+    pub y: [guintptr; 14usize],
 }
 #[test]
 fn bindgen_test_layout__GVariantDict__bindgen_ty_1__bindgen_ty_1() {
@@ -15648,6 +16151,14 @@ extern "C" {
     ) -> *mut gchar;
 }
 extern "C" {
+    pub fn g_log_writer_syslog(
+        log_level: GLogLevelFlags,
+        fields: *const GLogField,
+        n_fields: gsize,
+        user_data: gpointer,
+    ) -> GLogWriterOutput;
+}
+extern "C" {
     pub fn g_log_writer_journald(
         log_level: GLogLevelFlags,
         fields: *const GLogField,
@@ -15679,6 +16190,9 @@ extern "C" {
         log_level: GLogLevelFlags,
         log_domain: *const ::std::os::raw::c_char,
     ) -> gboolean;
+}
+extern "C" {
+    pub fn g_log_writer_default_set_debug_domains(domains: *const *const gchar);
 }
 extern "C" {
     pub fn g_log_get_debug_enabled() -> gboolean;
@@ -16037,6 +16551,94 @@ extern "C" {
 }
 extern "C" {
     pub fn g_option_group_set_translation_domain(group: *mut GOptionGroup, domain: *const gchar);
+}
+pub type GPathBuf = _GPathBuf;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _GPathBuf {
+    pub dummy: [gpointer; 8usize],
+}
+#[test]
+fn bindgen_test_layout__GPathBuf() {
+    const UNINIT: ::std::mem::MaybeUninit<_GPathBuf> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<_GPathBuf>(),
+        64usize,
+        concat!("Size of: ", stringify!(_GPathBuf))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_GPathBuf>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_GPathBuf))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).dummy) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_GPathBuf),
+            "::",
+            stringify!(dummy)
+        )
+    );
+}
+extern "C" {
+    pub fn g_path_buf_new() -> *mut GPathBuf;
+}
+extern "C" {
+    pub fn g_path_buf_new_from_path(path: *const ::std::os::raw::c_char) -> *mut GPathBuf;
+}
+extern "C" {
+    pub fn g_path_buf_init(buf: *mut GPathBuf) -> *mut GPathBuf;
+}
+extern "C" {
+    pub fn g_path_buf_init_from_path(
+        buf: *mut GPathBuf,
+        path: *const ::std::os::raw::c_char,
+    ) -> *mut GPathBuf;
+}
+extern "C" {
+    pub fn g_path_buf_clear(buf: *mut GPathBuf);
+}
+extern "C" {
+    pub fn g_path_buf_clear_to_path(buf: *mut GPathBuf) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn g_path_buf_free(buf: *mut GPathBuf);
+}
+extern "C" {
+    pub fn g_path_buf_free_to_path(buf: *mut GPathBuf) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn g_path_buf_copy(buf: *mut GPathBuf) -> *mut GPathBuf;
+}
+extern "C" {
+    pub fn g_path_buf_push(
+        buf: *mut GPathBuf,
+        path: *const ::std::os::raw::c_char,
+    ) -> *mut GPathBuf;
+}
+extern "C" {
+    pub fn g_path_buf_pop(buf: *mut GPathBuf) -> gboolean;
+}
+extern "C" {
+    pub fn g_path_buf_set_filename(
+        buf: *mut GPathBuf,
+        file_name: *const ::std::os::raw::c_char,
+    ) -> gboolean;
+}
+extern "C" {
+    pub fn g_path_buf_set_extension(
+        buf: *mut GPathBuf,
+        extension: *const ::std::os::raw::c_char,
+    ) -> gboolean;
+}
+extern "C" {
+    pub fn g_path_buf_to_path(buf: *mut GPathBuf) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn g_path_buf_equal(v1: gconstpointer, v2: gconstpointer) -> gboolean;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -16489,6 +17091,7 @@ pub type GRegexError = ::std::os::raw::c_uint;
 extern "C" {
     pub fn g_regex_error_quark() -> GQuark;
 }
+pub const GRegexCompileFlags_G_REGEX_DEFAULT: GRegexCompileFlags = 0;
 pub const GRegexCompileFlags_G_REGEX_CASELESS: GRegexCompileFlags = 1;
 pub const GRegexCompileFlags_G_REGEX_MULTILINE: GRegexCompileFlags = 2;
 pub const GRegexCompileFlags_G_REGEX_DOTALL: GRegexCompileFlags = 4;
@@ -16508,6 +17111,7 @@ pub const GRegexCompileFlags_G_REGEX_NEWLINE_ANYCRLF: GRegexCompileFlags = 52428
 pub const GRegexCompileFlags_G_REGEX_BSR_ANYCRLF: GRegexCompileFlags = 8388608;
 pub const GRegexCompileFlags_G_REGEX_JAVASCRIPT_COMPAT: GRegexCompileFlags = 33554432;
 pub type GRegexCompileFlags = ::std::os::raw::c_uint;
+pub const GRegexMatchFlags_G_REGEX_MATCH_DEFAULT: GRegexMatchFlags = 0;
 pub const GRegexMatchFlags_G_REGEX_MATCH_ANCHORED: GRegexMatchFlags = 16;
 pub const GRegexMatchFlags_G_REGEX_MATCH_NOTBOL: GRegexMatchFlags = 128;
 pub const GRegexMatchFlags_G_REGEX_MATCH_NOTEOL: GRegexMatchFlags = 256;
@@ -17995,7 +18599,7 @@ pub const GSpawnError_G_SPAWN_ERROR_ISDIR: GSpawnError = 17;
 pub const GSpawnError_G_SPAWN_ERROR_LIBBAD: GSpawnError = 18;
 pub const GSpawnError_G_SPAWN_ERROR_FAILED: GSpawnError = 19;
 pub type GSpawnError = ::std::os::raw::c_uint;
-pub type GSpawnChildSetupFunc = ::std::option::Option<unsafe extern "C" fn(user_data: gpointer)>;
+pub type GSpawnChildSetupFunc = ::std::option::Option<unsafe extern "C" fn(data: gpointer)>;
 pub const GSpawnFlags_G_SPAWN_DEFAULT: GSpawnFlags = 0;
 pub const GSpawnFlags_G_SPAWN_LEAVE_DESCRIPTORS_OPEN: GSpawnFlags = 1;
 pub const GSpawnFlags_G_SPAWN_DO_NOT_REAP_CHILD: GSpawnFlags = 2;
@@ -18006,6 +18610,9 @@ pub const GSpawnFlags_G_SPAWN_CHILD_INHERITS_STDIN: GSpawnFlags = 32;
 pub const GSpawnFlags_G_SPAWN_FILE_AND_ARGV_ZERO: GSpawnFlags = 64;
 pub const GSpawnFlags_G_SPAWN_SEARCH_PATH_FROM_ENVP: GSpawnFlags = 128;
 pub const GSpawnFlags_G_SPAWN_CLOEXEC_PIPES: GSpawnFlags = 256;
+pub const GSpawnFlags_G_SPAWN_CHILD_INHERITS_STDOUT: GSpawnFlags = 512;
+pub const GSpawnFlags_G_SPAWN_CHILD_INHERITS_STDERR: GSpawnFlags = 1024;
+pub const GSpawnFlags_G_SPAWN_STDIN_FROM_DEV_NULL: GSpawnFlags = 2048;
 pub type GSpawnFlags = ::std::os::raw::c_uint;
 extern "C" {
     pub fn g_spawn_error_quark() -> GQuark;
@@ -18114,253 +18721,6 @@ extern "C" {
 extern "C" {
     pub fn g_spawn_close_pid(pid: GPid);
 }
-pub const GAsciiType_G_ASCII_ALNUM: GAsciiType = 1;
-pub const GAsciiType_G_ASCII_ALPHA: GAsciiType = 2;
-pub const GAsciiType_G_ASCII_CNTRL: GAsciiType = 4;
-pub const GAsciiType_G_ASCII_DIGIT: GAsciiType = 8;
-pub const GAsciiType_G_ASCII_GRAPH: GAsciiType = 16;
-pub const GAsciiType_G_ASCII_LOWER: GAsciiType = 32;
-pub const GAsciiType_G_ASCII_PRINT: GAsciiType = 64;
-pub const GAsciiType_G_ASCII_PUNCT: GAsciiType = 128;
-pub const GAsciiType_G_ASCII_SPACE: GAsciiType = 256;
-pub const GAsciiType_G_ASCII_UPPER: GAsciiType = 512;
-pub const GAsciiType_G_ASCII_XDIGIT: GAsciiType = 1024;
-pub type GAsciiType = ::std::os::raw::c_uint;
-extern "C" {
-    pub static g_ascii_table: *const guint16;
-}
-extern "C" {
-    pub fn g_ascii_tolower(c: gchar) -> gchar;
-}
-extern "C" {
-    pub fn g_ascii_toupper(c: gchar) -> gchar;
-}
-extern "C" {
-    pub fn g_ascii_digit_value(c: gchar) -> gint;
-}
-extern "C" {
-    pub fn g_ascii_xdigit_value(c: gchar) -> gint;
-}
-extern "C" {
-    pub fn g_strdelimit(
-        string: *mut gchar,
-        delimiters: *const gchar,
-        new_delimiter: gchar,
-    ) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strcanon(
-        string: *mut gchar,
-        valid_chars: *const gchar,
-        substitutor: gchar,
-    ) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strerror(errnum: gint) -> *const gchar;
-}
-extern "C" {
-    pub fn g_strsignal(signum: gint) -> *const gchar;
-}
-extern "C" {
-    pub fn g_strreverse(string: *mut gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strlcpy(dest: *mut gchar, src: *const gchar, dest_size: gsize) -> gsize;
-}
-extern "C" {
-    pub fn g_strlcat(dest: *mut gchar, src: *const gchar, dest_size: gsize) -> gsize;
-}
-extern "C" {
-    pub fn g_strstr_len(
-        haystack: *const gchar,
-        haystack_len: gssize,
-        needle: *const gchar,
-    ) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strrstr(haystack: *const gchar, needle: *const gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strrstr_len(
-        haystack: *const gchar,
-        haystack_len: gssize,
-        needle: *const gchar,
-    ) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_str_has_suffix(str_: *const gchar, suffix: *const gchar) -> gboolean;
-}
-extern "C" {
-    pub fn g_str_has_prefix(str_: *const gchar, prefix: *const gchar) -> gboolean;
-}
-extern "C" {
-    pub fn g_strtod(nptr: *const gchar, endptr: *mut *mut gchar) -> gdouble;
-}
-extern "C" {
-    pub fn g_ascii_strtod(nptr: *const gchar, endptr: *mut *mut gchar) -> gdouble;
-}
-extern "C" {
-    pub fn g_ascii_strtoull(nptr: *const gchar, endptr: *mut *mut gchar, base: guint) -> guint64;
-}
-extern "C" {
-    pub fn g_ascii_strtoll(nptr: *const gchar, endptr: *mut *mut gchar, base: guint) -> gint64;
-}
-extern "C" {
-    pub fn g_ascii_dtostr(buffer: *mut gchar, buf_len: gint, d: gdouble) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_ascii_formatd(
-        buffer: *mut gchar,
-        buf_len: gint,
-        format: *const gchar,
-        d: gdouble,
-    ) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strchug(string: *mut gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strchomp(string: *mut gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_ascii_strcasecmp(s1: *const gchar, s2: *const gchar) -> gint;
-}
-extern "C" {
-    pub fn g_ascii_strncasecmp(s1: *const gchar, s2: *const gchar, n: gsize) -> gint;
-}
-extern "C" {
-    pub fn g_ascii_strdown(str_: *const gchar, len: gssize) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_ascii_strup(str_: *const gchar, len: gssize) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_str_is_ascii(str_: *const gchar) -> gboolean;
-}
-extern "C" {
-    pub fn g_strcasecmp(s1: *const gchar, s2: *const gchar) -> gint;
-}
-extern "C" {
-    pub fn g_strncasecmp(s1: *const gchar, s2: *const gchar, n: guint) -> gint;
-}
-extern "C" {
-    pub fn g_strdown(string: *mut gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strup(string: *mut gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strdup(str_: *const gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strdup_printf(format: *const gchar, ...) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strdup_vprintf(format: *const gchar, args: *mut __va_list_tag) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strndup(str_: *const gchar, n: gsize) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strnfill(length: gsize, fill_char: gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strconcat(string1: *const gchar, ...) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strjoin(separator: *const gchar, ...) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strcompress(source: *const gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strescape(source: *const gchar, exceptions: *const gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_memdup(mem: gconstpointer, byte_size: guint) -> gpointer;
-}
-extern "C" {
-    pub fn g_memdup2(mem: gconstpointer, byte_size: gsize) -> gpointer;
-}
-pub type GStrv = *mut *mut gchar;
-extern "C" {
-    pub fn g_strsplit(
-        string: *const gchar,
-        delimiter: *const gchar,
-        max_tokens: gint,
-    ) -> *mut *mut gchar;
-}
-extern "C" {
-    pub fn g_strsplit_set(
-        string: *const gchar,
-        delimiters: *const gchar,
-        max_tokens: gint,
-    ) -> *mut *mut gchar;
-}
-extern "C" {
-    pub fn g_strjoinv(separator: *const gchar, str_array: *mut *mut gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_strfreev(str_array: *mut *mut gchar);
-}
-extern "C" {
-    pub fn g_strdupv(str_array: *mut *mut gchar) -> *mut *mut gchar;
-}
-extern "C" {
-    pub fn g_strv_length(str_array: *mut *mut gchar) -> guint;
-}
-extern "C" {
-    pub fn g_stpcpy(dest: *mut gchar, src: *const ::std::os::raw::c_char) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_str_to_ascii(str_: *const gchar, from_locale: *const gchar) -> *mut gchar;
-}
-extern "C" {
-    pub fn g_str_tokenize_and_fold(
-        string: *const gchar,
-        translit_locale: *const gchar,
-        ascii_alternates: *mut *mut *mut gchar,
-    ) -> *mut *mut gchar;
-}
-extern "C" {
-    pub fn g_str_match_string(
-        search_term: *const gchar,
-        potential_hit: *const gchar,
-        accept_alternates: gboolean,
-    ) -> gboolean;
-}
-extern "C" {
-    pub fn g_strv_contains(strv: *const *const gchar, str_: *const gchar) -> gboolean;
-}
-extern "C" {
-    pub fn g_strv_equal(strv1: *const *const gchar, strv2: *const *const gchar) -> gboolean;
-}
-pub const GNumberParserError_G_NUMBER_PARSER_ERROR_INVALID: GNumberParserError = 0;
-pub const GNumberParserError_G_NUMBER_PARSER_ERROR_OUT_OF_BOUNDS: GNumberParserError = 1;
-pub type GNumberParserError = ::std::os::raw::c_uint;
-extern "C" {
-    pub fn g_number_parser_error_quark() -> GQuark;
-}
-extern "C" {
-    pub fn g_ascii_string_to_signed(
-        str_: *const gchar,
-        base: guint,
-        min: gint64,
-        max: gint64,
-        out_num: *mut gint64,
-        error: *mut *mut GError,
-    ) -> gboolean;
-}
-extern "C" {
-    pub fn g_ascii_string_to_unsigned(
-        str_: *const gchar,
-        base: guint,
-        min: guint64,
-        max: guint64,
-        out_num: *mut guint64,
-        error: *mut *mut GError,
-    ) -> gboolean;
-}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GStringChunk {
@@ -18418,6 +18778,9 @@ extern "C" {
 }
 extern "C" {
     pub fn g_strv_builder_add_many(builder: *mut GStrvBuilder, ...);
+}
+extern "C" {
+    pub fn g_strv_builder_take(builder: *mut GStrvBuilder, value: *mut ::std::os::raw::c_char);
 }
 extern "C" {
     pub fn g_strv_builder_end(builder: *mut GStrvBuilder) -> GStrv;
@@ -18518,6 +18881,9 @@ extern "C" {
     pub fn g_test_set_nonfatal_assertions();
 }
 extern "C" {
+    pub fn g_test_disable_crash_reporting();
+}
+extern "C" {
     pub fn g_test_message(format: *const ::std::os::raw::c_char, ...);
 }
 extern "C" {
@@ -18544,6 +18910,7 @@ extern "C" {
 extern "C" {
     pub fn g_test_queue_destroy(destroy_func: GDestroyNotify, destroy_data: gpointer);
 }
+pub const GTestTrapFlags_G_TEST_TRAP_DEFAULT: GTestTrapFlags = 0;
 pub const GTestTrapFlags_G_TEST_TRAP_SILENCE_STDOUT: GTestTrapFlags = 128;
 pub const GTestTrapFlags_G_TEST_TRAP_SILENCE_STDERR: GTestTrapFlags = 256;
 pub const GTestTrapFlags_G_TEST_TRAP_INHERIT_STDIN: GTestTrapFlags = 512;
@@ -18551,6 +18918,7 @@ pub type GTestTrapFlags = ::std::os::raw::c_uint;
 extern "C" {
     pub fn g_test_trap_fork(usec_timeout: guint64, test_trap_flags: GTestTrapFlags) -> gboolean;
 }
+pub const GTestSubprocessFlags_G_TEST_SUBPROCESS_DEFAULT: GTestSubprocessFlags = 0;
 pub const GTestSubprocessFlags_G_TEST_SUBPROCESS_INHERIT_STDIN: GTestSubprocessFlags = 1;
 pub const GTestSubprocessFlags_G_TEST_SUBPROCESS_INHERIT_STDOUT: GTestSubprocessFlags = 2;
 pub const GTestSubprocessFlags_G_TEST_SUBPROCESS_INHERIT_STDERR: GTestSubprocessFlags = 4;
@@ -18558,6 +18926,14 @@ pub type GTestSubprocessFlags = ::std::os::raw::c_uint;
 extern "C" {
     pub fn g_test_trap_subprocess(
         test_path: *const ::std::os::raw::c_char,
+        usec_timeout: guint64,
+        test_flags: GTestSubprocessFlags,
+    );
+}
+extern "C" {
+    pub fn g_test_trap_subprocess_with_envp(
+        test_path: *const ::std::os::raw::c_char,
+        envp: *const *const ::std::os::raw::c_char,
         usec_timeout: guint64,
         test_flags: GTestSubprocessFlags,
     );
@@ -18661,6 +19037,19 @@ extern "C" {
         arg1: *const *const ::std::os::raw::c_char,
         arg2: *const *const ::std::os::raw::c_char,
         first_wrong_idx: gsize,
+    );
+}
+extern "C" {
+    pub fn g_assertion_message_cmpint(
+        domain: *const ::std::os::raw::c_char,
+        file: *const ::std::os::raw::c_char,
+        line: ::std::os::raw::c_int,
+        func: *const ::std::os::raw::c_char,
+        expr: *const ::std::os::raw::c_char,
+        arg1: guint64,
+        cmp: *const ::std::os::raw::c_char,
+        arg2: guint64,
+        numtype: ::std::os::raw::c_char,
     );
 }
 extern "C" {
@@ -19814,7 +20203,7 @@ extern "C" {
 }
 pub type GCompletion = _GCompletion;
 pub type GCompletionFunc =
-    ::std::option::Option<unsafe extern "C" fn(arg1: gpointer) -> *mut gchar>;
+    ::std::option::Option<unsafe extern "C" fn(item: gpointer) -> *mut gchar>;
 pub type GCompletionStrncmpFunc = ::std::option::Option<
     unsafe extern "C" fn(s1: *const gchar, s2: *const gchar, n: gsize) -> gint,
 >;
@@ -21668,7 +22057,7 @@ extern "C" {
     pub fn g_cond_timed_wait(
         cond: *mut GCond,
         mutex: *mut GMutex,
-        timeval: *mut GTimeVal,
+        abs_time: *mut GTimeVal,
     ) -> gboolean;
 }
 pub type GAsyncQueue_autoptr = *mut GAsyncQueue;
@@ -21875,6 +22264,10 @@ pub type GUri_autoptr = *mut GUri;
 pub type GUri_listautoptr = *mut GList;
 pub type GUri_slistautoptr = *mut GSList;
 pub type GUri_queueautoptr = *mut GQueue;
+pub type GPathBuf_autoptr = *mut GPathBuf;
+pub type GPathBuf_listautoptr = *mut GList;
+pub type GPathBuf_slistautoptr = *mut GSList;
+pub type GPathBuf_queueautoptr = *mut GQueue;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct __mbstate_t {
@@ -22398,6 +22791,95 @@ fn bindgen_test_layout__IO_FILE() {
         )
     );
 }
+pub type cookie_read_function_t = ::std::option::Option<
+    unsafe extern "C" fn(
+        __cookie: *mut ::std::os::raw::c_void,
+        __buf: *mut ::std::os::raw::c_char,
+        __nbytes: usize,
+    ) -> __ssize_t,
+>;
+pub type cookie_write_function_t = ::std::option::Option<
+    unsafe extern "C" fn(
+        __cookie: *mut ::std::os::raw::c_void,
+        __buf: *const ::std::os::raw::c_char,
+        __nbytes: usize,
+    ) -> __ssize_t,
+>;
+pub type cookie_seek_function_t = ::std::option::Option<
+    unsafe extern "C" fn(
+        __cookie: *mut ::std::os::raw::c_void,
+        __pos: *mut __off64_t,
+        __w: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int,
+>;
+pub type cookie_close_function_t = ::std::option::Option<
+    unsafe extern "C" fn(__cookie: *mut ::std::os::raw::c_void) -> ::std::os::raw::c_int,
+>;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _IO_cookie_io_functions_t {
+    pub read: cookie_read_function_t,
+    pub write: cookie_write_function_t,
+    pub seek: cookie_seek_function_t,
+    pub close: cookie_close_function_t,
+}
+#[test]
+fn bindgen_test_layout__IO_cookie_io_functions_t() {
+    const UNINIT: ::std::mem::MaybeUninit<_IO_cookie_io_functions_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<_IO_cookie_io_functions_t>(),
+        32usize,
+        concat!("Size of: ", stringify!(_IO_cookie_io_functions_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_IO_cookie_io_functions_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_IO_cookie_io_functions_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).read) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_cookie_io_functions_t),
+            "::",
+            stringify!(read)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).write) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_cookie_io_functions_t),
+            "::",
+            stringify!(write)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).seek) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_cookie_io_functions_t),
+            "::",
+            stringify!(seek)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).close) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_IO_cookie_io_functions_t),
+            "::",
+            stringify!(close)
+        )
+    );
+}
+pub type cookie_io_functions_t = _IO_cookie_io_functions_t;
 pub type fpos_t = __fpos_t;
 extern "C" {
     pub static mut stdin: *mut FILE;
@@ -22465,6 +22947,13 @@ extern "C" {
 extern "C" {
     pub fn fdopen(__fd: ::std::os::raw::c_int, __modes: *const ::std::os::raw::c_char)
         -> *mut FILE;
+}
+extern "C" {
+    pub fn fopencookie(
+        __magic_cookie: *mut ::std::os::raw::c_void,
+        __modes: *const ::std::os::raw::c_char,
+        __io_funcs: cookie_io_functions_t,
+    ) -> *mut FILE;
 }
 extern "C" {
     pub fn fmemopen(
@@ -22547,6 +23036,27 @@ extern "C" {
         __maxlen: ::std::os::raw::c_ulong,
         __format: *const ::std::os::raw::c_char,
         __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn vasprintf(
+        __ptr: *mut *mut ::std::os::raw::c_char,
+        __f: *const ::std::os::raw::c_char,
+        __arg: *mut __va_list_tag,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn __asprintf(
+        __ptr: *mut *mut ::std::os::raw::c_char,
+        __fmt: *const ::std::os::raw::c_char,
+        ...
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn asprintf(
+        __ptr: *mut *mut ::std::os::raw::c_char,
+        __fmt: *const ::std::os::raw::c_char,
+        ...
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
