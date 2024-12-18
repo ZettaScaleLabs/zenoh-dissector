@@ -1,8 +1,8 @@
 ![zenoh dissector banner](./assets/zenoh-dissector.svg)
-# Zenoh Dissector in Rust!
+
+# Zenoh Dissector in Rust
 
 [Zenoh](http://zenoh.io/) protocol dissector for Wireshark.
-
 
 > [!WARNING]
 > For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/eclipse-zenoh/zenoh-dissector/tree/v0.7.2-rc).
@@ -13,7 +13,6 @@
 
 You must have Wireshark 4.4 installed on your platform. Please refer to the [download page](https://www.wireshark.org/download.html) or follow the
 installation commands below.
-
 
 ## Installation
 
@@ -28,6 +27,7 @@ Zenoh dissector is based on Wireshark EPAN (Enhanced Packet ANalyzer) library.
 We need to install Wireshark with its library. Please follow the steps below according to your operating system.
 
 - Linux (Ubuntu)
+
     ```bash
     sudo apt install -y software-properties-common
     sudo add-apt-repository -y ppa:wireshark-dev/stable
@@ -38,10 +38,13 @@ We need to install Wireshark with its library. Please follow the steps below acc
 - macOS
 
     Install Wireshark with [Homebrew](https://brew.sh/).
+
     ```bash
     brew install --cask wireshark
     ```
+
     Create a symbolic link for linking the wireshark dynamic library later.
+
     ```bash
     ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
     export WIRESHARK_LIB_DIR=$(pwd)
@@ -50,6 +53,7 @@ We need to install Wireshark with its library. Please follow the steps below acc
 - Windows
 
     Install Wireshark with [Chocolatey](https://docs.chocolatey.org/en-us/choco/setup#install-with-powershell.exe).
+
     ```bash
     choco install -y --force --no-progress xsltproc docbook-bundle nsis winflexbison3 cmake wireshark
     ```
@@ -70,36 +74,44 @@ cargo build --release
 >
 > - Windows (Powershell and Windows version >= 10)
 >     For example, assuming that you have Wireshark installed at 'C:\MyWireshark'. You can tell cargo build to find the Wireshark library you want to link.
+>
 >     ```powershell
 >     $Env:WIRESHARK_LIB_DIR='C:\MyWireshark'
 >     cargo build --release
 >     ```
+>
 >     Add the folder into the `PATH` so that it can find the dynamic library in runtime.
+>
 >     ```powershell
 >     [System.Environment]::SetEnvironmentVariable('PATH', [System.Environment]::GetEnvironmentVariable('PATH', 'user')+';C:\MyWireshark', 'user')
 >     ```
 >
 > - Linux (Ubuntu) and macOS
+>
 >     ```bash
 >     WIRESHARK_LIB_DIR=MyWireshark cargo build --release
 >     ```
+>
 >     Add the library into  `LD_LIBRARY_PATH` for linux or `DYLD_LIBRARY_PATH` for macOS.
 
 ### Move the plugin to Wireshark's plugin folder
 
 - Linux (Ubuntu)
+
     ```bash
     mkdir -p ~/.local/lib/wireshark/plugins/4.4/epan
     cp ./target/release/libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.4/epan/libzenoh_dissector.so
     ```
 
 - macOS
+
     ```bash
     mkdir -p ~/.local/lib/wireshark/plugins/4-4/epan
     cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/4-4/epan/libzenoh_dissector.so
     ```
 
 - Windows
+
     ```powershell
     $epan_dir = "$Env:APPDATA\Wireshark\plugins\4.4\epan"
     if (-Not (Test-Path $epan_dir)) {
@@ -115,16 +127,19 @@ cargo build --release
 Running Wireshark in TUI version
 
 Linux(Ubuntu) and macOS
+
 ```bash
 tshark -r ./assets/sample-data.pcap
 ```
 
 Windows PowerShell
+
 ```powershell
 & 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap
 ```
 
 Example outpout
+
 ```bash
 1 0.000000000    127.0.0.1 → 127.0.0.1    TCP 74 60698 → 7447 [SYN] Seq=0 Win=65495 Len=0 MSS=65495 SACK_PERM TSval=1530879817 TSecr=0 WS=128
 2 0.000021385    127.0.0.1 → 127.0.0.1    TCP 74 7447 → 60698 [SYN, ACK] Seq=0 Ack=1 Win=65483 Len=0 MSS=65495 SACK_PERM TSval=1530879817 TSecr=1530879817 WS=128

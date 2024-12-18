@@ -3,10 +3,10 @@
 Epan, Enhanced Packet ANalyzer, is the packet analyzing engine in Wireshark. It provides rich APIs to let users develop their dissectors.
 We use bindgen to generate a Rust FFI bindings based on its c library.
 
-
 ## Usage
 
 Link and build the library
+
 ```bash
 cargo build --release
 ```
