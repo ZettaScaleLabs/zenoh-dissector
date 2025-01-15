@@ -168,15 +168,30 @@ Take the pub/sub as a example. One can check [here](https://github.com/eclipse-z
 
 ### Preferences
 
-One can  change the setting either via Edit > Preferences > Protocols > Zenoh or by a mouse right click > Protocol Preferneces > ZenohProtocols on any packet of zenoh protocol.
+Zenoh dissector's settings can be changed via the menu bar through `Edit > Preferences > Protocols >
+Zenoh` or by right clicking a Zenoh packet and selecting `Protocol Preferences > ZenohProtocol`.
 
-We currently support
+Currently supported settings are as follows:
 
-- TCP/UDP Port selection.
+- TCP/UDP port selection.
 - (Experimental) Message decompression.
-  > [!WARNING]
-  > If you saw a message like "Failed to decode possibly due to the experimental compression preference.",
-  those messages might not be compressed, please disable the compression preference to properly decode them.
+
+> [!WARNING]
+> Zenoh dissector does not support packet captures that mix compressed and uncompressed messages.
+> Message decompression should be enabled if and only if all Zenoh messages are compressed. If you
+> see a message that reads "Failed to decode possibly due to the experimental compression
+> preference", this might indicate that some Zenoh messages are not compressed, while the dissector
+> is configured to decode them as compressed messages (or vice versa).
+
+- (Experimental) Heuristic dissector. This setting is not present in `Edit > Preferences > Protocols > Zenoh`
+  but instead in `Analyze > Enabled Protocols`. Under the `Zenoh` protocol,
+  the two heuristic dissectors `zenoh_tcp_heur` (Zenoh over TCP) and `zenoh_udp_heur` (Zenoh over UDP)
+  can be enabled by switching their respective checkboxes.
+
+> [!IMPORTANT]
+> When enabled, Zenoh dissector will attempt to decode all TCP and UDP packets as Zenoh messages.
+> Note that this might be performance-intensive and could theoretically even lead to decoding
+> non-Zenoh messages. For these reasons, the heuristic dissector is disabled by default.
 
 ## License
 

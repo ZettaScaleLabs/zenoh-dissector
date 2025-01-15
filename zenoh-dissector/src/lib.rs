@@ -10,7 +10,7 @@ use header_field::Registration;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use tree::{AddToTree, TreeArgs};
-use utils::nul_terminated_str;
+use utils::{nul_terminated_str, SizedSummary};
 use wireshark::register_header_field;
 use zenoh_buffers::reader::HasReader;
 use zenoh_buffers::reader::Reader;
@@ -189,31 +189,49 @@ unsafe extern "C" fn register_protoinfo() {
 unsafe extern "C" fn register_handoff() {
     PROTOCOL_DATA.with(|data| {
         let proto_id = data.borrow().id;
-        unsafe {
-            let handle = epan_sys::create_dissector_handle(Some(dissect_main), proto_id);
-            epan_sys::dissector_add_uint_with_preference(
-                nul_terminated_str("tcp.port").unwrap(),
-                TCP_PORT as _,
-                handle,
-            );
-            epan_sys::dissector_add_uint_with_preference(
-                nul_terminated_str("udp.port").unwrap(),
-                UDP_PORT as _,
-                handle,
-            );
-            data.borrow_mut().handle = Some(handle);
-        }
 
-        log::info!("Zenoh dissector registered at tcp.port:7447 and udp.port:7447.");
+        let handle = epan_sys::create_dissector_handle(Some(dissect_main), proto_id);
+        epan_sys::dissector_add_uint_with_preference(
+            nul_terminated_str("tcp.port").unwrap(),
+            TCP_PORT as _,
+            handle,
+        );
+        epan_sys::dissector_add_uint_with_preference(
+            nul_terminated_str("udp.port").unwrap(),
+            UDP_PORT as _,
+            handle,
+        );
+        data.borrow_mut().handle = Some(handle);
+
+        // See https://www.wireshark.org/docs/wsar_html/group__packet.html#gac1f89fb22ed3dd53cb3aecbc7b87a528
+        epan_sys::heur_dissector_add(
+            nul_terminated_str("tcp").unwrap(),
+            Some(dissect_heur),
+            nul_terminated_str("Zenoh over TCP (heuristic)").unwrap(),
+            nul_terminated_str("zenoh_tcp_heur").unwrap(),
+            proto_id,
+            epan_sys::heuristic_enable_e_HEURISTIC_DISABLE,
+        );
+        epan_sys::heur_dissector_add(
+            nul_terminated_str("udp").unwrap(),
+            Some(dissect_heur),
+            nul_terminated_str("Zenoh over UDP (heuristic)").unwrap(),
+            nul_terminated_str("zenoh_udp_heur").unwrap(),
+            proto_id,
+            epan_sys::heuristic_enable_e_HEURISTIC_DISABLE,
+        );
+
+        log::info!("Zenoh dissector is registered for TCP port {TCP_PORT} and UDP port {UDP_PORT}");
+        log::info!("Zenoh heuristic dissector is registered for TCP and UDP");
     });
 }
 
-unsafe extern "C" fn dissect_main(
+unsafe fn try_dissect_in_zenoh(
     tvb: *mut epan_sys::tvbuff,
     pinfo: *mut epan_sys::_packet_info,
     tree: *mut epan_sys::_proto_node,
     _data: *mut std::ffi::c_void,
-) -> std::ffi::c_int {
+) -> (anyhow::Result<SizedSummary>, usize) {
     // Update the protocol column
     epan_sys::col_set_str(
         (*pinfo).cinfo,
@@ -236,7 +254,7 @@ unsafe extern "C" fn dissect_main(
     let mut reader = tvb_buf.reader();
 
     let root_key = "zenoh";
-    let res = PROTOCOL_DATA.with(|data| {
+    let summary = PROTOCOL_DATA.with(|data| {
         let tree_args = TreeArgs {
             tree,
             tvb,
@@ -342,41 +360,70 @@ unsafe extern "C" fn dissect_main(
         anyhow::Ok(packet_summary)
     });
 
-    match res {
-        Ok(packet_summary) => {
-            let summary = format!(
-                "{} → {} {}",
-                (*pinfo).srcport,
-                (*pinfo).destport,
-                packet_summary
-            );
+    (summary, tvb_len)
+}
 
-            // Update the info column
-            epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
-            epan_sys::col_set_str(
-                (*pinfo).cinfo,
-                epan_sys::COL_INFO as _,
-                nul_terminated_str(&summary).unwrap(),
-            );
-        }
-        Err(err) => {
-            log::error!("{err}");
-            let summary = format!(
-                "{} → {} {}",
-                (*pinfo).srcport,
-                (*pinfo).destport,
-                "Failed to decode possibly due to the experimental compression preference.",
-            );
+unsafe extern "C" fn dissect_main(
+    tvb: *mut epan_sys::tvbuff,
+    pinfo: *mut epan_sys::_packet_info,
+    tree: *mut epan_sys::_proto_node,
+    data: *mut std::ffi::c_void,
+) -> std::ffi::c_int {
+    let (summary, tvb_len) = try_dissect_in_zenoh(tvb, pinfo, tree, data);
 
-            // Update the info column
-            epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
-            epan_sys::col_set_str(
-                (*pinfo).cinfo,
-                epan_sys::COL_INFO as _,
-                nul_terminated_str(&summary).unwrap(),
-            );
-        }
+    match summary {
+        Ok(packet_summary) => show_summary(pinfo, packet_summary),
+        Err(err) => show_error(pinfo, err),
     }
 
     tvb_len as _
+}
+
+unsafe extern "C" fn dissect_heur(
+    tvb: *mut epan_sys::tvbuff,
+    pinfo: *mut epan_sys::_packet_info,
+    tree: *mut epan_sys::_proto_node,
+    data: *mut std::ffi::c_void,
+) -> bool {
+    if let Ok(summary) = try_dissect_in_zenoh(tvb, pinfo, tree, data).0 {
+        show_summary(pinfo, summary);
+        true
+    } else {
+        false
+    }
+}
+
+unsafe fn show_error(pinfo: *mut epan_sys::_packet_info, err: anyhow::Error) {
+    log::error!("{err}");
+    let summary = format!(
+        "{} → {} {}",
+        (*pinfo).srcport,
+        (*pinfo).destport,
+        "Failed to decode possibly due to the experimental compression preference.",
+    );
+
+    // Update the info column
+    epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
+    epan_sys::col_set_str(
+        (*pinfo).cinfo,
+        epan_sys::COL_INFO as _,
+        nul_terminated_str(&summary).unwrap(),
+    );
+}
+
+unsafe fn show_summary(pinfo: *mut epan_sys::_packet_info, packet_summary: SizedSummary) {
+    let summary = format!(
+        "{} → {} {}",
+        (*pinfo).srcport,
+        (*pinfo).destport,
+        packet_summary
+    );
+
+    // Update the info column
+    epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
+    epan_sys::col_set_str(
+        (*pinfo).cinfo,
+        epan_sys::COL_INFO as _,
+        nul_terminated_str(&summary).unwrap(),
+    );
 }
