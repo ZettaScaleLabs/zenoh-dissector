@@ -892,7 +892,7 @@ pub const PTHREAD_ONCE_INIT: u32 = 0;
 pub const PTHREAD_BARRIER_SERIAL_THREAD: i32 = -1;
 pub const WIRESHARK_VERSION_MAJOR: u32 = 4;
 pub const WIRESHARK_VERSION_MINOR: u32 = 4;
-pub const WIRESHARK_VERSION_MICRO: u32 = 2;
+pub const WIRESHARK_VERSION_MICRO: u32 = 3;
 pub const _STDIO_H: u32 = 1;
 pub const _____fpos_t_defined: u32 = 1;
 pub const ____mbstate_t_defined: u32 = 1;
@@ -37438,7 +37438,7 @@ pub const ft_result_FT_OVERFLOW: ft_result = 1;
 pub const ft_result_FT_BADARG: ft_result = 2;
 pub const ft_result_FT_ERROR: ft_result = 3;
 pub type ft_result = ::std::os::raw::c_uint;
-pub type ft_bool_t = bool;
+pub type ft_bool_t = ::std::os::raw::c_int;
 pub const ftrepr_FTREPR_DISPLAY: ftrepr = 0;
 pub const ftrepr_FTREPR_DFILTER: ftrepr = 1;
 pub const ftrepr_FTREPR_JSON: ftrepr = 2;
@@ -38045,10 +38045,10 @@ extern "C" {
     pub fn fvalue_matches(a: *const fvalue_t, re: *const ws_regex_t) -> ft_bool_t;
 }
 extern "C" {
-    pub fn fvalue_is_zero(a: *const fvalue_t) -> bool;
+    pub fn fvalue_is_zero(a: *const fvalue_t) -> ft_bool_t;
 }
 extern "C" {
-    pub fn fvalue_is_negative(a: *const fvalue_t) -> bool;
+    pub fn fvalue_is_negative(a: *const fvalue_t) -> ft_bool_t;
 }
 extern "C" {
     pub fn fvalue_length2(fv: *mut fvalue_t) -> usize;
