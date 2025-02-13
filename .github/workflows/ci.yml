@@ -17,3 +17,26 @@ jobs:
         with:
           config: '.markdownlint.yaml'
           globs: '**/README.md'
+
+  ci_macos:
+    uses: ./.github/workflows/macos.yml
+
+  ci_windows:
+    uses: ./.github/workflows/windows.yml
+
+  ci_ubuntu:
+    uses: ./.github/workflows/ubuntu.yml
+
+  # NOTE: In GitHub repository settings, the "Require status checks to pass
+  # before merging" branch protection rule ensures that commits are only merged
+  # from branches where specific status checks have passed. These checks are
+  # specified manually as a list of workflow job names. Thus we use this extra
+  # job to signal whether all CI checks have passed.
+  ci:
+    name: CI status checks
+    runs-on: ubuntu-latest
+    needs: [ci_macos, ci_windows, ci_ubuntu, markdown_lint]
+    if: always()
+    steps:
+      - name: Check whether all jobs pass
+        run: echo '${{ toJson(needs) }}' | jq -e 'all(.result == "success")'
