@@ -70,14 +70,17 @@ extern "C" fn plugin_register() {
     unsafe {
         PLUG.register_protoinfo = Some(register_protoinfo);
         PLUG.register_handoff = Some(register_handoff);
-        epan_sys::proto_register_plugin(&PLUG);
+        epan_sys::proto_register_plugin(&raw const PLUG);
     }
 }
 
 #[no_mangle]
 unsafe extern "C" fn prefs_callback() {
     if CURR_TCP_PORT != TCP_PORT {
-        log::info!("Update TCP Port: {CURR_TCP_PORT} -> {TCP_PORT}");
+        #[allow(static_mut_refs)] // Wireshark requires these references to be static mut
+        {
+            log::info!("Update TCP Port: {CURR_TCP_PORT} -> {TCP_PORT}");
+        }
         PROTOCOL_DATA.with(|data| {
             let handle = data
                 .borrow()
@@ -91,7 +94,10 @@ unsafe extern "C" fn prefs_callback() {
     }
 
     if CURR_UDP_PORT != UDP_PORT {
-        log::info!("Update UDP Port: {CURR_UDP_PORT} -> {UDP_PORT}");
+        #[allow(static_mut_refs)] // Wireshark requires these references to be static mut
+        {
+            log::info!("Update UDP Port: {CURR_UDP_PORT} -> {UDP_PORT}");
+        }
         PROTOCOL_DATA.with(|data| {
             let handle = data
                 .borrow()
@@ -123,7 +129,7 @@ fn register_zenoh_protocol() -> Result<()> {
             nul_terminated_str("TCP Port")?,
             nul_terminated_str("Zenoh TCP Port to listen to")?,
             10 as _,
-            &mut TCP_PORT as _,
+            &raw mut TCP_PORT as _,
         );
         epan_sys::prefs_register_uint_preference(
             zenoh_module,
@@ -131,14 +137,14 @@ fn register_zenoh_protocol() -> Result<()> {
             nul_terminated_str("UDP Port")?,
             nul_terminated_str("Zenoh UDP Port to listen to")?,
             10 as _,
-            &mut UDP_PORT as _,
+            &raw mut UDP_PORT as _,
         );
         epan_sys::prefs_register_bool_preference(
             zenoh_module,
             nul_terminated_str("is_compression")?,
             nul_terminated_str("Is Compression")?,
             nul_terminated_str("Is Zenoh message compressed")?,
-            &mut IS_COMPRESSION as _,
+            &raw mut IS_COMPRESSION as _,
         );
     }
 
@@ -221,7 +227,12 @@ unsafe extern "C" fn register_handoff() {
             epan_sys::heuristic_enable_e_HEURISTIC_DISABLE,
         );
 
-        log::info!("Zenoh dissector is registered for TCP port {TCP_PORT} and UDP port {UDP_PORT}");
+        #[allow(static_mut_refs)] // Wireshark requires these references to be static mut
+        {
+            log::info!(
+                "Zenoh dissector is registered for TCP port {TCP_PORT} and UDP port {UDP_PORT}"
+            );
+        }
         log::info!("Zenoh heuristic dissector is registered for TCP and UDP");
     });
 }
