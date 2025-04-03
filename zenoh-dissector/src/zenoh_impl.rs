@@ -114,7 +114,7 @@ mod impl_for_transport {
             reliability: Reliability,
             sn: TransportSn,
             ext_qos: QoSType,
-            #[dissect(vec)]
+            #[decode(vec)]
             payload: Vec<NetworkMessage>,
         }
     }

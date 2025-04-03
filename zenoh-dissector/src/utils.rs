@@ -1,7 +1,11 @@
 use anyhow::{anyhow, Result};
 use std::ffi::{c_char, CString};
 use zenoh_buffers::{reader::Reader, ZSlice};
-use zenoh_protocol::transport::BatchSize;
+use zenoh_codec::network::NetworkMessageIter;
+use zenoh_protocol::{
+    network::{NetworkBody, NetworkMessage},
+    transport::{BatchSize, TransportMessage},
+};
 use zenoh_transport::common::batch::{BatchConfig, RBatch};
 
 pub fn nul_terminated_str(s: &str) -> Result<*const c_char> {
@@ -88,4 +92,45 @@ pub fn create_rbatch(
             .map_err(|e| anyhow!("Failed to initialize rbatch due to {e}"))?;
     }
     Ok(rbatch)
+}
+
+pub(crate) fn network_message_summary(msg: &NetworkMessage) -> String {
+    use NetworkBody::*;
+    match &msg.body {
+        OAM(_) => "OAM".to_string(),
+        Push(_) => "Push".to_string(),
+        Request(_) => "Request".to_string(),
+        Response(_) => "Response".to_string(),
+        ResponseFinal(_) => "ResponseFinal".to_string(),
+        Interest(_) => "Interest".to_string(),
+        Declare(_) => "Declare".to_string(),
+    }
+}
+
+pub(crate) fn transport_message_summary(msg: &TransportMessage) -> String {
+    use zenoh_protocol::transport::TransportBody::*;
+    match &msg.body {
+        OAM(_) => "OAM".to_string(),
+        InitSyn(_) => "InitSyn".to_string(),
+        InitAck(_) => "InitAck".to_string(),
+        OpenSyn(_) => "OpenSyn".to_string(),
+        OpenAck(_) => "OpenAck".to_string(),
+        Close(_) => "Close".to_string(),
+        KeepAlive(_) => "KeepAlive".to_string(),
+        Frame(m) => {
+            let mut res = "Frame[".to_string();
+            let mut netmsgs =
+                NetworkMessageIter::new(m.reliability, m.payload.as_slice()).peekable();
+            while let Some(m) = netmsgs.next() {
+                res += &network_message_summary(&m);
+                if netmsgs.peek().is_some() {
+                    res += ", ";
+                }
+            }
+            res += "]";
+            res
+        }
+        Fragment(_) => "Fragment".to_string(),
+        Join(_) => "Join".to_string(),
+    }
 }
