@@ -45,6 +45,10 @@ jobs:
       # - name: Install Python if needed
       #   run: try { python -V } catch { choco install --force --no-progress python3 --version=3.11 }
 
+      - name: Install Rust components
+        run: |
+          rustup component add rustfmt clippy
+
       - name: Code format check
         run: cargo fmt -- --check
 
