@@ -32,6 +32,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install rust components
+        run: |
+          rustup component add rustfmt clippy
+
       - name: Code format check
         run: cargo fmt -- --check
 
