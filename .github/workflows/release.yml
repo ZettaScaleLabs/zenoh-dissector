@@ -69,6 +69,7 @@ jobs:
           bump-deps-pattern: ${{ inputs.zenoh-version && 'zenoh.*' || '^$' }}
           bump-deps-version: ${{ inputs.zenoh-version }}
           bump-deps-branch: ${{ inputs.zenoh-version && format('release/{0}', inputs.zenoh-version) || '' }}
+          toolchain: "1.85.0"
           github-token: ${{ secrets.BOT_TOKEN_WORKFLOW }}
 
   builds:
