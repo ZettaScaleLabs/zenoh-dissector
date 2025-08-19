@@ -66,7 +66,7 @@ jobs:
           live-run: ${{ inputs.live-run || false }}
           version: ${{ steps.create-release-branch.outputs.version }}
           branch: ${{ steps.create-release-branch.outputs.branch }}
-          bump-deps-pattern: ${{ inputs.zenoh-version && 'zenoh.*' || '^$' }}
+          bump-deps-pattern: ${{ inputs.zenoh-version && 'zenoh.*' || '' }}
           bump-deps-version: ${{ inputs.zenoh-version }}
           bump-deps-branch: ${{ inputs.zenoh-version && format('release/{0}', inputs.zenoh-version) || '' }}
           toolchain: "1.85.0"
