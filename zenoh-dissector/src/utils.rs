@@ -1,7 +1,7 @@
-use anyhow::{anyhow, Result};
 use std::ffi::{c_char, CString};
+
+use anyhow::{anyhow, Result};
 use zenoh_buffers::{reader::Reader, ZSlice};
-use zenoh_codec::network::NetworkMessageIter;
 use zenoh_protocol::{
     network::{NetworkBody, NetworkMessage},
     transport::{BatchSize, TransportMessage},
@@ -117,18 +117,15 @@ pub(crate) fn transport_message_summary(msg: &TransportMessage) -> String {
         OpenAck(_) => "OpenAck".to_string(),
         Close(_) => "Close".to_string(),
         KeepAlive(_) => "KeepAlive".to_string(),
-        Frame(m) => {
-            let mut res = "Frame[".to_string();
-            let mut netmsgs =
-                NetworkMessageIter::new(m.reliability, m.payload.as_slice()).peekable();
-            while let Some(m) = netmsgs.next() {
-                res += &network_message_summary(&m);
-                if netmsgs.peek().is_some() {
-                    res += ", ";
-                }
-            }
-            res += "]";
-            res
+        Frame(frame) => {
+            "Frame[".to_string()
+                + &frame
+                    .payload
+                    .iter()
+                    .map(network_message_summary)
+                    .reduce(|acc, s| acc + "," + &s)
+                    .unwrap_or_default()
+                + "]"
         }
         Fragment(_) => "Fragment".to_string(),
         Join(_) => "Join".to_string(),
