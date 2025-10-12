@@ -12,6 +12,17 @@ pub fn nul_terminated_str(s: &str) -> Result<*const c_char> {
     Ok(Box::leak(CString::new(s)?.into_boxed_c_str()).as_ptr())
 }
 
+pub(crate) unsafe fn nul_terminated_str2<S>(s: S) -> Result<*mut c_char>
+where
+    S: Into<Vec<u8>>,
+{
+    let s = CString::new(s)?;
+    Ok(epan_sys::wmem_strdup(
+        epan_sys::wmem_file_scope(),
+        s.as_ptr(),
+    ))
+}
+
 pub struct SizedSummary {
     is_full: bool,
     data: Vec<String>,

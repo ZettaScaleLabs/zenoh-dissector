@@ -4,5 +4,6 @@
 #include <wiretap/wtap.h>
 #include <epan/packet.h>
 #include <epan/decode_as.h>
+#include <epan/conversation.h>
 
-#endif  // EPAN_SYS
+#endif // EPAN_SYS
