@@ -16,6 +16,8 @@ zenoh-codec = { workspace = true }
 zenoh-protocol = { workspace = true }
 zenoh-transport = { workspace = true }
 
+[build-dependencies]
+cargo_metadata = "0.18"
 
 [lib]
 crate-type = ["cdylib"]

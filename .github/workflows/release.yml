@@ -37,6 +37,9 @@ on:
         description: Release branch
         required: false
 
+env:
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
 jobs:
   tag:
     runs-on: ubuntu-latest
@@ -44,13 +47,6 @@ jobs:
       version: ${{ steps.create-release-branch.outputs.version }}
       branch: ${{ steps.create-release-branch.outputs.branch }}
     steps:
-      - name: Install dependencies
-        run: |
-          sudo apt install -y software-properties-common
-          sudo add-apt-repository -y ppa:wireshark-dev/stable
-          sudo apt install -y wireshark-dev
-          sudo apt install -y --allow-change-held-packages wireshark
-
       - id: create-release-branch
         uses: eclipse-zenoh/ci/create-release-branch@main
         with:
@@ -85,66 +81,72 @@ jobs:
           - { target: x86_64-pc-windows-msvc, os: windows-2022 }
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.tag.outputs.branch }}
+
+      - uses: hustcer/setup-nu@v3
+        with:
+          version: '0.100'
+
+      - name: Extract Wireshark version from Cargo.toml
+        id: wireshark-version
+        shell: nu {0}
+        run: |
+          let version = (open Cargo.toml | get workspace.metadata.wireshark_version)
+          $"version=($version)" | save --append $env.GITHUB_OUTPUT
+
       - if: contains(matrix.build.os, 'ubuntu')
         name: Install dependencies (Ubuntu)
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt install -y software-properties-common
           sudo add-apt-repository -y ppa:wireshark-dev/stable
           sudo apt install -y wireshark-dev
           sudo apt install -y --allow-change-held-packages wireshark
 
-      - if: contains(matrix.build.os, 'windows')
-        name: Install dependencies (Windows)
-        run: |
-          $installed = (choco list -l -r --id-only) -join " "
-          $install_list = @("xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "7zip")
-          ForEach ($pkg in $install_list.split(" ")) {
-            if (-Not ($installed.contains($pkg))) {
-              choco install -y --force --no-progress $pkg
-            }
-          }
-          choco install -y --no-progress wireshark --version 4.2.0
-
       - if: contains(matrix.build.os, 'macos')
         name: Install dependencies (macOS)
         run: |
           brew install --cask wireshark
           ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
+          ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwiretap.*.dylib" | tail -n 1) libwiretap.dylib
+          ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwsutil.*.dylib" | tail -n 1) libwsutil.dylib
 
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.tag.outputs.branch }}
-
-      - name: Setup the Wireshark library
-        id: wireshark-lib
-        shell: bash
+      - if: contains(matrix.build.os, 'windows')
+        name: Install dependencies (Windows)
+        shell: nu {0}
         run: |
-          case ${{ matrix.build.target }} in
-            *linux*)
-              echo "WIRESHARK_LIB_DIR=" >> $GITHUB_OUTPUT
-              ;;
-            *apple*)
-              ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
-              echo "WIRESHARK_LIB_DIR=${{ github.workspace }}" >> $GITHUB_OUTPUT
-              ;;
-            *windows*)
-              echo "WIRESHARK_LIB_DIR=" >> $GITHUB_OUTPUT
-              ;;
-          esac
+          let installed = (choco list -l -r --id-only | lines)
+          let install_list = ["xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "7zip"]
+
+          for pkg in $install_list {
+            if $pkg not-in $installed {
+              choco install -y --force --no-progress $pkg
+            }
+          }
+
+          choco install -y --no-progress wireshark --version $"${{ steps.wireshark-version.outputs.version }}.0"
+
+      - if: contains(matrix.build.os, 'windows')
+        name: Enable long path support
+        run: |
+          powershell -Command "
+          New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1 -Force
+          "
+
+      - if: contains(matrix.build.os, 'windows')
+        name: Build Wireshark from source (Windows)
+        shell: powershell
+        run: |
+          & .\epan-sys\scripts\build.ps1 -WiresharkVersion "${{ steps.wireshark-version.outputs.version }}" -BuildConfig "Release"
 
       - name: Build
-        if: ${{! contains(matrix.build.target, 'windows') }}
         run: cargo build --release
         env:
-          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-          WIRESHARK_LIB_DIR: ${{ steps.wireshark-lib.outputs.WIRESHARK_LIB_DIR }}
-
-      - name: Build from source on Windows
-        if: contains(matrix.build.target, 'windows')
-        run: cargo build --release
-        env:
-          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+          WIRESHARK_LIB_DIR: ${{ contains(matrix.build.target, 'windows') && 'C:\\wsbuild\\build\\run\\Release' || (contains(matrix.build.target, 'apple') && github.workspace || '') }}
 
       - name: Packaging
         id: package
@@ -187,26 +189,45 @@ jobs:
         with:
           ref: ${{ needs.tag.outputs.branch }}
 
+      - uses: hustcer/setup-nu@v3
+        with:
+          version: '0.100'
+
       - name: Download the artifacts of previous builds
         uses: actions/download-artifact@v4
         with:
           path: ARTIFACTS
 
       - name: Generate the release note
+        shell: nu {0}
         run: |
-          echo "Compute sha256sum"
-          mkdir -p zip_files
+          print "Compute sha256sum"
+          mkdir zip_files
           cp ARTIFACTS/*/*.zip zip_files
           cd zip_files
-          export SHA256SUM=$(sha256sum *.zip)
-          echo -e "$SHA256SUM"
-          cd -
+          let sha256sum = (ls *.zip | each {|file| $"(open --raw $file.name | hash sha256)  ($file.name)"} | str join "\n")
+          print $sha256sum
+          cd ..
 
-          echo "Record zenoh version"
-          command -v jq &> /dev/null || sudo apt install jq -y
-          export PKG_VER=$(cargo metadata | jq -r '.packages[] | select(.name == "zenoh-dissector") | .version')
-          export ZENOH_VER=$(cargo metadata | jq -r '.packages[] | select(.name == "zenoh-protocol") | .version')
-          envsubst < ${GITHUB_WORKSPACE}/.github/workflows/release-note.md > release-note.md
+          print "Record versions from Cargo.toml"
+          let metadata = (cargo metadata --format-version 1 | from json)
+          let pkg_ver = ($metadata.packages | where name == "zenoh-dissector" | get version | first)
+          let zenoh_ver = ($metadata.packages | where name == "zenoh-protocol" | get version | first)
+          let wireshark_ver = ($metadata.workspace_metadata.wireshark_version)
+
+          print $"Package version: ($pkg_ver)"
+          print $"Zenoh version: ($zenoh_ver)"
+          print $"Wireshark version: ($wireshark_ver)"
+
+          # Read the template and replace variables
+          let template = (open .github/workflows/release-note.md)
+          let note = ($template
+            | str replace -a '${PKG_VER}' $pkg_ver
+            | str replace -a '${ZENOH_VER}' $zenoh_ver
+            | str replace -a '${WIRESHARK_VER}' $wireshark_ver
+            | str replace -a '${SHA256SUM}' $sha256sum)
+
+          $note | save release-note.md
 
       - name: Release
         uses: softprops/action-gh-release@v1
