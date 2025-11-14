@@ -113,7 +113,7 @@ impl<T> ::std::fmt::Debug for __IncompleteArrayField<T> {
 pub const _INTTYPES_H: u32 = 1;
 pub const _FEATURES_H: u32 = 1;
 pub const _DEFAULT_SOURCE: u32 = 1;
-pub const __GLIBC_USE_ISOC2X: u32 = 0;
+pub const __GLIBC_USE_ISOC23: u32 = 0;
 pub const __USE_ISOC11: u32 = 1;
 pub const __USE_ISOC99: u32 = 1;
 pub const __USE_ISOC95: u32 = 1;
@@ -131,12 +131,13 @@ pub const __WORDSIZE: u32 = 64;
 pub const __WORDSIZE_TIME64_COMPAT32: u32 = 1;
 pub const __SYSCALL_WORDSIZE: u32 = 64;
 pub const __TIMESIZE: u32 = 64;
+pub const __USE_TIME_BITS64: u32 = 1;
 pub const __USE_MISC: u32 = 1;
 pub const __USE_ATFILE: u32 = 1;
 pub const __USE_FORTIFY_LEVEL: u32 = 0;
 pub const __GLIBC_USE_DEPRECATED_GETS: u32 = 0;
 pub const __GLIBC_USE_DEPRECATED_SCANF: u32 = 0;
-pub const __GLIBC_USE_C2X_STRTOL: u32 = 0;
+pub const __GLIBC_USE_C23_STRTOL: u32 = 0;
 pub const _STDC_PREDEF_H: u32 = 1;
 pub const __STDC_IEC_559__: u32 = 1;
 pub const __STDC_IEC_60559_BFP__: u32 = 201404;
@@ -145,7 +146,7 @@ pub const __STDC_IEC_60559_COMPLEX__: u32 = 201404;
 pub const __STDC_ISO_10646__: u32 = 201706;
 pub const __GNU_LIBRARY__: u32 = 6;
 pub const __GLIBC__: u32 = 2;
-pub const __GLIBC_MINOR__: u32 = 39;
+pub const __GLIBC_MINOR__: u32 = 40;
 pub const _SYS_CDEFS_H: u32 = 1;
 pub const __glibc_c99_flexarr_available: u32 = 1;
 pub const __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI: u32 = 0;
@@ -153,10 +154,10 @@ pub const __HAVE_GENERIC_SELECTION: u32 = 1;
 pub const _STDINT_H: u32 = 1;
 pub const __GLIBC_USE_LIB_EXT2: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_BFP_EXT: u32 = 0;
-pub const __GLIBC_USE_IEC_60559_BFP_EXT_C2X: u32 = 0;
+pub const __GLIBC_USE_IEC_60559_BFP_EXT_C23: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_EXT: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_FUNCS_EXT: u32 = 0;
-pub const __GLIBC_USE_IEC_60559_FUNCS_EXT_C2X: u32 = 0;
+pub const __GLIBC_USE_IEC_60559_FUNCS_EXT_C23: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_TYPES_EXT: u32 = 0;
 pub const _BITS_TYPES_H: u32 = 1;
 pub const _BITS_TYPESIZES_H: u32 = 1;
@@ -478,8 +479,8 @@ pub const G_GINTPTR_MODIFIER: &[u8; 2] = b"l\0";
 pub const G_GINTPTR_FORMAT: &[u8; 3] = b"li\0";
 pub const G_GUINTPTR_FORMAT: &[u8; 3] = b"lu\0";
 pub const GLIB_MAJOR_VERSION: u32 = 2;
-pub const GLIB_MINOR_VERSION: u32 = 80;
-pub const GLIB_MICRO_VERSION: u32 = 0;
+pub const GLIB_MINOR_VERSION: u32 = 84;
+pub const GLIB_MICRO_VERSION: u32 = 4;
 pub const G_VA_COPY_AS_ARRAY: u32 = 1;
 pub const G_HAVE_ISO_VARARGS: u32 = 1;
 pub const G_HAVE_GROWING_STACK: u32 = 0;
@@ -573,13 +574,6 @@ pub const EXIT_FAILURE: u32 = 1;
 pub const EXIT_SUCCESS: u32 = 0;
 pub const _SYS_TYPES_H: u32 = 1;
 pub const __BIT_TYPES_DEFINED__: u32 = 1;
-pub const _ENDIAN_H: u32 = 1;
-pub const LITTLE_ENDIAN: u32 = 1234;
-pub const BIG_ENDIAN: u32 = 4321;
-pub const PDP_ENDIAN: u32 = 3412;
-pub const BYTE_ORDER: u32 = 1234;
-pub const _BITS_BYTESWAP_H: u32 = 1;
-pub const _BITS_UINTN_IDENTITY_H: u32 = 1;
 pub const _SYS_SELECT_H: u32 = 1;
 pub const __sigset_t_defined: u32 = 1;
 pub const __timeval_defined: u32 = 1;
@@ -866,6 +860,8 @@ pub const ERFKILL: u32 = 132;
 pub const EHWPOISON: u32 = 133;
 pub const ENOTSUP: u32 = 95;
 pub const G_TEST_OPTION_ISOLATE_DIRS: &[u8; 13] = b"isolate_dirs\0";
+pub const G_TEST_OPTION_NO_PRGNAME: &[u8; 17] = b"no_g_set_prgname\0";
+pub const G_TEST_OPTION_NONFATAL_ASSERTIONS: &[u8; 20] = b"nonfatal-assertions\0";
 pub const G_USEC_PER_SEC: u32 = 1000000;
 pub const G_URI_RESERVED_CHARS_GENERIC_DELIMITERS: &[u8; 8] = b":/?#[]@\0";
 pub const G_URI_RESERVED_CHARS_SUBCOMPONENT_DELIMITERS: &[u8; 12] = b"!$&'()*+,;=\0";
@@ -891,8 +887,8 @@ pub const __jmp_buf_tag_defined: u32 = 1;
 pub const PTHREAD_ONCE_INIT: u32 = 0;
 pub const PTHREAD_BARRIER_SERIAL_THREAD: i32 = -1;
 pub const WIRESHARK_VERSION_MAJOR: u32 = 4;
-pub const WIRESHARK_VERSION_MINOR: u32 = 4;
-pub const WIRESHARK_VERSION_MICRO: u32 = 5;
+pub const WIRESHARK_VERSION_MINOR: u32 = 6;
+pub const WIRESHARK_VERSION_MICRO: u32 = 0;
 pub const _STDIO_H: u32 = 1;
 pub const _____fpos_t_defined: u32 = 1;
 pub const ____mbstate_t_defined: u32 = 1;
@@ -934,6 +930,9 @@ pub const LOG_DOMAIN_MMDB: &[u8; 10] = b"MaxMindDB\0";
 pub const LOG_DOMAIN_EINVAL: &[u8; 11] = b"InvalidArg\0";
 pub const LOG_DOMAIN_PLUGINS: &[u8; 8] = b"Plugins\0";
 pub const LOG_DOMAIN_WSLUA: &[u8; 4] = b"Lua\0";
+pub const ws_no_argument: u32 = 0;
+pub const ws_required_argument: u32 = 1;
+pub const ws_optional_argument: u32 = 2;
 pub const _LOG_DOMAIN: &[u8; 1] = b"\0";
 pub const _LOG_DEBUG_ENABLED: u32 = 0;
 pub const LOG_HKCU_CONSOLE_OPEN: &[u8; 12] = b"ConsoleOpen\0";
@@ -970,12 +969,16 @@ pub const OPT_IDB_OS: u32 = 12;
 pub const OPT_IDB_FCSLEN: u32 = 13;
 pub const OPT_IDB_TSOFFSET: u32 = 14;
 pub const OPT_IDB_HARDWARE: u32 = 15;
+pub const OPT_IDB_TXSPEED: u32 = 16;
+pub const OPT_IDB_RXSPEED: u32 = 17;
+pub const OPT_IDB_IANA_TZNAME: u32 = 18;
 pub const OPT_PKT_FLAGS: u32 = 2;
 pub const OPT_PKT_HASH: u32 = 3;
 pub const OPT_PKT_DROPCOUNT: u32 = 4;
 pub const OPT_PKT_PACKETID: u32 = 5;
 pub const OPT_PKT_QUEUE: u32 = 6;
 pub const OPT_PKT_VERDICT: u32 = 7;
+pub const OPT_PKT_PROCIDTHRDID: u32 = 8;
 pub const OPT_NS_DNSNAME: u32 = 2;
 pub const OPT_NS_DNSIP4ADDR: u32 = 3;
 pub const OPT_NS_DNSIP6ADDR: u32 = 4;
@@ -986,21 +989,19 @@ pub const OPT_ISB_IFDROP: u32 = 5;
 pub const OPT_ISB_FILTERACCEPT: u32 = 6;
 pub const OPT_ISB_OSDROP: u32 = 7;
 pub const OPT_ISB_USRDELIV: u32 = 8;
-pub const PEN_NFLX: u32 = 10949;
+pub const OPT_DPIB_NAME: u32 = 2;
+pub const OPT_DPIB_UUID: u32 = 4;
+pub const OPT_PKT_DARWIN_PIB_ID: u32 = 32769;
+pub const OPT_PKT_DARWIN_SVC_CODE: u32 = 32770;
+pub const OPT_PKT_DARWIN_EFFECTIVE_PIB_ID: u32 = 32771;
+pub const OPT_PKT_DARWIN_MD_FLAGS: u32 = 32772;
+pub const OPT_PKT_DARWIN_FLOW_ID: u32 = 32773;
+pub const OPT_PKT_DARWIN_TRACE_TAG: u32 = 32774;
+pub const OPT_PKT_DARWIN_DROP_REASON: u32 = 32775;
+pub const OPT_PKT_DARWIN_DROP_LINE: u32 = 32776;
+pub const OPT_PKT_DARWIN_DROP_FUNC: u32 = 32777;
+pub const OPT_PKT_DARWIN_COMP_GENCNT: u32 = 32778;
 pub const PEN_VCTR: u32 = 46254;
-pub const NFLX_OPT_TYPE_VERSION: u32 = 1;
-pub const NFLX_OPT_TYPE_TCPINFO: u32 = 2;
-pub const NFLX_OPT_TYPE_DUMPINFO: u32 = 4;
-pub const NFLX_OPT_TYPE_DUMPTIME: u32 = 5;
-pub const NFLX_OPT_TYPE_STACKNAME: u32 = 6;
-pub const NFLX_TLB_FLAG_RXBUF: u32 = 1;
-pub const NFLX_TLB_FLAG_TXBUF: u32 = 2;
-pub const NFLX_TLB_FLAG_HDR: u32 = 4;
-pub const NFLX_TLB_FLAG_VERBOSE: u32 = 8;
-pub const NFLX_TLB_FLAG_STACKINFO: u32 = 16;
-pub const NFLX_TLB_TF_REQ_SCALE: u32 = 32;
-pub const NFLX_TLB_TF_RCVD_SCALE: u32 = 64;
-pub const NFLX_TLB_TCPS_ESTABLISHED: u32 = 4;
 pub const WTAP_ENCAP_NONE: i32 = -2;
 pub const WTAP_ENCAP_PER_PACKET: i32 = -1;
 pub const WTAP_ENCAP_UNKNOWN: u32 = 0;
@@ -1475,13 +1476,12 @@ pub const PACK_FLAGS_UNALIGNED_FRAME: u32 = 268435456;
 pub const PACK_FLAGS_START_FRAME_DELIMITER_ERROR: u32 = 536870912;
 pub const PACK_FLAGS_PREAMBLE_ERROR: u32 = 1073741824;
 pub const PACK_FLAGS_SYMBOL_ERROR: u32 = 2147483648;
-pub const BBLOG_TYPE_EVENT_BLOCK: u32 = 1;
-pub const BBLOG_TYPE_SKIPPED_BLOCK: u32 = 2;
 pub const WTAP_HAS_TS: u32 = 1;
 pub const WTAP_HAS_CAP_LEN: u32 = 2;
 pub const WTAP_HAS_INTERFACE_ID: u32 = 4;
 pub const WTAP_HAS_SECTION_NUMBER: u32 = 8;
 pub const MAXNAMELEN: u32 = 64;
+pub const MAXDNSNAMELEN: u32 = 256;
 pub const WTAP_COMMENT_PER_SECTION: u32 = 1;
 pub const WTAP_COMMENT_PER_INTERFACE: u32 = 2;
 pub const WTAP_COMMENT_PER_PACKET: u32 = 4;
@@ -1513,6 +1513,7 @@ pub const WTAP_ERR_UNWRITABLE_REC_TYPE: i32 = -24;
 pub const WTAP_ERR_UNWRITABLE_REC_DATA: i32 = -25;
 pub const WTAP_ERR_DECOMPRESSION_NOT_SUPPORTED: i32 = -26;
 pub const WTAP_ERR_TIME_STAMP_NOT_SUPPORTED: i32 = -27;
+pub const WTAP_ERR_REC_MALFORMED: i32 = -28;
 pub const GUID_LEN: u32 = 16;
 pub const P2P_DIR_UNKNOWN: i32 = -1;
 pub const P2P_DIR_SENT: u32 = 0;
@@ -1655,7 +1656,7 @@ pub const FI_GENERATED: u32 = 2;
 pub const FI_URL: u32 = 4;
 pub const FI_LITTLE_ENDIAN: u32 = 8;
 pub const FI_BIG_ENDIAN: u32 = 16;
-pub const FI_VARINT: u32 = 16384;
+pub const FI_VARINT: u32 = 262144;
 pub const PI_SEVERITY_MASK: u32 = 15728640;
 pub const PI_COMMENT: u32 = 1048576;
 pub const PI_CHAT: u32 = 2097152;
@@ -1720,6 +1721,9 @@ pub const COLOR_STYLE_DEFAULT: u32 = 0;
 pub const COLOR_STYLE_FLAT: u32 = 1;
 pub const COLOR_STYLE_GRADIENT: u32 = 2;
 pub const COLOR_STYLE_ALPHA: f64 = 0.25;
+pub const COLOR_SCHEME_DEFAULT: u32 = 0;
+pub const COLOR_SCHEME_LIGHT: u32 = 1;
+pub const COLOR_SCHEME_DARK: u32 = 2;
 pub const COL_MAX_LEN: u32 = 2048;
 pub const COL_MAX_INFO_LEN: u32 = 4096;
 pub const COL_CUSTOM_PRIME_REGEX: &[u8; 39] = b"(?:^ *| *\\|\\| *| +or +| *$)(?![^(]*\\))\0";
@@ -2338,15 +2342,15 @@ extern "C" {
     pub fn strlcpy(
         __dest: *mut ::std::os::raw::c_char,
         __src: *const ::std::os::raw::c_char,
-        __n: usize,
-    ) -> usize;
+        __n: ::std::os::raw::c_ulong,
+    ) -> ::std::os::raw::c_ulong;
 }
 extern "C" {
     pub fn strlcat(
         __dest: *mut ::std::os::raw::c_char,
         __src: *const ::std::os::raw::c_char,
-        __n: usize,
-    ) -> usize;
+        __n: ::std::os::raw::c_ulong,
+    ) -> ::std::os::raw::c_ulong;
 }
 pub type wchar_t = ::std::os::raw::c_int;
 #[repr(C)]
@@ -3397,7 +3401,7 @@ extern "C" {
     ) -> *mut GPtrArray;
 }
 extern "C" {
-    pub fn g_ptr_array_free(array: *mut GPtrArray, free_seg: gboolean) -> *mut gpointer;
+    pub fn g_ptr_array_free(array: *mut GPtrArray, free_segment: gboolean) -> *mut gpointer;
 }
 extern "C" {
     pub fn g_ptr_array_ref(array: *mut GPtrArray) -> *mut GPtrArray;
@@ -4196,6 +4200,19 @@ pub type u_int16_t = __uint16_t;
 pub type u_int32_t = __uint32_t;
 pub type u_int64_t = __uint64_t;
 pub type register_t = ::std::os::raw::c_long;
+pub type uchar = ::std::os::raw::c_uchar;
+pub type ullong = ::std::os::raw::c_ulonglong;
+pub type uintp = ::std::os::raw::c_ulonglong;
+pub type llong = ::std::os::raw::c_longlong;
+pub type intp = ::std::os::raw::c_longlong;
+pub type i8_ = ::std::os::raw::c_char;
+pub type i16_ = ::std::os::raw::c_short;
+pub type i32_ = ::std::os::raw::c_int;
+pub type i64_ = llong;
+pub type u8_ = uchar;
+pub type u16_ = ushort;
+pub type u32_ = uint;
+pub type u64_ = ullong;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __sigset_t {
@@ -4750,11 +4767,12 @@ fn bindgen_test_layout___pthread_rwlock_arch_t() {
 pub struct __pthread_cond_s {
     pub __wseq: __atomic_wide_counter,
     pub __g1_start: __atomic_wide_counter,
-    pub __g_refs: [::std::os::raw::c_uint; 2usize],
     pub __g_size: [::std::os::raw::c_uint; 2usize],
     pub __g1_orig_size: ::std::os::raw::c_uint,
     pub __wrefs: ::std::os::raw::c_uint,
     pub __g_signals: [::std::os::raw::c_uint; 2usize],
+    pub __unused_initialized_1: ::std::os::raw::c_uint,
+    pub __unused_initialized_2: ::std::os::raw::c_uint,
 }
 #[test]
 fn bindgen_test_layout___pthread_cond_s() {
@@ -4791,18 +4809,8 @@ fn bindgen_test_layout___pthread_cond_s() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__g_refs) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__pthread_cond_s),
-            "::",
-            stringify!(__g_refs)
-        )
-    );
-    assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).__g_size) as usize - ptr as usize },
-        24usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(__pthread_cond_s),
@@ -4812,7 +4820,7 @@ fn bindgen_test_layout___pthread_cond_s() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).__g1_orig_size) as usize - ptr as usize },
-        32usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(__pthread_cond_s),
@@ -4822,7 +4830,7 @@ fn bindgen_test_layout___pthread_cond_s() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).__wrefs) as usize - ptr as usize },
-        36usize,
+        28usize,
         concat!(
             "Offset of field: ",
             stringify!(__pthread_cond_s),
@@ -4832,12 +4840,32 @@ fn bindgen_test_layout___pthread_cond_s() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).__g_signals) as usize - ptr as usize },
-        40usize,
+        32usize,
         concat!(
             "Offset of field: ",
             stringify!(__pthread_cond_s),
             "::",
             stringify!(__g_signals)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).__unused_initialized_1) as usize - ptr as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__pthread_cond_s),
+            "::",
+            stringify!(__unused_initialized_1)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).__unused_initialized_2) as usize - ptr as usize },
+        44usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__pthread_cond_s),
+            "::",
+            stringify!(__unused_initialized_2)
         )
     );
 }
@@ -6161,6 +6189,9 @@ extern "C" {
 }
 extern "C" {
     pub fn g_thread_yield();
+}
+extern "C" {
+    pub fn g_thread_get_name(thread: *mut GThread) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn g_mutex_init(mutex: *mut GMutex);
@@ -12320,21 +12351,27 @@ fn bindgen_test_layout__GSourceCallbackFuncs() {
     );
 }
 pub type GSourceDummyMarshal = ::std::option::Option<unsafe extern "C" fn()>;
+pub type GSourceFuncsPrepareFunc = ::std::option::Option<
+    unsafe extern "C" fn(source: *mut GSource, timeout_: *mut gint) -> gboolean,
+>;
+pub type GSourceFuncsCheckFunc =
+    ::std::option::Option<unsafe extern "C" fn(source: *mut GSource) -> gboolean>;
+pub type GSourceFuncsDispatchFunc = ::std::option::Option<
+    unsafe extern "C" fn(
+        source: *mut GSource,
+        callback: GSourceFunc,
+        user_data: gpointer,
+    ) -> gboolean,
+>;
+pub type GSourceFuncsFinalizeFunc =
+    ::std::option::Option<unsafe extern "C" fn(source: *mut GSource)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _GSourceFuncs {
-    pub prepare: ::std::option::Option<
-        unsafe extern "C" fn(source: *mut GSource, timeout_: *mut gint) -> gboolean,
-    >,
-    pub check: ::std::option::Option<unsafe extern "C" fn(source: *mut GSource) -> gboolean>,
-    pub dispatch: ::std::option::Option<
-        unsafe extern "C" fn(
-            source: *mut GSource,
-            callback: GSourceFunc,
-            user_data: gpointer,
-        ) -> gboolean,
-    >,
-    pub finalize: ::std::option::Option<unsafe extern "C" fn(source: *mut GSource)>,
+    pub prepare: GSourceFuncsPrepareFunc,
+    pub check: GSourceFuncsCheckFunc,
+    pub dispatch: GSourceFuncsDispatchFunc,
+    pub finalize: GSourceFuncsFinalizeFunc,
     pub closure_callback: GSourceFunc,
     pub closure_marshal: GSourceDummyMarshal,
 }
@@ -13028,6 +13065,13 @@ pub const GUnicodeScript_G_UNICODE_SCRIPT_VITHKUQI: GUnicodeScript = 161;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_MATH: GUnicodeScript = 162;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_KAWI: GUnicodeScript = 163;
 pub const GUnicodeScript_G_UNICODE_SCRIPT_NAG_MUNDARI: GUnicodeScript = 164;
+pub const GUnicodeScript_G_UNICODE_SCRIPT_TODHRI: GUnicodeScript = 165;
+pub const GUnicodeScript_G_UNICODE_SCRIPT_GARAY: GUnicodeScript = 166;
+pub const GUnicodeScript_G_UNICODE_SCRIPT_TULU_TIGALARI: GUnicodeScript = 167;
+pub const GUnicodeScript_G_UNICODE_SCRIPT_SUNUWAR: GUnicodeScript = 168;
+pub const GUnicodeScript_G_UNICODE_SCRIPT_GURUNG_KHEMA: GUnicodeScript = 169;
+pub const GUnicodeScript_G_UNICODE_SCRIPT_KIRAT_RAI: GUnicodeScript = 170;
+pub const GUnicodeScript_G_UNICODE_SCRIPT_OL_ONAL: GUnicodeScript = 171;
 pub type GUnicodeScript = ::std::os::raw::c_int;
 extern "C" {
     pub fn g_unicode_script_to_iso15924(script: GUnicodeScript) -> guint32;
@@ -15718,6 +15762,9 @@ extern "C" {
     pub fn g_variant_builder_init(builder: *mut GVariantBuilder, type_: *const GVariantType);
 }
 extern "C" {
+    pub fn g_variant_builder_init_static(builder: *mut GVariantBuilder, type_: *const GVariantType);
+}
+extern "C" {
     pub fn g_variant_builder_end(builder: *mut GVariantBuilder) -> *mut GVariant;
 }
 extern "C" {
@@ -16278,6 +16325,7 @@ pub const GOptionFlags_G_OPTION_FLAG_NO_ARG: GOptionFlags = 8;
 pub const GOptionFlags_G_OPTION_FLAG_FILENAME: GOptionFlags = 16;
 pub const GOptionFlags_G_OPTION_FLAG_OPTIONAL_ARG: GOptionFlags = 32;
 pub const GOptionFlags_G_OPTION_FLAG_NOALIAS: GOptionFlags = 64;
+pub const GOptionFlags_G_OPTION_FLAG_DEPRECATED: GOptionFlags = 128;
 pub type GOptionFlags = ::std::os::raw::c_uint;
 pub const GOptionArg_G_OPTION_ARG_NONE: GOptionArg = 0;
 pub const GOptionArg_G_OPTION_ARG_STRING: GOptionArg = 1;
@@ -16695,6 +16743,15 @@ extern "C" {
         user_data: gpointer,
     );
 }
+extern "C" {
+    pub fn g_sort_array(
+        array: *const ::std::os::raw::c_void,
+        n_elements: usize,
+        element_size: usize,
+        compare_func: GCompareDataFunc,
+        user_data: *mut ::std::os::raw::c_void,
+    );
+}
 pub type GQueue = _GQueue;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -17030,6 +17087,12 @@ extern "C" {
     pub fn g_ref_string_length(str_: *mut ::std::os::raw::c_char) -> gsize;
 }
 pub type GRefString = ::std::os::raw::c_char;
+extern "C" {
+    pub fn g_ref_string_equal(
+        str1: *const ::std::os::raw::c_char,
+        str2: *const ::std::os::raw::c_char,
+    ) -> gboolean;
+}
 pub const GRegexError_G_REGEX_ERROR_COMPILE: GRegexError = 0;
 pub const GRegexError_G_REGEX_ERROR_OPTIMIZE: GRegexError = 1;
 pub const GRegexError_G_REGEX_ERROR_REPLACE: GRegexError = 2;
@@ -18763,6 +18826,9 @@ extern "C" {
 }
 extern "C" {
     pub fn g_strv_builder_unref(builder: *mut GStrvBuilder);
+}
+extern "C" {
+    pub fn g_strv_builder_unref_to_strv(builder: *mut GStrvBuilder) -> GStrv;
 }
 extern "C" {
     pub fn g_strv_builder_ref(builder: *mut GStrvBuilder) -> *mut GStrvBuilder;
@@ -22482,7 +22548,7 @@ pub struct _IO_FILE {
     pub _wide_data: *mut _IO_wide_data,
     pub _freeres_list: *mut _IO_FILE,
     pub _freeres_buf: *mut ::std::os::raw::c_void,
-    pub __pad5: usize,
+    pub _prevchain: *mut *mut _IO_FILE,
     pub _mode: ::std::os::raw::c_int,
     pub _unused2: [::std::os::raw::c_char; 20usize],
 }
@@ -22761,13 +22827,13 @@ fn bindgen_test_layout__IO_FILE() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__pad5) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr)._prevchain) as usize - ptr as usize },
         184usize,
         concat!(
             "Offset of field: ",
             stringify!(_IO_FILE),
             "::",
-            stringify!(__pad5)
+            stringify!(_prevchain)
         )
     );
     assert_eq!(
@@ -23361,6 +23427,112 @@ pub const ws_log_level_LOG_LEVEL_ERROR: ws_log_level = 7;
 pub const ws_log_level_LOG_LEVEL_ECHO: ws_log_level = 8;
 pub const ws_log_level__LOG_LEVEL_LAST: ws_log_level = 9;
 pub type ws_log_level = ::std::os::raw::c_uint;
+extern "C" {
+    pub fn ws_getopt(
+        arg1: ::std::os::raw::c_int,
+        arg2: *const *mut ::std::os::raw::c_char,
+        arg3: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub static mut ws_optarg: *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub static mut ws_optind: ::std::os::raw::c_int;
+}
+extern "C" {
+    pub static mut ws_opterr: ::std::os::raw::c_int;
+}
+extern "C" {
+    pub static mut ws_optopt: ::std::os::raw::c_int;
+}
+extern "C" {
+    pub static mut ws_optpos: ::std::os::raw::c_int;
+}
+extern "C" {
+    pub static mut ws_optreset: ::std::os::raw::c_int;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ws_option {
+    pub name: *const ::std::os::raw::c_char,
+    pub has_arg: ::std::os::raw::c_int,
+    pub flag: *mut ::std::os::raw::c_int,
+    pub val: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout_ws_option() {
+    const UNINIT: ::std::mem::MaybeUninit<ws_option> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<ws_option>(),
+        32usize,
+        concat!("Size of: ", stringify!(ws_option))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ws_option>(),
+        8usize,
+        concat!("Alignment of ", stringify!(ws_option))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).name) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ws_option),
+            "::",
+            stringify!(name)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).has_arg) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ws_option),
+            "::",
+            stringify!(has_arg)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).flag) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ws_option),
+            "::",
+            stringify!(flag)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).val) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ws_option),
+            "::",
+            stringify!(val)
+        )
+    );
+}
+extern "C" {
+    pub fn ws_getopt_long(
+        arg1: ::std::os::raw::c_int,
+        arg2: *const *mut ::std::os::raw::c_char,
+        arg3: *const ::std::os::raw::c_char,
+        arg4: *const ws_option,
+        arg5: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn ws_getopt_long_only(
+        arg1: ::std::os::raw::c_int,
+        arg2: *const *mut ::std::os::raw::c_char,
+        arg3: *const ::std::os::raw::c_char,
+        arg4: *const ws_option,
+        arg5: *mut ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
 pub const ws_log_console_open_pref_LOG_CONSOLE_OPEN_NEVER: ws_log_console_open_pref = 0;
 pub const ws_log_console_open_pref_LOG_CONSOLE_OPEN_AUTO: ws_log_console_open_pref = 1;
 pub const ws_log_console_open_pref_LOG_CONSOLE_OPEN_ALWAYS: ws_log_console_open_pref = 2;
@@ -23512,6 +23684,8 @@ extern "C" {
     pub fn ws_log_parse_args(
         argc_ptr: *mut ::std::os::raw::c_int,
         argv: *mut *mut ::std::os::raw::c_char,
+        optstring: *const ::std::os::raw::c_char,
+        long_options: *const ws_option,
         vcmdarg_err: ::std::option::Option<
             unsafe extern "C" fn(arg1: *const ::std::os::raw::c_char, ap: *mut __va_list_tag),
         >,
@@ -23519,8 +23693,10 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    pub fn ws_log_is_wslog_arg(arg: ::std::os::raw::c_int) -> bool;
+}
+extern "C" {
     pub fn ws_log_init(
-        progname: *const ::std::os::raw::c_char,
         vcmdarg_err: ::std::option::Option<
             unsafe extern "C" fn(arg1: *const ::std::os::raw::c_char, ap: *mut __va_list_tag),
         >,
@@ -23528,7 +23704,6 @@ extern "C" {
 }
 extern "C" {
     pub fn ws_log_init_with_writer(
-        progname: *const ::std::os::raw::c_char,
         writer: ws_log_writer_cb,
         vcmdarg_err: ::std::option::Option<
             unsafe extern "C" fn(arg1: *const ::std::os::raw::c_char, ap: *mut __va_list_tag),
@@ -23537,7 +23712,6 @@ extern "C" {
 }
 extern "C" {
     pub fn ws_log_init_with_writer_and_data(
-        progname: *const ::std::os::raw::c_char,
         writer: ws_log_writer_cb,
         user_data: *mut ::std::os::raw::c_void,
         free_user_data: ws_log_writer_free_data_cb,
@@ -23759,6 +23933,9 @@ extern "C" {
     pub fn wmem_array_get_count(array: *mut wmem_array_t) -> ::std::os::raw::c_uint;
 }
 extern "C" {
+    pub fn wmem_array_get_allocator(array: *mut wmem_array_t) -> *mut wmem_allocator_t;
+}
+extern "C" {
     pub fn wmem_array_finalize(array: *mut wmem_array_t) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
@@ -23921,7 +24098,20 @@ extern "C" {
     ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
+    pub fn wmem_map_find(
+        map: *mut wmem_map_t,
+        foreach_func: GHRFunc,
+        user_data: *mut ::std::os::raw::c_void,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
     pub fn wmem_map_size(map: *mut wmem_map_t) -> ::std::os::raw::c_uint;
+}
+extern "C" {
+    pub fn wmem_map_reserve(map: *mut wmem_map_t, capacity: u64) -> usize;
+}
+extern "C" {
+    pub fn wmem_map_destroy(map: *mut wmem_map_t, free_keys: bool, free_values: bool);
 }
 extern "C" {
     pub fn wmem_strong_hash(buf: *const u8, len: usize) -> u32;
@@ -24270,6 +24460,23 @@ extern "C" {
     pub fn wmem_tree_lookup32_le(tree: *mut wmem_tree_t, key: u32) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
+    pub fn wmem_tree_lookup32_le_full(
+        tree: *mut wmem_tree_t,
+        key: u32,
+        orig_key: *mut u32,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn wmem_tree_lookup32_ge(tree: *mut wmem_tree_t, key: u32) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn wmem_tree_lookup32_ge_full(
+        tree: *mut wmem_tree_t,
+        key: u32,
+        orig_key: *mut u32,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
     pub fn wmem_tree_remove32(tree: *mut wmem_tree_t, key: u32) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
@@ -24550,7 +24757,7 @@ extern "C" {
     pub fn ws_buffer_assure_space(buffer: *mut Buffer, space: usize);
 }
 extern "C" {
-    pub fn ws_buffer_append(buffer: *mut Buffer, from: *mut u8, bytes: usize);
+    pub fn ws_buffer_append(buffer: *mut Buffer, from: *const u8, bytes: usize);
 }
 extern "C" {
     pub fn ws_buffer_remove_start(buffer: *mut Buffer, bytes: usize);
@@ -24604,6 +24811,9 @@ extern "C" {
 }
 extern "C" {
     pub fn nstime_is_zero(nstime: *const nstime_t) -> bool;
+}
+extern "C" {
+    pub fn nstime_is_negative(nstime: *const nstime_t) -> bool;
 }
 extern "C" {
     pub fn nstime_set_unset(nstime: *mut nstime_t);
@@ -24683,6 +24893,9 @@ pub const ws_tsprec_e_WS_TSPREC_100_NSEC: ws_tsprec_e = 7;
 pub const ws_tsprec_e_WS_TSPREC_10_NSEC: ws_tsprec_e = 8;
 pub const ws_tsprec_e_WS_TSPREC_NSEC: ws_tsprec_e = 9;
 pub type ws_tsprec_e = ::std::os::raw::c_uint;
+extern "C" {
+    pub fn nstime_rounded(a: *mut nstime_t, b: *const nstime_t, prec: ws_tsprec_e);
+}
 pub type ws_in4_addr = u32;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -24735,12 +24948,6 @@ extern "C" {
 extern "C" {
     pub fn ws_inet_pton6(src: *const ::std::os::raw::c_char, dst: *mut ws_in6_addr) -> bool;
 }
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct wtap_block {
-    _unused: [u8; 0],
-}
-pub type wtap_block_t = *mut wtap_block;
 pub const wtap_block_type_t_WTAP_BLOCK_SECTION: wtap_block_type_t = 0;
 pub const wtap_block_type_t_WTAP_BLOCK_IF_ID_AND_INFO: wtap_block_type_t = 1;
 pub const wtap_block_type_t_WTAP_BLOCK_NAME_RESOLUTION: wtap_block_type_t = 2;
@@ -24753,8 +24960,173 @@ pub const wtap_block_type_t_WTAP_BLOCK_SYSDIG_EVENT: wtap_block_type_t = 8;
 pub const wtap_block_type_t_WTAP_BLOCK_META_EVENT: wtap_block_type_t = 9;
 pub const wtap_block_type_t_WTAP_BLOCK_SYSTEMD_JOURNAL_EXPORT: wtap_block_type_t = 10;
 pub const wtap_block_type_t_WTAP_BLOCK_CUSTOM: wtap_block_type_t = 11;
-pub const wtap_block_type_t_MAX_WTAP_BLOCK_TYPE_VALUE: wtap_block_type_t = 12;
+pub const wtap_block_type_t_WTAP_BLOCK_FT_SPECIFIC_INFORMATION: wtap_block_type_t = 12;
+pub const wtap_block_type_t_MAX_WTAP_BLOCK_TYPE_VALUE: wtap_block_type_t = 13;
 pub type wtap_block_type_t = ::std::os::raw::c_uint;
+pub type wtap_block_t = *mut wtap_block;
+pub type wtap_block_create_func = ::std::option::Option<unsafe extern "C" fn(block: wtap_block_t)>;
+pub type wtap_mand_free_func = ::std::option::Option<unsafe extern "C" fn(block: wtap_block_t)>;
+pub type wtap_mand_copy_func =
+    ::std::option::Option<unsafe extern "C" fn(dest_block: wtap_block_t, src_block: wtap_block_t)>;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct wtap_blocktype_t {
+    pub block_type: wtap_block_type_t,
+    pub name: *const ::std::os::raw::c_char,
+    pub description: *const ::std::os::raw::c_char,
+    pub create: wtap_block_create_func,
+    pub free_mand: wtap_mand_free_func,
+    pub copy_mand: wtap_mand_copy_func,
+    pub options: *mut GHashTable,
+}
+#[test]
+fn bindgen_test_layout_wtap_blocktype_t() {
+    const UNINIT: ::std::mem::MaybeUninit<wtap_blocktype_t> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<wtap_blocktype_t>(),
+        56usize,
+        concat!("Size of: ", stringify!(wtap_blocktype_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<wtap_blocktype_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(wtap_blocktype_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).block_type) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_blocktype_t),
+            "::",
+            stringify!(block_type)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).name) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_blocktype_t),
+            "::",
+            stringify!(name)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).description) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_blocktype_t),
+            "::",
+            stringify!(description)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).create) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_blocktype_t),
+            "::",
+            stringify!(create)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).free_mand) as usize - ptr as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_blocktype_t),
+            "::",
+            stringify!(free_mand)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).copy_mand) as usize - ptr as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_blocktype_t),
+            "::",
+            stringify!(copy_mand)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).options) as usize - ptr as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_blocktype_t),
+            "::",
+            stringify!(options)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct wtap_block {
+    pub info: *mut wtap_blocktype_t,
+    pub mandatory_data: *mut ::std::os::raw::c_void,
+    pub options: *mut GArray,
+    pub ref_count: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout_wtap_block() {
+    const UNINIT: ::std::mem::MaybeUninit<wtap_block> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<wtap_block>(),
+        32usize,
+        concat!("Size of: ", stringify!(wtap_block))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<wtap_block>(),
+        8usize,
+        concat!("Alignment of ", stringify!(wtap_block))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).info) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_block),
+            "::",
+            stringify!(info)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).mandatory_data) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_block),
+            "::",
+            stringify!(mandatory_data)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).options) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_block),
+            "::",
+            stringify!(options)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).ref_count) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_block),
+            "::",
+            stringify!(ref_count)
+        )
+    );
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtapng_section_mandatory_s {
@@ -24819,6 +25191,38 @@ fn bindgen_test_layout_wtapng_iface_descriptions_s() {
     );
 }
 pub type wtapng_iface_descriptions_t = wtapng_iface_descriptions_s;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct wtapng_dpib_lookup_info_s {
+    pub dpibs: *mut GArray,
+}
+#[test]
+fn bindgen_test_layout_wtapng_dpib_lookup_info_s() {
+    const UNINIT: ::std::mem::MaybeUninit<wtapng_dpib_lookup_info_s> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<wtapng_dpib_lookup_info_s>(),
+        8usize,
+        concat!("Size of: ", stringify!(wtapng_dpib_lookup_info_s))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<wtapng_dpib_lookup_info_s>(),
+        8usize,
+        concat!("Alignment of ", stringify!(wtapng_dpib_lookup_info_s))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).dpibs) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtapng_dpib_lookup_info_s),
+            "::",
+            stringify!(dpibs)
+        )
+    );
+}
+pub type wtapng_dpib_lookup_info_t = wtapng_dpib_lookup_info_s;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtapng_if_descr_mandatory_s {
@@ -25113,6 +25517,44 @@ fn bindgen_test_layout_wtapng_meta_event_mandatory_s() {
 pub type wtapng_meta_event_mandatory_t = wtapng_meta_event_mandatory_s;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct wtapng_darwin_process_event_mandatory_s {
+    pub process_id: u32,
+}
+#[test]
+fn bindgen_test_layout_wtapng_darwin_process_event_mandatory_s() {
+    const UNINIT: ::std::mem::MaybeUninit<wtapng_darwin_process_event_mandatory_s> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<wtapng_darwin_process_event_mandatory_s>(),
+        4usize,
+        concat!(
+            "Size of: ",
+            stringify!(wtapng_darwin_process_event_mandatory_s)
+        )
+    );
+    assert_eq!(
+        ::std::mem::align_of::<wtapng_darwin_process_event_mandatory_s>(),
+        4usize,
+        concat!(
+            "Alignment of ",
+            stringify!(wtapng_darwin_process_event_mandatory_s)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).process_id) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtapng_darwin_process_event_mandatory_s),
+            "::",
+            stringify!(process_id)
+        )
+    );
+}
+pub type wtapng_darwin_process_event_mandatory_t = wtapng_darwin_process_event_mandatory_s;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct wtapng_ft_specific_mandatory_s {
     pub record_type: ::std::os::raw::c_uint,
 }
@@ -25150,13 +25592,14 @@ pub const wtap_opttype_e_WTAP_OPTTYPE_STRING: wtap_opttype_e = 3;
 pub const wtap_opttype_e_WTAP_OPTTYPE_BYTES: wtap_opttype_e = 4;
 pub const wtap_opttype_e_WTAP_OPTTYPE_IPv4: wtap_opttype_e = 5;
 pub const wtap_opttype_e_WTAP_OPTTYPE_IPv6: wtap_opttype_e = 6;
-pub const wtap_opttype_e_WTAP_OPTTYPE_CUSTOM: wtap_opttype_e = 7;
-pub const wtap_opttype_e_WTAP_OPTTYPE_IF_FILTER: wtap_opttype_e = 8;
-pub const wtap_opttype_e_WTAP_OPTTYPE_PACKET_VERDICT: wtap_opttype_e = 9;
-pub const wtap_opttype_e_WTAP_OPTTYPE_PACKET_HASH: wtap_opttype_e = 10;
-pub const wtap_opttype_e_WTAP_OPTTYPE_INT8: wtap_opttype_e = 11;
-pub const wtap_opttype_e_WTAP_OPTTYPE_INT32: wtap_opttype_e = 12;
-pub const wtap_opttype_e_WTAP_OPTTYPE_INT64: wtap_opttype_e = 13;
+pub const wtap_opttype_e_WTAP_OPTTYPE_CUSTOM_STRING: wtap_opttype_e = 7;
+pub const wtap_opttype_e_WTAP_OPTTYPE_CUSTOM_BINARY: wtap_opttype_e = 8;
+pub const wtap_opttype_e_WTAP_OPTTYPE_IF_FILTER: wtap_opttype_e = 9;
+pub const wtap_opttype_e_WTAP_OPTTYPE_PACKET_VERDICT: wtap_opttype_e = 10;
+pub const wtap_opttype_e_WTAP_OPTTYPE_PACKET_HASH: wtap_opttype_e = 11;
+pub const wtap_opttype_e_WTAP_OPTTYPE_INT8: wtap_opttype_e = 12;
+pub const wtap_opttype_e_WTAP_OPTTYPE_INT32: wtap_opttype_e = 13;
+pub const wtap_opttype_e_WTAP_OPTTYPE_INT64: wtap_opttype_e = 14;
 pub type wtap_opttype_e = ::std::os::raw::c_uint;
 pub const wtap_opttype_return_val_WTAP_OPTTYPE_SUCCESS: wtap_opttype_return_val = 0;
 pub const wtap_opttype_return_val_WTAP_OPTTYPE_NO_SUCH_OPTION: wtap_opttype_return_val = -1;
@@ -25165,193 +25608,118 @@ pub const wtap_opttype_return_val_WTAP_OPTTYPE_TYPE_MISMATCH: wtap_opttype_retur
 pub const wtap_opttype_return_val_WTAP_OPTTYPE_NUMBER_MISMATCH: wtap_opttype_return_val = -4;
 pub const wtap_opttype_return_val_WTAP_OPTTYPE_ALREADY_EXISTS: wtap_opttype_return_val = -5;
 pub const wtap_opttype_return_val_WTAP_OPTTYPE_BAD_BLOCK: wtap_opttype_return_val = -6;
+pub const wtap_opttype_return_val_WTAP_OPTTYPE_PEN_MISMATCH: wtap_opttype_return_val = -7;
 pub type wtap_opttype_return_val = ::std::os::raw::c_int;
 #[repr(C)]
-#[derive(Copy, Clone)]
-pub struct custom_opt_s {
+#[derive(Debug, Copy, Clone)]
+pub struct custom_string_opt_s {
     pub pen: u32,
-    pub data: custom_opt_s__bindgen_ty_1,
-}
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub union custom_opt_s__bindgen_ty_1 {
-    pub generic_data: custom_opt_s__bindgen_ty_1_generic_custom_opt_data,
-    pub nflx_data: custom_opt_s__bindgen_ty_1_nflx_custom_opt_data,
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct custom_opt_s__bindgen_ty_1_generic_custom_opt_data {
-    pub custom_data_len: usize,
-    pub custom_data: *mut ::std::os::raw::c_char,
+    pub string: *mut ::std::os::raw::c_char,
 }
 #[test]
-fn bindgen_test_layout_custom_opt_s__bindgen_ty_1_generic_custom_opt_data() {
-    const UNINIT: ::std::mem::MaybeUninit<custom_opt_s__bindgen_ty_1_generic_custom_opt_data> =
-        ::std::mem::MaybeUninit::uninit();
+fn bindgen_test_layout_custom_string_opt_s() {
+    const UNINIT: ::std::mem::MaybeUninit<custom_string_opt_s> = ::std::mem::MaybeUninit::uninit();
     let ptr = UNINIT.as_ptr();
     assert_eq!(
-        ::std::mem::size_of::<custom_opt_s__bindgen_ty_1_generic_custom_opt_data>(),
+        ::std::mem::size_of::<custom_string_opt_s>(),
         16usize,
-        concat!(
-            "Size of: ",
-            stringify!(custom_opt_s__bindgen_ty_1_generic_custom_opt_data)
-        )
+        concat!("Size of: ", stringify!(custom_string_opt_s))
     );
     assert_eq!(
-        ::std::mem::align_of::<custom_opt_s__bindgen_ty_1_generic_custom_opt_data>(),
+        ::std::mem::align_of::<custom_string_opt_s>(),
         8usize,
-        concat!(
-            "Alignment of ",
-            stringify!(custom_opt_s__bindgen_ty_1_generic_custom_opt_data)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).custom_data_len) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(custom_opt_s__bindgen_ty_1_generic_custom_opt_data),
-            "::",
-            stringify!(custom_data_len)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).custom_data) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(custom_opt_s__bindgen_ty_1_generic_custom_opt_data),
-            "::",
-            stringify!(custom_data)
-        )
-    );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct custom_opt_s__bindgen_ty_1_nflx_custom_opt_data {
-    pub type_: u32,
-    pub custom_data_len: usize,
-    pub custom_data: *mut ::std::os::raw::c_char,
-    pub use_little_endian: bool,
-}
-#[test]
-fn bindgen_test_layout_custom_opt_s__bindgen_ty_1_nflx_custom_opt_data() {
-    const UNINIT: ::std::mem::MaybeUninit<custom_opt_s__bindgen_ty_1_nflx_custom_opt_data> =
-        ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<custom_opt_s__bindgen_ty_1_nflx_custom_opt_data>(),
-        32usize,
-        concat!(
-            "Size of: ",
-            stringify!(custom_opt_s__bindgen_ty_1_nflx_custom_opt_data)
-        )
-    );
-    assert_eq!(
-        ::std::mem::align_of::<custom_opt_s__bindgen_ty_1_nflx_custom_opt_data>(),
-        8usize,
-        concat!(
-            "Alignment of ",
-            stringify!(custom_opt_s__bindgen_ty_1_nflx_custom_opt_data)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).type_) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(custom_opt_s__bindgen_ty_1_nflx_custom_opt_data),
-            "::",
-            stringify!(type_)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).custom_data_len) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(custom_opt_s__bindgen_ty_1_nflx_custom_opt_data),
-            "::",
-            stringify!(custom_data_len)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).custom_data) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(custom_opt_s__bindgen_ty_1_nflx_custom_opt_data),
-            "::",
-            stringify!(custom_data)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).use_little_endian) as usize - ptr as usize },
-        24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(custom_opt_s__bindgen_ty_1_nflx_custom_opt_data),
-            "::",
-            stringify!(use_little_endian)
-        )
-    );
-}
-#[test]
-fn bindgen_test_layout_custom_opt_s__bindgen_ty_1() {
-    const UNINIT: ::std::mem::MaybeUninit<custom_opt_s__bindgen_ty_1> =
-        ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<custom_opt_s__bindgen_ty_1>(),
-        32usize,
-        concat!("Size of: ", stringify!(custom_opt_s__bindgen_ty_1))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<custom_opt_s__bindgen_ty_1>(),
-        8usize,
-        concat!("Alignment of ", stringify!(custom_opt_s__bindgen_ty_1))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).generic_data) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(custom_opt_s__bindgen_ty_1),
-            "::",
-            stringify!(generic_data)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).nflx_data) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(custom_opt_s__bindgen_ty_1),
-            "::",
-            stringify!(nflx_data)
-        )
-    );
-}
-#[test]
-fn bindgen_test_layout_custom_opt_s() {
-    const UNINIT: ::std::mem::MaybeUninit<custom_opt_s> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<custom_opt_s>(),
-        40usize,
-        concat!("Size of: ", stringify!(custom_opt_s))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<custom_opt_s>(),
-        8usize,
-        concat!("Alignment of ", stringify!(custom_opt_s))
+        concat!("Alignment of ", stringify!(custom_string_opt_s))
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pen) as usize - ptr as usize },
         0usize,
         concat!(
             "Offset of field: ",
-            stringify!(custom_opt_s),
+            stringify!(custom_string_opt_s),
+            "::",
+            stringify!(pen)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).string) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(custom_string_opt_s),
+            "::",
+            stringify!(string)
+        )
+    );
+}
+pub type custom_string_opt_t = custom_string_opt_s;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct binary_optdata {
+    pub custom_data_len: usize,
+    pub custom_data: *mut ::std::os::raw::c_void,
+}
+#[test]
+fn bindgen_test_layout_binary_optdata() {
+    const UNINIT: ::std::mem::MaybeUninit<binary_optdata> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<binary_optdata>(),
+        16usize,
+        concat!("Size of: ", stringify!(binary_optdata))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<binary_optdata>(),
+        8usize,
+        concat!("Alignment of ", stringify!(binary_optdata))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).custom_data_len) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(binary_optdata),
+            "::",
+            stringify!(custom_data_len)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).custom_data) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(binary_optdata),
+            "::",
+            stringify!(custom_data)
+        )
+    );
+}
+pub type binary_optdata_t = binary_optdata;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct custom_binary_opt_s {
+    pub pen: u32,
+    pub data: binary_optdata_t,
+}
+#[test]
+fn bindgen_test_layout_custom_binary_opt_s() {
+    const UNINIT: ::std::mem::MaybeUninit<custom_binary_opt_s> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<custom_binary_opt_s>(),
+        24usize,
+        concat!("Size of: ", stringify!(custom_binary_opt_s))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<custom_binary_opt_s>(),
+        8usize,
+        concat!("Alignment of ", stringify!(custom_binary_opt_s))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).pen) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(custom_binary_opt_s),
             "::",
             stringify!(pen)
         )
@@ -25361,77 +25729,13 @@ fn bindgen_test_layout_custom_opt_s() {
         8usize,
         concat!(
             "Offset of field: ",
-            stringify!(custom_opt_s),
+            stringify!(custom_binary_opt_s),
             "::",
             stringify!(data)
         )
     );
 }
-pub type custom_opt_t = custom_opt_s;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct nflx_custom_opt_s {
-    pub nflx_use_little_endian: bool,
-    pub nflx_type: u32,
-    pub nflx_custom_data_len: usize,
-    pub nflx_custom_data: *mut ::std::os::raw::c_char,
-}
-#[test]
-fn bindgen_test_layout_nflx_custom_opt_s() {
-    const UNINIT: ::std::mem::MaybeUninit<nflx_custom_opt_s> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<nflx_custom_opt_s>(),
-        24usize,
-        concat!("Size of: ", stringify!(nflx_custom_opt_s))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<nflx_custom_opt_s>(),
-        8usize,
-        concat!("Alignment of ", stringify!(nflx_custom_opt_s))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).nflx_use_little_endian) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_custom_opt_s),
-            "::",
-            stringify!(nflx_use_little_endian)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).nflx_type) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_custom_opt_s),
-            "::",
-            stringify!(nflx_type)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).nflx_custom_data_len) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_custom_opt_s),
-            "::",
-            stringify!(nflx_custom_data_len)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).nflx_custom_data) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_custom_opt_s),
-            "::",
-            stringify!(nflx_custom_data)
-        )
-    );
-}
-pub type nflx_custom_opt_t = nflx_custom_opt_s;
+pub type custom_binary_opt_t = custom_binary_opt_s;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtap_bpf_insn_s {
@@ -25788,7 +26092,8 @@ pub union wtap_optval_t {
     pub ipv6val: ws_in6_addr,
     pub stringval: *mut ::std::os::raw::c_char,
     pub byteval: *mut GBytes,
-    pub custom_opt: custom_opt_t,
+    pub custom_stringval: custom_string_opt_t,
+    pub custom_binaryval: custom_binary_opt_t,
     pub if_filterval: if_filter_opt_t,
     pub packet_verdictval: packet_verdict_opt_t,
     pub packet_hash: packet_hash_opt_t,
@@ -25799,7 +26104,7 @@ fn bindgen_test_layout_wtap_optval_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<wtap_optval_t>(),
-        40usize,
+        24usize,
         concat!("Size of: ", stringify!(wtap_optval_t))
     );
     assert_eq!(
@@ -25908,13 +26213,23 @@ fn bindgen_test_layout_wtap_optval_t() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).custom_opt) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).custom_stringval) as usize - ptr as usize },
         0usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_optval_t),
             "::",
-            stringify!(custom_opt)
+            stringify!(custom_stringval)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).custom_binaryval) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_optval_t),
+            "::",
+            stringify!(custom_binaryval)
         )
     );
     assert_eq!(
@@ -25960,7 +26275,7 @@ fn bindgen_test_layout_wtap_option_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<wtap_option_t>(),
-        48usize,
+        32usize,
         concat!("Size of: ", stringify!(wtap_option_t))
     );
     assert_eq!(
@@ -25991,1020 +26306,67 @@ fn bindgen_test_layout_wtap_option_t() {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct nflx_dumpinfo {
-    pub tlh_version: u32,
-    pub tlh_type: u32,
-    pub tlh_length: u64,
-    pub tlh_ie_fport: u16,
-    pub tlh_ie_lport: u16,
-    pub tlh_ie_faddr_addr32: [u32; 4usize],
-    pub tlh_ie_laddr_addr32: [u32; 4usize],
-    pub tlh_ie_zoneid: u32,
-    pub tlh_offset_tv_sec: u64,
-    pub tlh_offset_tv_usec: u64,
-    pub tlh_id: [::std::os::raw::c_char; 64usize],
-    pub tlh_reason: [::std::os::raw::c_char; 32usize],
-    pub tlh_tag: [::std::os::raw::c_char; 32usize],
-    pub tlh_af: u8,
-    pub _pad: [u8; 7usize],
+pub struct wtap_opttype_t {
+    pub name: *const ::std::os::raw::c_char,
+    pub description: *const ::std::os::raw::c_char,
+    pub data_type: wtap_opttype_e,
+    pub flags: ::std::os::raw::c_uint,
 }
 #[test]
-fn bindgen_test_layout_nflx_dumpinfo() {
-    const UNINIT: ::std::mem::MaybeUninit<nflx_dumpinfo> = ::std::mem::MaybeUninit::uninit();
+fn bindgen_test_layout_wtap_opttype_t() {
+    const UNINIT: ::std::mem::MaybeUninit<wtap_opttype_t> = ::std::mem::MaybeUninit::uninit();
     let ptr = UNINIT.as_ptr();
     assert_eq!(
-        ::std::mem::size_of::<nflx_dumpinfo>(),
-        208usize,
-        concat!("Size of: ", stringify!(nflx_dumpinfo))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<nflx_dumpinfo>(),
-        8usize,
-        concat!("Alignment of ", stringify!(nflx_dumpinfo))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_version) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_version)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_type) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_type)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_length) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_length)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_ie_fport) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_ie_fport)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_ie_lport) as usize - ptr as usize },
-        18usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_ie_lport)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_ie_faddr_addr32) as usize - ptr as usize },
-        20usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_ie_faddr_addr32)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_ie_laddr_addr32) as usize - ptr as usize },
-        36usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_ie_laddr_addr32)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_ie_zoneid) as usize - ptr as usize },
-        52usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_ie_zoneid)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_offset_tv_sec) as usize - ptr as usize },
-        56usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_offset_tv_sec)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_offset_tv_usec) as usize - ptr as usize },
-        64usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_offset_tv_usec)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_id) as usize - ptr as usize },
-        72usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_id)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_reason) as usize - ptr as usize },
-        136usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_reason)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_tag) as usize - ptr as usize },
-        168usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_tag)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlh_af) as usize - ptr as usize },
-        200usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(tlh_af)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr)._pad) as usize - ptr as usize },
-        201usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_dumpinfo),
-            "::",
-            stringify!(_pad)
-        )
-    );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct nflx_tcpinfo {
-    pub tlb_tv_sec: u64,
-    pub tlb_tv_usec: u64,
-    pub tlb_ticks: u32,
-    pub tlb_sn: u32,
-    pub tlb_stackid: u8,
-    pub tlb_eventid: u8,
-    pub tlb_eventflags: u16,
-    pub tlb_errno: i32,
-    pub tlb_rxbuf_tls_sb_acc: u32,
-    pub tlb_rxbuf_tls_sb_ccc: u32,
-    pub tlb_rxbuf_tls_sb_spare: u32,
-    pub tlb_txbuf_tls_sb_acc: u32,
-    pub tlb_txbuf_tls_sb_ccc: u32,
-    pub tlb_txbuf_tls_sb_spare: u32,
-    pub tlb_state: i32,
-    pub tlb_starttime: u32,
-    pub tlb_iss: u32,
-    pub tlb_flags: u32,
-    pub tlb_snd_una: u32,
-    pub tlb_snd_max: u32,
-    pub tlb_snd_cwnd: u32,
-    pub tlb_snd_nxt: u32,
-    pub tlb_snd_recover: u32,
-    pub tlb_snd_wnd: u32,
-    pub tlb_snd_ssthresh: u32,
-    pub tlb_srtt: u32,
-    pub tlb_rttvar: u32,
-    pub tlb_rcv_up: u32,
-    pub tlb_rcv_adv: u32,
-    pub tlb_flags2: u32,
-    pub tlb_rcv_nxt: u32,
-    pub tlb_rcv_wnd: u32,
-    pub tlb_dupacks: u32,
-    pub tlb_segqlen: i32,
-    pub tlb_snd_numholes: i32,
-    pub tlb_flex1: u32,
-    pub tlb_flex2: u32,
-    pub tlb_fbyte_in: u32,
-    pub tlb_fbyte_out: u32,
-    pub _bitfield_align_1: [u8; 0],
-    pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
-    pub _pad: [u8; 3usize],
-    pub tlb_stackinfo_bbr_cur_del_rate: u64,
-    pub tlb_stackinfo_bbr_delRate: u64,
-    pub tlb_stackinfo_bbr_rttProp: u64,
-    pub tlb_stackinfo_bbr_bw_inuse: u64,
-    pub tlb_stackinfo_bbr_inflight: u32,
-    pub tlb_stackinfo_bbr_applimited: u32,
-    pub tlb_stackinfo_bbr_delivered: u32,
-    pub tlb_stackinfo_bbr_timeStamp: u32,
-    pub tlb_stackinfo_bbr_epoch: u32,
-    pub tlb_stackinfo_bbr_lt_epoch: u32,
-    pub tlb_stackinfo_bbr_pkts_out: u32,
-    pub tlb_stackinfo_bbr_flex1: u32,
-    pub tlb_stackinfo_bbr_flex2: u32,
-    pub tlb_stackinfo_bbr_flex3: u32,
-    pub tlb_stackinfo_bbr_flex4: u32,
-    pub tlb_stackinfo_bbr_flex5: u32,
-    pub tlb_stackinfo_bbr_flex6: u32,
-    pub tlb_stackinfo_bbr_lost: u32,
-    pub tlb_stackinfo_bbr_pacing_gain: u16,
-    pub tlb_stackinfo_bbr_cwnd_gain: u16,
-    pub tlb_stackinfo_bbr_flex7: u16,
-    pub tlb_stackinfo_bbr_bbr_state: u8,
-    pub tlb_stackinfo_bbr_bbr_substate: u8,
-    pub tlb_stackinfo_bbr_inhpts: u8,
-    pub tlb_stackinfo_bbr_ininput: u8,
-    pub tlb_stackinfo_bbr_use_lt_bw: u8,
-    pub tlb_stackinfo_bbr_flex8: u8,
-    pub tlb_stackinfo_bbr_pkt_epoch: u32,
-    pub tlb_len: u32,
-}
-#[test]
-fn bindgen_test_layout_nflx_tcpinfo() {
-    const UNINIT: ::std::mem::MaybeUninit<nflx_tcpinfo> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<nflx_tcpinfo>(),
-        272usize,
-        concat!("Size of: ", stringify!(nflx_tcpinfo))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<nflx_tcpinfo>(),
-        8usize,
-        concat!("Alignment of ", stringify!(nflx_tcpinfo))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_tv_sec) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_tv_sec)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_tv_usec) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_tv_usec)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_ticks) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_ticks)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_sn) as usize - ptr as usize },
-        20usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_sn)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackid) as usize - ptr as usize },
+        ::std::mem::size_of::<wtap_opttype_t>(),
         24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackid)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_eventid) as usize - ptr as usize },
-        25usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_eventid)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_eventflags) as usize - ptr as usize },
-        26usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_eventflags)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_errno) as usize - ptr as usize },
-        28usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_errno)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_rxbuf_tls_sb_acc) as usize - ptr as usize },
-        32usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_rxbuf_tls_sb_acc)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_rxbuf_tls_sb_ccc) as usize - ptr as usize },
-        36usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_rxbuf_tls_sb_ccc)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_rxbuf_tls_sb_spare) as usize - ptr as usize },
-        40usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_rxbuf_tls_sb_spare)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_txbuf_tls_sb_acc) as usize - ptr as usize },
-        44usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_txbuf_tls_sb_acc)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_txbuf_tls_sb_ccc) as usize - ptr as usize },
-        48usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_txbuf_tls_sb_ccc)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_txbuf_tls_sb_spare) as usize - ptr as usize },
-        52usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_txbuf_tls_sb_spare)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_state) as usize - ptr as usize },
-        56usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_state)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_starttime) as usize - ptr as usize },
-        60usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_starttime)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_iss) as usize - ptr as usize },
-        64usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_iss)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_flags) as usize - ptr as usize },
-        68usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_flags)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_snd_una) as usize - ptr as usize },
-        72usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_snd_una)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_snd_max) as usize - ptr as usize },
-        76usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_snd_max)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_snd_cwnd) as usize - ptr as usize },
-        80usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_snd_cwnd)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_snd_nxt) as usize - ptr as usize },
-        84usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_snd_nxt)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_snd_recover) as usize - ptr as usize },
-        88usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_snd_recover)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_snd_wnd) as usize - ptr as usize },
-        92usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_snd_wnd)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_snd_ssthresh) as usize - ptr as usize },
-        96usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_snd_ssthresh)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_srtt) as usize - ptr as usize },
-        100usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_srtt)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_rttvar) as usize - ptr as usize },
-        104usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_rttvar)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_rcv_up) as usize - ptr as usize },
-        108usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_rcv_up)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_rcv_adv) as usize - ptr as usize },
-        112usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_rcv_adv)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_flags2) as usize - ptr as usize },
-        116usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_flags2)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_rcv_nxt) as usize - ptr as usize },
-        120usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_rcv_nxt)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_rcv_wnd) as usize - ptr as usize },
-        124usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_rcv_wnd)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_dupacks) as usize - ptr as usize },
-        128usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_dupacks)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_segqlen) as usize - ptr as usize },
-        132usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_segqlen)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_snd_numholes) as usize - ptr as usize },
-        136usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_snd_numholes)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_flex1) as usize - ptr as usize },
-        140usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_flex1)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_flex2) as usize - ptr as usize },
-        144usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_flex2)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_fbyte_in) as usize - ptr as usize },
-        148usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_fbyte_in)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_fbyte_out) as usize - ptr as usize },
-        152usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_fbyte_out)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr)._pad) as usize - ptr as usize },
-        157usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(_pad)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_cur_del_rate) as usize - ptr as usize
-        },
-        160usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_cur_del_rate)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_delRate) as usize - ptr as usize },
-        168usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_delRate)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_rttProp) as usize - ptr as usize },
-        176usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_rttProp)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_bw_inuse) as usize - ptr as usize },
-        184usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_bw_inuse)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_inflight) as usize - ptr as usize },
-        192usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_inflight)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_applimited) as usize - ptr as usize
-        },
-        196usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_applimited)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_delivered) as usize - ptr as usize },
-        200usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_delivered)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_timeStamp) as usize - ptr as usize },
-        204usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_timeStamp)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_epoch) as usize - ptr as usize },
-        208usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_epoch)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_lt_epoch) as usize - ptr as usize },
-        212usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_lt_epoch)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_pkts_out) as usize - ptr as usize },
-        216usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_pkts_out)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_flex1) as usize - ptr as usize },
-        220usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_flex1)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_flex2) as usize - ptr as usize },
-        224usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_flex2)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_flex3) as usize - ptr as usize },
-        228usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_flex3)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_flex4) as usize - ptr as usize },
-        232usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_flex4)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_flex5) as usize - ptr as usize },
-        236usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_flex5)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_flex6) as usize - ptr as usize },
-        240usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_flex6)
-        )
+        concat!("Size of: ", stringify!(wtap_opttype_t))
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_lost) as usize - ptr as usize },
-        244usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_lost)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_pacing_gain) as usize - ptr as usize
-        },
-        248usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_pacing_gain)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_cwnd_gain) as usize - ptr as usize },
-        250usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_cwnd_gain)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_flex7) as usize - ptr as usize },
-        252usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_flex7)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_bbr_state) as usize - ptr as usize },
-        254usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_bbr_state)
-        )
-    );
-    assert_eq!(
-        unsafe {
-            ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_bbr_substate) as usize - ptr as usize
-        },
-        255usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_bbr_substate)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_inhpts) as usize - ptr as usize },
-        256usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_inhpts)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_ininput) as usize - ptr as usize },
-        257usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(nflx_tcpinfo),
-            "::",
-            stringify!(tlb_stackinfo_bbr_ininput)
-        )
+        ::std::mem::align_of::<wtap_opttype_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(wtap_opttype_t))
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_use_lt_bw) as usize - ptr as usize },
-        258usize,
+        unsafe { ::std::ptr::addr_of!((*ptr).name) as usize - ptr as usize },
+        0usize,
         concat!(
             "Offset of field: ",
-            stringify!(nflx_tcpinfo),
+            stringify!(wtap_opttype_t),
             "::",
-            stringify!(tlb_stackinfo_bbr_use_lt_bw)
+            stringify!(name)
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_flex8) as usize - ptr as usize },
-        259usize,
+        unsafe { ::std::ptr::addr_of!((*ptr).description) as usize - ptr as usize },
+        8usize,
         concat!(
             "Offset of field: ",
-            stringify!(nflx_tcpinfo),
+            stringify!(wtap_opttype_t),
             "::",
-            stringify!(tlb_stackinfo_bbr_flex8)
+            stringify!(description)
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_stackinfo_bbr_pkt_epoch) as usize - ptr as usize },
-        260usize,
+        unsafe { ::std::ptr::addr_of!((*ptr).data_type) as usize - ptr as usize },
+        16usize,
         concat!(
             "Offset of field: ",
-            stringify!(nflx_tcpinfo),
+            stringify!(wtap_opttype_t),
             "::",
-            stringify!(tlb_stackinfo_bbr_pkt_epoch)
+            stringify!(data_type)
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tlb_len) as usize - ptr as usize },
-        264usize,
+        unsafe { ::std::ptr::addr_of!((*ptr).flags) as usize - ptr as usize },
+        20usize,
         concat!(
             "Offset of field: ",
-            stringify!(nflx_tcpinfo),
+            stringify!(wtap_opttype_t),
             "::",
-            stringify!(tlb_len)
+            stringify!(flags)
         )
     );
 }
-impl nflx_tcpinfo {
-    #[inline]
-    pub fn tlb_snd_scale(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 4u8) as u8) }
-    }
-    #[inline]
-    pub fn set_tlb_snd_scale(&mut self, val: u8) {
-        unsafe {
-            let val: u8 = ::std::mem::transmute(val);
-            self._bitfield_1.set(0usize, 4u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn tlb_rcv_scale(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 4u8) as u8) }
-    }
-    #[inline]
-    pub fn set_tlb_rcv_scale(&mut self, val: u8) {
-        unsafe {
-            let val: u8 = ::std::mem::transmute(val);
-            self._bitfield_1.set(4usize, 4u8, val as u64)
-        }
-    }
-    #[inline]
-    pub fn new_bitfield_1(
-        tlb_snd_scale: u8,
-        tlb_rcv_scale: u8,
-    ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
-        let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
-        __bindgen_bitfield_unit.set(0usize, 4u8, {
-            let tlb_snd_scale: u8 = unsafe { ::std::mem::transmute(tlb_snd_scale) };
-            tlb_snd_scale as u64
-        });
-        __bindgen_bitfield_unit.set(4usize, 4u8, {
-            let tlb_rcv_scale: u8 = unsafe { ::std::mem::transmute(tlb_rcv_scale) };
-            tlb_rcv_scale as u64
-        });
-        __bindgen_bitfield_unit
-    }
-}
-pub type wtap_block_create_func = ::std::option::Option<unsafe extern "C" fn(block: wtap_block_t)>;
-pub type wtap_mand_free_func = ::std::option::Option<unsafe extern "C" fn(block: wtap_block_t)>;
-pub type wtap_mand_copy_func =
-    ::std::option::Option<unsafe extern "C" fn(dest_block: wtap_block_t, src_block: wtap_block_t)>;
 extern "C" {
     pub fn wtap_opttypes_initialize();
 }
@@ -27025,6 +26387,9 @@ extern "C" {
 }
 extern "C" {
     pub fn wtap_block_array_ref(block_array: *mut GArray);
+}
+extern "C" {
+    pub fn wtap_opttype_block_register(blocktype: *mut wtap_blocktype_t);
 }
 extern "C" {
     pub fn wtap_block_get_type(block: wtap_block_t) -> wtap_block_type_t;
@@ -27325,28 +26690,38 @@ extern "C" {
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
-    pub fn wtap_block_add_nflx_custom_option(
-        block: wtap_block_t,
-        nflx_type: u32,
-        nflx_custom_data: *const ::std::os::raw::c_char,
-        nflx_custom_data_len: usize,
-    ) -> wtap_opttype_return_val;
-}
-extern "C" {
-    pub fn wtap_block_get_nflx_custom_option(
-        block: wtap_block_t,
-        nflx_type: u32,
-        nflx_custom_data: *mut ::std::os::raw::c_char,
-        nflx_custom_data_len: usize,
-    ) -> wtap_opttype_return_val;
-}
-extern "C" {
-    pub fn wtap_block_add_custom_option(
+    pub fn wtap_block_add_custom_string_option(
         block: wtap_block_t,
         option_id: ::std::os::raw::c_uint,
         pen: u32,
-        custom_data: *const ::std::os::raw::c_char,
-        custom_data_len: usize,
+        value: *const ::std::os::raw::c_char,
+        value_length: usize,
+    ) -> wtap_opttype_return_val;
+}
+extern "C" {
+    pub fn wtap_block_add_custom_binary_option(
+        block: wtap_block_t,
+        option_id: ::std::os::raw::c_uint,
+        pen: u32,
+        value: *mut binary_optdata_t,
+    ) -> wtap_opttype_return_val;
+}
+extern "C" {
+    pub fn wtap_block_add_custom_binary_option_from_data(
+        block: wtap_block_t,
+        option_id: ::std::os::raw::c_uint,
+        pen: u32,
+        data: *const ::std::os::raw::c_void,
+        data_size: usize,
+    ) -> wtap_opttype_return_val;
+}
+extern "C" {
+    pub fn wtap_block_get_nth_custom_binary_option_value(
+        block: wtap_block_t,
+        option_id: ::std::os::raw::c_uint,
+        pen: u32,
+        idx: ::std::os::raw::c_uint,
+        value: *mut binary_optdata_t,
     ) -> wtap_opttype_return_val;
 }
 extern "C" {
@@ -32021,6 +31396,7 @@ fn bindgen_test_layout_wtap_packet_header() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wtap_ft_specific_header {
+    pub file_type_subtype: ::std::os::raw::c_int,
     pub record_type: ::std::os::raw::c_uint,
     pub record_len: u32,
 }
@@ -32031,7 +31407,7 @@ fn bindgen_test_layout_wtap_ft_specific_header() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<wtap_ft_specific_header>(),
-        8usize,
+        12usize,
         concat!("Size of: ", stringify!(wtap_ft_specific_header))
     );
     assert_eq!(
@@ -32040,8 +31416,18 @@ fn bindgen_test_layout_wtap_ft_specific_header() {
         concat!("Alignment of ", stringify!(wtap_ft_specific_header))
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).record_type) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).file_type_subtype) as usize - ptr as usize },
         0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_ft_specific_header),
+            "::",
+            stringify!(file_type_subtype)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).record_type) as usize - ptr as usize },
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_ft_specific_header),
@@ -32051,7 +31437,7 @@ fn bindgen_test_layout_wtap_ft_specific_header() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).record_len) as usize - ptr as usize },
-        4usize,
+        8usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_ft_specific_header),
@@ -32069,9 +31455,10 @@ pub struct wtap_syscall_header {
     pub timestamp: u64,
     pub thread_id: u64,
     pub event_len: u32,
-    pub event_filelen: u32,
-    pub event_type: u16,
+    pub event_data_len: u32,
     pub nparams: u32,
+    pub flags: u32,
+    pub event_type: u16,
     pub cpu_id: u16,
 }
 #[test]
@@ -32149,28 +31536,18 @@ fn bindgen_test_layout_wtap_syscall_header() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).event_filelen) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).event_data_len) as usize - ptr as usize },
         36usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
             "::",
-            stringify!(event_filelen)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).event_type) as usize - ptr as usize },
-        40usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(wtap_syscall_header),
-            "::",
-            stringify!(event_type)
+            stringify!(event_data_len)
         )
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).nparams) as usize - ptr as usize },
-        44usize,
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -32179,8 +31556,28 @@ fn bindgen_test_layout_wtap_syscall_header() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).cpu_id) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).flags) as usize - ptr as usize },
+        44usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_syscall_header),
+            "::",
+            stringify!(flags)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).event_type) as usize - ptr as usize },
         48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_syscall_header),
+            "::",
+            stringify!(event_type)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).cpu_id) as usize - ptr as usize },
+        50usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_syscall_header),
@@ -32224,97 +31621,11 @@ fn bindgen_test_layout_wtap_systemd_journal_export_header() {
     );
 }
 #[repr(C)]
-#[derive(Copy, Clone)]
-pub struct wtap_custom_block_header {
-    pub length: u32,
-    pub pen: u32,
-    pub copy_allowed: bool,
-    pub custom_data_header: wtap_custom_block_header__bindgen_ty_1,
-}
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub union wtap_custom_block_header__bindgen_ty_1 {
-    pub nflx_custom_data_header: wtap_custom_block_header__bindgen_ty_1_nflx,
-}
-#[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct wtap_custom_block_header__bindgen_ty_1_nflx {
-    pub type_: u32,
-    pub skipped: u32,
-}
-#[test]
-fn bindgen_test_layout_wtap_custom_block_header__bindgen_ty_1_nflx() {
-    const UNINIT: ::std::mem::MaybeUninit<wtap_custom_block_header__bindgen_ty_1_nflx> =
-        ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<wtap_custom_block_header__bindgen_ty_1_nflx>(),
-        8usize,
-        concat!(
-            "Size of: ",
-            stringify!(wtap_custom_block_header__bindgen_ty_1_nflx)
-        )
-    );
-    assert_eq!(
-        ::std::mem::align_of::<wtap_custom_block_header__bindgen_ty_1_nflx>(),
-        4usize,
-        concat!(
-            "Alignment of ",
-            stringify!(wtap_custom_block_header__bindgen_ty_1_nflx)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).type_) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(wtap_custom_block_header__bindgen_ty_1_nflx),
-            "::",
-            stringify!(type_)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).skipped) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(wtap_custom_block_header__bindgen_ty_1_nflx),
-            "::",
-            stringify!(skipped)
-        )
-    );
-}
-#[test]
-fn bindgen_test_layout_wtap_custom_block_header__bindgen_ty_1() {
-    const UNINIT: ::std::mem::MaybeUninit<wtap_custom_block_header__bindgen_ty_1> =
-        ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<wtap_custom_block_header__bindgen_ty_1>(),
-        8usize,
-        concat!(
-            "Size of: ",
-            stringify!(wtap_custom_block_header__bindgen_ty_1)
-        )
-    );
-    assert_eq!(
-        ::std::mem::align_of::<wtap_custom_block_header__bindgen_ty_1>(),
-        4usize,
-        concat!(
-            "Alignment of ",
-            stringify!(wtap_custom_block_header__bindgen_ty_1)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).nflx_custom_data_header) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(wtap_custom_block_header__bindgen_ty_1),
-            "::",
-            stringify!(nflx_custom_data_header)
-        )
-    );
+pub struct wtap_custom_block_header {
+    pub pen: u32,
+    pub length: u32,
+    pub copy_allowed: bool,
 }
 #[test]
 fn bindgen_test_layout_wtap_custom_block_header() {
@@ -32323,7 +31634,7 @@ fn bindgen_test_layout_wtap_custom_block_header() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<wtap_custom_block_header>(),
-        20usize,
+        12usize,
         concat!("Size of: ", stringify!(wtap_custom_block_header))
     );
     assert_eq!(
@@ -32332,23 +31643,23 @@ fn bindgen_test_layout_wtap_custom_block_header() {
         concat!("Alignment of ", stringify!(wtap_custom_block_header))
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).length) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).pen) as usize - ptr as usize },
         0usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_custom_block_header),
             "::",
-            stringify!(length)
+            stringify!(pen)
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).pen) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).length) as usize - ptr as usize },
         4usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_custom_block_header),
             "::",
-            stringify!(pen)
+            stringify!(length)
         )
     );
     assert_eq!(
@@ -32359,16 +31670,6 @@ fn bindgen_test_layout_wtap_custom_block_header() {
             stringify!(wtap_custom_block_header),
             "::",
             stringify!(copy_allowed)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).custom_data_header) as usize - ptr as usize },
-        12usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(wtap_custom_block_header),
-            "::",
-            stringify!(custom_data_header)
         )
     );
 }
@@ -32382,10 +31683,12 @@ pub struct wtap_rec {
     pub tsprec: ::std::os::raw::c_int,
     pub ts_rel_cap: nstime_t,
     pub ts_rel_cap_valid: bool,
+    pub rec_type_name: *const ::std::os::raw::c_char,
     pub rec_header: wtap_rec__bindgen_ty_1,
     pub block: wtap_block_t,
     pub block_was_modified: bool,
     pub options_buf: Buffer,
+    pub data: Buffer,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -32470,7 +31773,7 @@ fn bindgen_test_layout_wtap_rec() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<wtap_rec>(),
-        280usize,
+        320usize,
         concat!("Size of: ", stringify!(wtap_rec))
     );
     assert_eq!(
@@ -32549,8 +31852,18 @@ fn bindgen_test_layout_wtap_rec() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).rec_header) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).rec_type_name) as usize - ptr as usize },
         64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_rec),
+            "::",
+            stringify!(rec_type_name)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).rec_header) as usize - ptr as usize },
+        72usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_rec),
@@ -32560,7 +31873,7 @@ fn bindgen_test_layout_wtap_rec() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).block) as usize - ptr as usize },
-        232usize,
+        240usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_rec),
@@ -32570,7 +31883,7 @@ fn bindgen_test_layout_wtap_rec() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).block_was_modified) as usize - ptr as usize },
-        240usize,
+        248usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_rec),
@@ -32580,12 +31893,22 @@ fn bindgen_test_layout_wtap_rec() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).options_buf) as usize - ptr as usize },
-        248usize,
+        256usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_rec),
             "::",
             stringify!(options_buf)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).data) as usize - ptr as usize },
+        288usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_rec),
+            "::",
+            stringify!(data)
         )
     );
 }
@@ -32595,7 +31918,7 @@ pub struct hashipv4 {
     pub addr: ::std::os::raw::c_uint,
     pub flags: u8,
     pub ip: [::std::os::raw::c_char; 16usize],
-    pub name: [::std::os::raw::c_char; 64usize],
+    pub name: [::std::os::raw::c_char; 256usize],
     pub cidr_addr: [::std::os::raw::c_char; 19usize],
 }
 #[test]
@@ -32604,7 +31927,7 @@ fn bindgen_test_layout_hashipv4() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<hashipv4>(),
-        104usize,
+        296usize,
         concat!("Size of: ", stringify!(hashipv4))
     );
     assert_eq!(
@@ -32654,7 +31977,7 @@ fn bindgen_test_layout_hashipv4() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).cidr_addr) as usize - ptr as usize },
-        85usize,
+        277usize,
         concat!(
             "Offset of field: ",
             stringify!(hashipv4),
@@ -32670,7 +31993,7 @@ pub struct hashipv6 {
     pub addr: [u8; 16usize],
     pub flags: u8,
     pub ip6: [::std::os::raw::c_char; 46usize],
-    pub name: [::std::os::raw::c_char; 64usize],
+    pub name: [::std::os::raw::c_char; 256usize],
 }
 #[test]
 fn bindgen_test_layout_hashipv6() {
@@ -32678,7 +32001,7 @@ fn bindgen_test_layout_hashipv6() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<hashipv6>(),
-        127usize,
+        319usize,
         concat!("Size of: ", stringify!(hashipv6))
     );
     assert_eq!(
@@ -32783,6 +32106,7 @@ pub struct wtap_dump_params {
     pub dsbs_initial: *mut GArray,
     pub dsbs_growing: *const GArray,
     pub mevs_growing: *const GArray,
+    pub dpibs_growing: *const GArray,
     pub dont_copy_idbs: bool,
 }
 #[test]
@@ -32791,7 +32115,7 @@ fn bindgen_test_layout_wtap_dump_params() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<wtap_dump_params>(),
-        80usize,
+        88usize,
         concat!("Size of: ", stringify!(wtap_dump_params))
     );
     assert_eq!(
@@ -32900,8 +32224,18 @@ fn bindgen_test_layout_wtap_dump_params() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).dont_copy_idbs) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).dpibs_growing) as usize - ptr as usize },
         72usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(wtap_dump_params),
+            "::",
+            stringify!(dpibs_growing)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).dont_copy_idbs) as usize - ptr as usize },
+        80usize,
         concat!(
             "Offset of field: ",
             stringify!(wtap_dump_params),
@@ -33406,7 +32740,7 @@ extern "C" {
 }
 pub type wtap_new_ipv6_callback_t = ::std::option::Option<
     unsafe extern "C" fn(
-        addrp: *const ::std::os::raw::c_void,
+        addrp: *const ws_in6_addr,
         name: *const ::std::os::raw::c_char,
         static_entry: bool,
     ),
@@ -33428,7 +32762,6 @@ extern "C" {
     pub fn wtap_read(
         wth: *mut wtap,
         rec: *mut wtap_rec,
-        buf: *mut Buffer,
         err: *mut ::std::os::raw::c_int,
         err_info: *mut *mut ::std::os::raw::c_char,
         offset: *mut i64,
@@ -33439,19 +32772,56 @@ extern "C" {
         wth: *mut wtap,
         seek_off: i64,
         rec: *mut wtap_rec,
-        buf: *mut Buffer,
         err: *mut ::std::os::raw::c_int,
         err_info: *mut *mut ::std::os::raw::c_char,
     ) -> bool;
 }
 extern "C" {
-    pub fn wtap_rec_init(rec: *mut wtap_rec);
+    pub fn wtap_rec_init(rec: *mut wtap_rec, space: gsize);
+}
+extern "C" {
+    pub fn wtap_rec_apply_snapshot(rec: *mut wtap_rec, snaplen: u32);
 }
 extern "C" {
     pub fn wtap_rec_reset(rec: *mut wtap_rec);
 }
 extern "C" {
     pub fn wtap_rec_cleanup(rec: *mut wtap_rec);
+}
+extern "C" {
+    pub fn wtap_unwritable_rec_type_err_string(rec: *const wtap_rec)
+        -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn wtap_setup_packet_rec(rec: *mut wtap_rec, encap: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn wtap_setup_ft_specific_event_rec(
+        rec: *mut wtap_rec,
+        file_type_subtype: ::std::os::raw::c_int,
+        record_type: ::std::os::raw::c_uint,
+    );
+}
+extern "C" {
+    pub fn wtap_setup_ft_specific_report_rec(
+        rec: *mut wtap_rec,
+        file_type_subtype: ::std::os::raw::c_int,
+        record_type: ::std::os::raw::c_uint,
+    );
+}
+extern "C" {
+    pub fn wtap_setup_syscall_rec(rec: *mut wtap_rec);
+}
+extern "C" {
+    pub fn wtap_setup_systemd_journal_export_rec(rec: *mut wtap_rec);
+}
+extern "C" {
+    pub fn wtap_setup_custom_block_rec(
+        rec: *mut wtap_rec,
+        pen: u32,
+        payload_length: u32,
+        copy_allowed: bool,
+    );
 }
 pub const wtap_compression_type_WTAP_UNCOMPRESSED: wtap_compression_type = 0;
 pub const wtap_compression_type_WTAP_GZIP_COMPRESSED: wtap_compression_type = 1;
@@ -33479,6 +32849,11 @@ extern "C" {
 }
 extern "C" {
     pub fn wtap_compression_type_extension(
+        compression_type: wtap_compression_type,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn wtap_compression_type_name(
         compression_type: wtap_compression_type,
     ) -> *const ::std::os::raw::c_char;
 }
@@ -33527,6 +32902,9 @@ extern "C" {
 }
 extern "C" {
     pub fn wtap_file_get_idb_info(wth: *mut wtap) -> *mut wtapng_iface_descriptions_t;
+}
+extern "C" {
+    pub fn wtap_file_get_dpib_lookup_info(wth: *mut wtap) -> *mut wtapng_dpib_lookup_info_t;
 }
 extern "C" {
     pub fn wtap_get_next_interface_description(wth: *mut wtap) -> wtap_block_t;
@@ -33655,7 +33033,6 @@ extern "C" {
     pub fn wtap_dump(
         arg1: *mut wtap_dumper,
         arg2: *const wtap_rec,
-        arg3: *const u8,
         err: *mut ::std::os::raw::c_int,
         err_info: *mut *mut ::std::os::raw::c_char,
     ) -> bool;
@@ -33664,10 +33041,10 @@ extern "C" {
     pub fn wtap_dump_flush(arg1: *mut wtap_dumper, arg2: *mut ::std::os::raw::c_int) -> bool;
 }
 extern "C" {
-    pub fn wtap_dump_file_type_subtype(wdh: *mut wtap_dumper) -> ::std::os::raw::c_int;
+    pub fn wtap_dump_file_type_subtype(wdh: *const wtap_dumper) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn wtap_get_bytes_dumped(arg1: *mut wtap_dumper) -> i64;
+    pub fn wtap_get_bytes_dumped(arg1: *const wtap_dumper) -> i64;
 }
 extern "C" {
     pub fn wtap_set_bytes_dumped(wdh: *mut wtap_dumper, bytes_dumped: i64);
@@ -33678,7 +33055,7 @@ pub struct addrinfo {
     _unused: [u8; 0],
 }
 extern "C" {
-    pub fn wtap_addrinfo_list_empty(addrinfo_lists: *mut addrinfo_lists_t) -> bool;
+    pub fn wtap_addrinfo_list_empty(addrinfo_lists: *const addrinfo_lists_t) -> bool;
 }
 extern "C" {
     pub fn wtap_dump_set_addrinfo_list(
@@ -33899,9 +33276,6 @@ extern "C" {
 }
 extern "C" {
     pub fn wmem_epan_scope() -> *mut wmem_allocator_t;
-}
-extern "C" {
-    pub fn wmem_packet_scope() -> *mut wmem_allocator_t;
 }
 extern "C" {
     pub fn wmem_file_scope() -> *mut wmem_allocator_t;
@@ -34412,6 +33786,14 @@ extern "C" {
     pub fn tvb_get_uint64(
         tvb: *mut tvbuff_t,
         offset: ::std::os::raw::c_int,
+        encoding: ::std::os::raw::c_uint,
+    ) -> u64;
+}
+extern "C" {
+    pub fn tvb_get_uint64_with_length(
+        tvb: *mut tvbuff_t,
+        offset: ::std::os::raw::c_int,
+        length: ::std::os::raw::c_uint,
         encoding: ::std::os::raw::c_uint,
     ) -> u64;
 }
@@ -35110,13 +34492,6 @@ fn bindgen_test_layout__value_string() {
 pub type value_string = _value_string;
 extern "C" {
     pub fn val_to_str(
-        val: u32,
-        vs: *const value_string,
-        fmt: *const ::std::os::raw::c_char,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn val_to_str_wmem(
         scope: *mut wmem_allocator_t,
         val: u32,
         vs: *const value_string,
@@ -35138,13 +34513,6 @@ extern "C" {
         val: u32,
         vs: *const value_string,
         idx: *mut ::std::os::raw::c_int,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn char_val_to_str(
-        val: ::std::os::raw::c_char,
-        vs: *const value_string,
-        msg: *const ::std::os::raw::c_char,
     ) -> *const ::std::os::raw::c_char;
 }
 #[repr(C)]
@@ -35190,7 +34558,8 @@ fn bindgen_test_layout__val64_string() {
 }
 pub type val64_string = _val64_string;
 extern "C" {
-    pub fn val64_to_str(
+    pub fn val64_to_str_wmem(
+        scope: *mut wmem_allocator_t,
         val: u64,
         vs: *const val64_string,
         fmt: *const ::std::os::raw::c_char,
@@ -35238,6 +34607,7 @@ pub struct _value_string_ext {
     pub _vs_num_entries: ::std::os::raw::c_uint,
     pub _vs_p: *const value_string,
     pub _vs_name: *const ::std::os::raw::c_char,
+    pub _scope: *mut wmem_allocator_t,
 }
 #[test]
 fn bindgen_test_layout__value_string_ext() {
@@ -35245,7 +34615,7 @@ fn bindgen_test_layout__value_string_ext() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_value_string_ext>(),
-        32usize,
+        40usize,
         concat!("Size of: ", stringify!(_value_string_ext))
     );
     assert_eq!(
@@ -35303,12 +34673,23 @@ fn bindgen_test_layout__value_string_ext() {
             stringify!(_vs_name)
         )
     );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr)._scope) as usize - ptr as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_value_string_ext),
+            "::",
+            stringify!(_scope)
+        )
+    );
 }
 extern "C" {
     pub fn _try_val_to_str_ext_init(val: u32, vse: *mut value_string_ext) -> *const value_string;
 }
 extern "C" {
     pub fn value_string_ext_new(
+        scope: *mut wmem_allocator_t,
         vs: *const value_string,
         vs_tot_num_entries: ::std::os::raw::c_uint,
         vs_name: *const ::std::os::raw::c_char,
@@ -35319,13 +34700,6 @@ extern "C" {
 }
 extern "C" {
     pub fn val_to_str_ext(
-        val: u32,
-        vse: *mut value_string_ext,
-        fmt: *const ::std::os::raw::c_char,
-    ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn val_to_str_ext_wmem(
         scope: *mut wmem_allocator_t,
         val: u32,
         vse: *mut value_string_ext,
@@ -35364,6 +34738,7 @@ pub struct _val64_string_ext {
     pub _vs_num_entries: ::std::os::raw::c_uint,
     pub _vs_p: *const val64_string,
     pub _vs_name: *const ::std::os::raw::c_char,
+    pub _scope: *mut wmem_allocator_t,
 }
 #[test]
 fn bindgen_test_layout__val64_string_ext() {
@@ -35371,7 +34746,7 @@ fn bindgen_test_layout__val64_string_ext() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_val64_string_ext>(),
-        40usize,
+        48usize,
         concat!("Size of: ", stringify!(_val64_string_ext))
     );
     assert_eq!(
@@ -35429,12 +34804,29 @@ fn bindgen_test_layout__val64_string_ext() {
             stringify!(_vs_name)
         )
     );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr)._scope) as usize - ptr as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_val64_string_ext),
+            "::",
+            stringify!(_scope)
+        )
+    );
+}
+extern "C" {
+    pub fn value_str_value_compare(
+        a: *const ::std::os::raw::c_void,
+        b: *const ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn _try_val64_to_str_ext_init(val: u64, vse: *mut val64_string_ext) -> *const val64_string;
 }
 extern "C" {
     pub fn val64_string_ext_new(
+        scope: *mut wmem_allocator_t,
         vs: *const val64_string,
         vs_tot_num_entries: ::std::os::raw::c_uint,
         vs_name: *const ::std::os::raw::c_char,
@@ -35442,13 +34834,6 @@ extern "C" {
 }
 extern "C" {
     pub fn val64_string_ext_free(vse: *mut val64_string_ext);
-}
-extern "C" {
-    pub fn val64_to_str_ext(
-        val: u64,
-        vse: *mut val64_string_ext,
-        fmt: *const ::std::os::raw::c_char,
-    ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn val64_to_str_ext_wmem(
@@ -35521,7 +34906,8 @@ fn bindgen_test_layout__string_string() {
 }
 pub type string_string = _string_string;
 extern "C" {
-    pub fn str_to_str(
+    pub fn str_to_str_wmem(
+        scope: *mut wmem_allocator_t,
         val: *const ::std::os::raw::c_char,
         vs: *const string_string,
         fmt: *const ::std::os::raw::c_char,
@@ -35594,7 +34980,8 @@ fn bindgen_test_layout__range_string() {
 }
 pub type range_string = _range_string;
 extern "C" {
-    pub fn rval_to_str(
+    pub fn rval_to_str_wmem(
+        scope: *mut wmem_allocator_t,
         val: u32,
         rs: *const range_string,
         fmt: *const ::std::os::raw::c_char,
@@ -35625,6 +35012,54 @@ extern "C" {
         val: u64,
         rs: *const range_string,
         idx: *mut ::std::os::raw::c_int,
+    ) -> *const ::std::os::raw::c_char;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct _time_value_string {
+    pub value: nstime_t,
+    pub strptr: *const ::std::os::raw::c_char,
+}
+#[test]
+fn bindgen_test_layout__time_value_string() {
+    const UNINIT: ::std::mem::MaybeUninit<_time_value_string> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<_time_value_string>(),
+        24usize,
+        concat!("Size of: ", stringify!(_time_value_string))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_time_value_string>(),
+        8usize,
+        concat!("Alignment of ", stringify!(_time_value_string))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).value) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_time_value_string),
+            "::",
+            stringify!(value)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).strptr) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_time_value_string),
+            "::",
+            stringify!(strptr)
+        )
+    );
+}
+pub type time_value_string = _time_value_string;
+extern "C" {
+    pub fn try_time_val_to_str(
+        val: *const nstime_t,
+        vs: *const time_value_string,
     ) -> *const ::std::os::raw::c_char;
 }
 #[repr(C)]
@@ -35681,7 +35116,8 @@ fn bindgen_test_layout__bytes_string() {
 }
 pub type bytes_string = _bytes_string;
 extern "C" {
-    pub fn bytesval_to_str(
+    pub fn bytesval_to_str_wmem(
+        scope: *mut wmem_allocator_t,
         val: *const u8,
         val_len: usize,
         bs: *const bytes_string,
@@ -35697,6 +35133,7 @@ extern "C" {
 }
 extern "C" {
     pub fn bytesprefix_to_str(
+        scope: *mut wmem_allocator_t,
         haystack: *const u8,
         haystack_len: usize,
         bs: *const bytes_string,
@@ -35710,313 +35147,47 @@ extern "C" {
         bs: *const bytes_string,
     ) -> *const ::std::os::raw::c_char;
 }
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct true_false_string {
-    pub true_string: *const ::std::os::raw::c_char,
-    pub false_string: *const ::std::os::raw::c_char,
-}
-#[test]
-fn bindgen_test_layout_true_false_string() {
-    const UNINIT: ::std::mem::MaybeUninit<true_false_string> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<true_false_string>(),
-        16usize,
-        concat!("Size of: ", stringify!(true_false_string))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<true_false_string>(),
-        8usize,
-        concat!("Alignment of ", stringify!(true_false_string))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).true_string) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(true_false_string),
-            "::",
-            stringify!(true_string)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).false_string) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(true_false_string),
-            "::",
-            stringify!(false_string)
-        )
+extern "C" {
+    pub fn register_external_value_string(
+        name: *const ::std::os::raw::c_char,
+        vs: *const value_string,
     );
 }
 extern "C" {
-    pub fn tfs_get_string(
-        value: bool,
-        tfs: *const true_false_string,
+    pub fn get_external_value_string(name: *const ::std::os::raw::c_char) -> *mut value_string;
+}
+extern "C" {
+    pub fn register_external_value_string_ext(
+        name: *const ::std::os::raw::c_char,
+        vse: *const value_string_ext,
+    );
+}
+extern "C" {
+    pub fn get_external_value_string_ext(
+        name: *const ::std::os::raw::c_char,
+    ) -> *mut value_string_ext;
+}
+extern "C" {
+    pub fn value_string_externals_init();
+}
+extern "C" {
+    pub fn value_string_externals_cleanup();
+}
+extern "C" {
+    pub fn value_string_ext_validate(vse: *const value_string_ext) -> bool;
+}
+extern "C" {
+    pub fn value_string_ext_match_type_str(
+        vse: *const value_string_ext,
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub static tfs_yes_no: true_false_string;
+    pub fn val64_string_ext_validate(vse: *const val64_string_ext) -> bool;
 }
 extern "C" {
-    pub static tfs_no_yes: true_false_string;
-}
-extern "C" {
-    pub static tfs_set_notset: true_false_string;
-}
-extern "C" {
-    pub static tfs_enabled_disabled: true_false_string;
-}
-extern "C" {
-    pub static tfs_disabled_enabled: true_false_string;
-}
-extern "C" {
-    pub static tfs_ok_error: true_false_string;
-}
-extern "C" {
-    pub static tfs_error_ok: true_false_string;
-}
-extern "C" {
-    pub static tfs_success_fail: true_false_string;
-}
-extern "C" {
-    pub static tfs_fail_success: true_false_string;
-}
-extern "C" {
-    pub static tfs_on_off: true_false_string;
-}
-extern "C" {
-    pub static tfs_off_on: true_false_string;
-}
-extern "C" {
-    pub static tfs_ack_nack: true_false_string;
-}
-extern "C" {
-    pub static tfs_odd_even: true_false_string;
-}
-extern "C" {
-    pub static tfs_allow_block: true_false_string;
-}
-extern "C" {
-    pub static tfs_restricted_not_restricted: true_false_string;
-}
-extern "C" {
-    pub static tfs_not_restricted_restricted: true_false_string;
-}
-extern "C" {
-    pub static tfs_accept_reject: true_false_string;
-}
-extern "C" {
-    pub static tfs_more_nomore: true_false_string;
-}
-extern "C" {
-    pub static tfs_present_absent: true_false_string;
-}
-extern "C" {
-    pub static tfs_present_not_present: true_false_string;
-}
-extern "C" {
-    pub static tfs_active_inactive: true_false_string;
-}
-extern "C" {
-    pub static tfs_activated_deactivated: true_false_string;
-}
-extern "C" {
-    pub static tfs_found_not_found: true_false_string;
-}
-extern "C" {
-    pub static tfs_command_response: true_false_string;
-}
-extern "C" {
-    pub static tfs_response_command: true_false_string;
-}
-extern "C" {
-    pub static tfs_capable_not_capable: true_false_string;
-}
-extern "C" {
-    pub static tfs_supported_not_supported: true_false_string;
-}
-extern "C" {
-    pub static tfs_not_supported_supported: true_false_string;
-}
-extern "C" {
-    pub static tfs_used_notused: true_false_string;
-}
-extern "C" {
-    pub static tfs_high_low: true_false_string;
-}
-extern "C" {
-    pub static tfs_high_normal: true_false_string;
-}
-extern "C" {
-    pub static tfs_low_normal: true_false_string;
-}
-extern "C" {
-    pub static tfs_pressed_not_pressed: true_false_string;
-}
-extern "C" {
-    pub static tfs_implemented_not_implemented: true_false_string;
-}
-extern "C" {
-    pub static tfs_requested_not_requested: true_false_string;
-}
-extern "C" {
-    pub static tfs_reliable_not_reliable: true_false_string;
-}
-extern "C" {
-    pub static tfs_allowed_not_allowed: true_false_string;
-}
-extern "C" {
-    pub static tfs_not_allowed_allowed: true_false_string;
-}
-extern "C" {
-    pub static tfs_accepted_not_accepted: true_false_string;
-}
-extern "C" {
-    pub static tfs_detected_not_detected: true_false_string;
-}
-extern "C" {
-    pub static tfs_available_not_available: true_false_string;
-}
-extern "C" {
-    pub static tfs_shared_independent: true_false_string;
-}
-extern "C" {
-    pub static tfs_valid_invalid: true_false_string;
-}
-extern "C" {
-    pub static tfs_invalid_valid: true_false_string;
-}
-extern "C" {
-    pub static tfs_group_unique_name: true_false_string;
-}
-extern "C" {
-    pub static tfs_inuse_not_inuse: true_false_string;
-}
-extern "C" {
-    pub static tfs_critical_not_critical: true_false_string;
-}
-extern "C" {
-    pub static tfs_complete_incomplete: true_false_string;
-}
-extern "C" {
-    pub static tfs_valid_not_valid: true_false_string;
-}
-extern "C" {
-    pub static tfs_do_not_clear_clear: true_false_string;
-}
-extern "C" {
-    pub static tfs_confirmed_unconfirmed: true_false_string;
-}
-extern "C" {
-    pub static tfs_enforced_not_enforced: true_false_string;
-}
-extern "C" {
-    pub static tfs_possible_not_possible: true_false_string;
-}
-extern "C" {
-    pub static tfs_required_not_required: true_false_string;
-}
-extern "C" {
-    pub static tfs_registered_not_registered: true_false_string;
-}
-extern "C" {
-    pub static tfs_provisioned_not_provisioned: true_false_string;
-}
-extern "C" {
-    pub static tfs_included_not_included: true_false_string;
-}
-extern "C" {
-    pub static tfs_allocated_by_receiver_sender: true_false_string;
-}
-extern "C" {
-    pub static tfs_asynchronous_synchronous: true_false_string;
-}
-extern "C" {
-    pub static tfs_protocol_sensative_bit_transparent: true_false_string;
-}
-extern "C" {
-    pub static tfs_full_half: true_false_string;
-}
-extern "C" {
-    pub static tfs_acknowledged_not_acknowledged: true_false_string;
-}
-extern "C" {
-    pub static tfs_segmentation_no_segmentation: true_false_string;
-}
-extern "C" {
-    pub static tfs_response_request: true_false_string;
-}
-extern "C" {
-    pub static tfs_defined_not_defined: true_false_string;
-}
-extern "C" {
-    pub static tfs_constructed_primitive: true_false_string;
-}
-extern "C" {
-    pub static tfs_client_server: true_false_string;
-}
-extern "C" {
-    pub static tfs_server_client: true_false_string;
-}
-extern "C" {
-    pub static tfs_preferred_no_preference: true_false_string;
-}
-extern "C" {
-    pub static tfs_encrypt_do_not_encrypt: true_false_string;
-}
-extern "C" {
-    pub static tfs_down_up: true_false_string;
-}
-extern "C" {
-    pub static tfs_up_down: true_false_string;
-}
-extern "C" {
-    pub static tfs_uplink_downlink: true_false_string;
-}
-extern "C" {
-    pub static tfs_s2c_c2s: true_false_string;
-}
-extern "C" {
-    pub static tfs_open_closed: true_false_string;
-}
-extern "C" {
-    pub static tfs_external_internal: true_false_string;
-}
-extern "C" {
-    pub static tfs_changed_not_changed: true_false_string;
-}
-extern "C" {
-    pub static tfs_needed_not_needed: true_false_string;
-}
-extern "C" {
-    pub static tfs_selected_not_selected: true_false_string;
-}
-extern "C" {
-    pub static tfs_add_drop: true_false_string;
-}
-extern "C" {
-    pub static tfs_no_extension_extension: true_false_string;
-}
-extern "C" {
-    pub static tfs_user_provider: true_false_string;
-}
-extern "C" {
-    pub static tfs_applicable_not_applicable: true_false_string;
-}
-extern "C" {
-    pub static tfs_current_not_yet: true_false_string;
-}
-extern "C" {
-    pub static tfs_should_be_traced_should_not_be_traced: true_false_string;
-}
-extern "C" {
-    pub static tfs_activate_do_not_activate: true_false_string;
-}
-extern "C" {
-    pub static tfs_data_pdu_control_pdu: true_false_string;
+    pub fn val64_string_ext_match_type_str(
+        vse: *const val64_string_ext,
+    ) -> *const ::std::os::raw::c_char;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -36035,13 +35206,14 @@ pub struct _color_filter {
 #[derive(Debug, Copy, Clone)]
 pub struct _frame_data {
     pub num: u32,
+    pub dis_num: u32,
     pub pkt_len: u32,
     pub cap_len: u32,
-    pub cum_bytes: u32,
     pub file_off: i64,
     pub pfd: *mut GSList,
     pub dependent_frames: *mut GHashTable,
     pub color_filter: *const _color_filter,
+    pub cum_bytes: u32,
     pub tcp_snd_manual_analysis: u8,
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 2usize]>,
@@ -36075,8 +35247,18 @@ fn bindgen_test_layout__frame_data() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).pkt_len) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).dis_num) as usize - ptr as usize },
         4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_frame_data),
+            "::",
+            stringify!(dis_num)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).pkt_len) as usize - ptr as usize },
+        8usize,
         concat!(
             "Offset of field: ",
             stringify!(_frame_data),
@@ -36086,22 +35268,12 @@ fn bindgen_test_layout__frame_data() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).cap_len) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_frame_data),
-            "::",
-            stringify!(cap_len)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).cum_bytes) as usize - ptr as usize },
         12usize,
         concat!(
             "Offset of field: ",
             stringify!(_frame_data),
             "::",
-            stringify!(cum_bytes)
+            stringify!(cap_len)
         )
     );
     assert_eq!(
@@ -36145,8 +35317,18 @@ fn bindgen_test_layout__frame_data() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tcp_snd_manual_analysis) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).cum_bytes) as usize - ptr as usize },
         48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_frame_data),
+            "::",
+            stringify!(cum_bytes)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).tcp_snd_manual_analysis) as usize - ptr as usize },
+        52usize,
         concat!(
             "Offset of field: ",
             stringify!(_frame_data),
@@ -36405,12 +35587,32 @@ extern "C" {
     );
 }
 extern "C" {
-    pub fn frame_delta_abs_time(
+    pub fn frame_rel_first_frame_time(
         epan: *const epan_session,
         fdata: *const frame_data,
-        prev_num: u32,
         delta: *mut nstime_t,
-    );
+    ) -> bool;
+}
+extern "C" {
+    pub fn frame_rel_time(
+        epan: *const epan_session,
+        fdata: *const frame_data,
+        delta: *mut nstime_t,
+    ) -> bool;
+}
+extern "C" {
+    pub fn frame_delta_time_prev_captured(
+        epan: *const epan_session,
+        fdata: *const frame_data,
+        delta: *mut nstime_t,
+    ) -> bool;
+}
+extern "C" {
+    pub fn frame_delta_time_prev_displayed(
+        epan: *const epan_session,
+        fdata: *const frame_data,
+        delta: *mut nstime_t,
+    ) -> bool;
 }
 extern "C" {
     pub fn frame_data_set_before_dissect(
@@ -36541,7 +35743,10 @@ pub const address_type_AT_AX25: address_type = 10;
 pub const address_type_AT_VINES: address_type = 11;
 pub const address_type_AT_NUMERIC: address_type = 12;
 pub const address_type_AT_MCTP: address_type = 13;
-pub const address_type_AT_END_OF_LIST: address_type = 14;
+pub const address_type_AT_ILNP_NID: address_type = 14;
+pub const address_type_AT_ILNP_L64: address_type = 15;
+pub const address_type_AT_ILNP_ILV: address_type = 16;
+pub const address_type_AT_END_OF_LIST: address_type = 17;
 pub type address_type = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -36659,6 +35864,7 @@ pub struct _packet_info {
     pub noreassembly_reason: *const ::std::os::raw::c_char,
     pub fragmented: bool,
     pub flags: _packet_info__bindgen_ty_1,
+    pub expert_severity: u32,
     pub ptype: port_type,
     pub srcport: u32,
     pub destport: u32,
@@ -36692,6 +35898,7 @@ pub struct _packet_info {
     pub heur_list_name: *const ::std::os::raw::c_char,
     pub dissection_depth: ::std::os::raw::c_int,
     pub stream_id: u32,
+    pub track_ctype: u32,
 }
 #[repr(C)]
 #[repr(align(4))]
@@ -36760,7 +35967,7 @@ fn bindgen_test_layout__packet_info() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_packet_info>(),
-        440usize,
+        456usize,
         concat!("Size of: ", stringify!(_packet_info))
     );
     assert_eq!(
@@ -36989,8 +36196,18 @@ fn bindgen_test_layout__packet_info() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ptype) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).expert_severity) as usize - ptr as usize },
         280usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_packet_info),
+            "::",
+            stringify!(expert_severity)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).ptype) as usize - ptr as usize },
+        284usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37000,7 +36217,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).srcport) as usize - ptr as usize },
-        284usize,
+        288usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37010,7 +36227,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).destport) as usize - ptr as usize },
-        288usize,
+        292usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37020,7 +36237,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).match_uint) as usize - ptr as usize },
-        292usize,
+        296usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37030,7 +36247,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).match_string) as usize - ptr as usize },
-        296usize,
+        304usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37042,7 +36259,7 @@ fn bindgen_test_layout__packet_info() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).use_conv_addr_port_endpoints) as usize - ptr as usize
         },
-        304usize,
+        312usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37052,7 +36269,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).conv_addr_port_endpoints) as usize - ptr as usize },
-        312usize,
+        320usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37062,7 +36279,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).conv_elements) as usize - ptr as usize },
-        320usize,
+        328usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37072,7 +36289,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).can_desegment) as usize - ptr as usize },
-        328usize,
+        336usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37082,7 +36299,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).saved_can_desegment) as usize - ptr as usize },
-        330usize,
+        338usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37092,7 +36309,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).desegment_offset) as usize - ptr as usize },
-        332usize,
+        340usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37102,7 +36319,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).desegment_len) as usize - ptr as usize },
-        336usize,
+        344usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37112,7 +36329,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).want_pdu_tracking) as usize - ptr as usize },
-        340usize,
+        348usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37122,7 +36339,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).bytes_until_next_pdu) as usize - ptr as usize },
-        344usize,
+        352usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37132,7 +36349,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).p2p_dir) as usize - ptr as usize },
-        348usize,
+        356usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37142,7 +36359,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).private_table) as usize - ptr as usize },
-        352usize,
+        360usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37152,7 +36369,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).layers) as usize - ptr as usize },
-        360usize,
+        368usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37162,7 +36379,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).proto_layers) as usize - ptr as usize },
-        368usize,
+        376usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37172,7 +36389,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).curr_layer_num) as usize - ptr as usize },
-        376usize,
+        384usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37182,7 +36399,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).curr_proto_layer_num) as usize - ptr as usize },
-        377usize,
+        385usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37192,7 +36409,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).link_number) as usize - ptr as usize },
-        378usize,
+        386usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37202,7 +36419,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).clnp_srcref) as usize - ptr as usize },
-        380usize,
+        388usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37212,7 +36429,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).clnp_dstref) as usize - ptr as usize },
-        382usize,
+        390usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37222,7 +36439,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).link_dir) as usize - ptr as usize },
-        384usize,
+        392usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37232,7 +36449,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).src_win_scale) as usize - ptr as usize },
-        388usize,
+        396usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37242,7 +36459,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).dst_win_scale) as usize - ptr as usize },
-        390usize,
+        398usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37252,7 +36469,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).proto_data) as usize - ptr as usize },
-        392usize,
+        400usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37262,7 +36479,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).frame_end_routines) as usize - ptr as usize },
-        400usize,
+        408usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37272,7 +36489,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pool) as usize - ptr as usize },
-        408usize,
+        416usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37282,7 +36499,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).epan) as usize - ptr as usize },
-        416usize,
+        424usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37292,7 +36509,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).heur_list_name) as usize - ptr as usize },
-        424usize,
+        432usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37302,7 +36519,7 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).dissection_depth) as usize - ptr as usize },
-        432usize,
+        440usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
@@ -37312,12 +36529,22 @@ fn bindgen_test_layout__packet_info() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).stream_id) as usize - ptr as usize },
-        436usize,
+        444usize,
         concat!(
             "Offset of field: ",
             stringify!(_packet_info),
             "::",
             stringify!(stream_id)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).track_ctype) as usize - ptr as usize },
+        448usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_packet_info),
+            "::",
+            stringify!(track_ctype)
         )
     );
 }
@@ -37415,6 +36642,7 @@ pub const ftenum_FT_FCWWN: ftenum = 44;
 pub const ftenum_FT_STRINGZTRUNC: ftenum = 45;
 pub const ftenum_FT_NUM_TYPES: ftenum = 46;
 pub const ftenum_FT_SCALAR: ftenum = 47;
+pub const ftenum_FT_ENUM_SIZE: ftenum = 47;
 pub type ftenum = ::std::os::raw::c_uint;
 pub use self::ftenum as ftenum_t;
 pub const ft_framenum_type_FT_FRAMENUM_NONE: ft_framenum_type = 0;
@@ -37435,13 +36663,16 @@ pub struct _ftype_t {
 pub type ftype_t = _ftype_t;
 pub const ft_result_FT_OK: ft_result = 0;
 pub const ft_result_FT_OVERFLOW: ft_result = 1;
-pub const ft_result_FT_BADARG: ft_result = 2;
-pub const ft_result_FT_ERROR: ft_result = 3;
+pub const ft_result_FT_UNDERFLOW: ft_result = 2;
+pub const ft_result_FT_BADARG: ft_result = 3;
+pub const ft_result_FT_ERROR: ft_result = 4;
 pub type ft_result = ::std::os::raw::c_uint;
 pub type ft_bool_t = ::std::os::raw::c_int;
 pub const ftrepr_FTREPR_DISPLAY: ftrepr = 0;
 pub const ftrepr_FTREPR_DFILTER: ftrepr = 1;
 pub const ftrepr_FTREPR_JSON: ftrepr = 2;
+pub const ftrepr_FTREPR_RAW: ftrepr = 3;
+pub const ftrepr_FTREPR_EK: ftrepr = 4;
 pub type ftrepr = ::std::os::raw::c_uint;
 pub use self::ftrepr as ftrepr_t;
 extern "C" {
@@ -37508,6 +36739,9 @@ extern "C" {
     pub fn ftype_can_is_negative(ftype: ftenum) -> bool;
 }
 extern "C" {
+    pub fn ftype_can_is_nan(ftype: ftenum) -> bool;
+}
+extern "C" {
     pub fn ftype_can_val_to_sinteger(ftype: ftenum) -> bool;
 }
 extern "C" {
@@ -37518,6 +36752,9 @@ extern "C" {
 }
 extern "C" {
     pub fn ftype_can_val_to_uinteger64(ftype: ftenum) -> bool;
+}
+extern "C" {
+    pub fn ftype_can_val_to_double(ftype: ftenum) -> bool;
 }
 pub const drange_node_end_t_DRANGE_NODE_END_T_UNINITIALIZED: drange_node_end_t = 0;
 pub const drange_node_end_t_DRANGE_NODE_END_T_LENGTH: drange_node_end_t = 1;
@@ -38045,10 +37282,13 @@ extern "C" {
     pub fn fvalue_matches(a: *const fvalue_t, re: *const ws_regex_t) -> ft_bool_t;
 }
 extern "C" {
-    pub fn fvalue_is_zero(a: *const fvalue_t) -> ft_bool_t;
+    pub fn fvalue_is_zero(a: *const fvalue_t) -> bool;
 }
 extern "C" {
-    pub fn fvalue_is_negative(a: *const fvalue_t) -> ft_bool_t;
+    pub fn fvalue_is_negative(a: *const fvalue_t) -> bool;
+}
+extern "C" {
+    pub fn fvalue_is_nan(a: *const fvalue_t) -> bool;
 }
 extern "C" {
     pub fn fvalue_length2(fv: *mut fvalue_t) -> usize;
@@ -38381,6 +37621,8 @@ fn bindgen_test_layout_hf_register_info() {
 #[derive(Debug, Copy, Clone)]
 pub struct _item_label_t {
     pub representation: [::std::os::raw::c_char; 240usize],
+    pub value_pos: usize,
+    pub value_len: usize,
 }
 #[test]
 fn bindgen_test_layout__item_label_t() {
@@ -38388,12 +37630,12 @@ fn bindgen_test_layout__item_label_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_item_label_t>(),
-        240usize,
+        256usize,
         concat!("Size of: ", stringify!(_item_label_t))
     );
     assert_eq!(
         ::std::mem::align_of::<_item_label_t>(),
-        1usize,
+        8usize,
         concat!("Alignment of ", stringify!(_item_label_t))
     );
     assert_eq!(
@@ -38404,6 +37646,26 @@ fn bindgen_test_layout__item_label_t() {
             stringify!(_item_label_t),
             "::",
             stringify!(representation)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).value_pos) as usize - ptr as usize },
+        240usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_item_label_t),
+            "::",
+            stringify!(value_pos)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).value_len) as usize - ptr as usize },
+        248usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_item_label_t),
+            "::",
+            stringify!(value_len)
         )
     );
 }
@@ -38608,6 +37870,9 @@ pub struct tree_data_t {
     pub fake_protocols: bool,
     pub count: ::std::os::raw::c_uint,
     pub pinfo: *mut _packet_info,
+    pub idle_count_ds_tvb: *mut tvbuff_t,
+    pub max_start: ::std::os::raw::c_int,
+    pub start_idle_count: ::std::os::raw::c_uint,
 }
 #[test]
 fn bindgen_test_layout_tree_data_t() {
@@ -38615,7 +37880,7 @@ fn bindgen_test_layout_tree_data_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<tree_data_t>(),
-        24usize,
+        40usize,
         concat!("Size of: ", stringify!(tree_data_t))
     );
     assert_eq!(
@@ -38673,6 +37938,36 @@ fn bindgen_test_layout_tree_data_t() {
             stringify!(pinfo)
         )
     );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).idle_count_ds_tvb) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tree_data_t),
+            "::",
+            stringify!(idle_count_ds_tvb)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).max_start) as usize - ptr as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tree_data_t),
+            "::",
+            stringify!(max_start)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).start_idle_count) as usize - ptr as usize },
+        36usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tree_data_t),
+            "::",
+            stringify!(start_idle_count)
+        )
+    );
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -38681,6 +37976,7 @@ pub struct _proto_node {
     pub last_child: *mut _proto_node,
     pub next: *mut _proto_node,
     pub parent: *mut _proto_node,
+    pub hfinfo: *const header_field_info,
     pub finfo: *mut field_info,
     pub tree_data: *mut tree_data_t,
 }
@@ -38690,7 +37986,7 @@ fn bindgen_test_layout__proto_node() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_proto_node>(),
-        48usize,
+        56usize,
         concat!("Size of: ", stringify!(_proto_node))
     );
     assert_eq!(
@@ -38739,8 +38035,18 @@ fn bindgen_test_layout__proto_node() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).finfo) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).hfinfo) as usize - ptr as usize },
         32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_proto_node),
+            "::",
+            stringify!(hfinfo)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).finfo) as usize - ptr as usize },
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(_proto_node),
@@ -38750,7 +38056,7 @@ fn bindgen_test_layout__proto_node() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).tree_data) as usize - ptr as usize },
-        40usize,
+        48usize,
         concat!(
             "Offset of field: ",
             stringify!(_proto_node),
@@ -38829,6 +38135,15 @@ extern "C" {
 }
 extern "C" {
     pub fn proto_cleanup();
+}
+pub type proto_execute_in_directory_func =
+    ::std::option::Option<unsafe extern "C" fn(param: *mut ::std::os::raw::c_void)>;
+extern "C" {
+    pub fn proto_execute_in_directory(
+        dir: *const ::std::os::raw::c_char,
+        func: proto_execute_in_directory_func,
+        param: *mut ::std::os::raw::c_void,
+    );
 }
 extern "C" {
     pub fn proto_field_is_referenced(
@@ -39956,7 +39271,11 @@ extern "C" {
     ) -> *mut proto_item;
 }
 extern "C" {
-    pub fn proto_item_fill_label(finfo: *const field_info, label_str: *mut ::std::os::raw::c_char);
+    pub fn proto_item_fill_label(
+        finfo: *const field_info,
+        label_str: *mut ::std::os::raw::c_char,
+        value_offset: *mut usize,
+    );
 }
 extern "C" {
     pub fn proto_item_fill_display_label(
@@ -40013,6 +39332,12 @@ extern "C" {
 }
 extern "C" {
     pub fn proto_add_deregistered_data(data: *mut ::std::os::raw::c_void);
+}
+extern "C" {
+    pub fn proto_deregister_all_fields_with_prefix(
+        parent: ::std::os::raw::c_int,
+        prefix: *const gchar,
+    );
 }
 extern "C" {
     pub fn proto_add_deregistered_slice(block_size: usize, mem_block: *mut ::std::os::raw::c_void);
@@ -40180,6 +39505,9 @@ extern "C" {
     pub fn proto_list_layers(pinfo: *const packet_info) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
+    pub fn proto_get_layer_num(pinfo: *const packet_info, proto_id: ::std::os::raw::c_int) -> u8;
+}
+extern "C" {
     pub fn proto_disable_by_default(proto_id: ::std::os::raw::c_int);
 }
 extern "C" {
@@ -40240,7 +39568,7 @@ extern "C" {
     pub fn proto_registrar_dump_fields();
 }
 extern "C" {
-    pub fn proto_registrar_dump_field_completions(prefix: *mut ::std::os::raw::c_char) -> bool;
+    pub fn proto_registrar_dump_field_completions(prefix: *const ::std::os::raw::c_char) -> bool;
 }
 extern "C" {
     pub fn proto_registrar_dump_ftypes();
@@ -40607,6 +39935,7 @@ extern "C" {
         tree: *mut proto_tree,
         field_id: *mut GSList,
         occurrence: ::std::os::raw::c_int,
+        display_details: bool,
         result: *mut ::std::os::raw::c_char,
         expr: *mut ::std::os::raw::c_char,
         size: ::std::os::raw::c_int,
@@ -40618,79 +39947,6 @@ extern "C" {
         field_id: *mut GSList,
         occurrence: ::std::os::raw::c_int,
     ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn hfinfo_char_value_format_display(
-        display: ::std::os::raw::c_int,
-        buf: *mut ::std::os::raw::c_char,
-        value: u32,
-    ) -> *const ::std::os::raw::c_char;
-}
-pub type feature_list = *mut *mut GList;
-pub type gather_feature_func = ::std::option::Option<unsafe extern "C" fn(l: feature_list)>;
-extern "C" {
-    pub fn with_feature(l: feature_list, fmt: *const ::std::os::raw::c_char, ...);
-}
-extern "C" {
-    pub fn without_feature(l: feature_list, fmt: *const ::std::os::raw::c_char, ...);
-}
-extern "C" {
-    pub fn sort_features(l: feature_list);
-}
-extern "C" {
-    pub fn free_features(l: feature_list);
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct enum_val_t {
-    pub name: *const ::std::os::raw::c_char,
-    pub description: *const ::std::os::raw::c_char,
-    pub value: ::std::os::raw::c_int,
-}
-#[test]
-fn bindgen_test_layout_enum_val_t() {
-    const UNINIT: ::std::mem::MaybeUninit<enum_val_t> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<enum_val_t>(),
-        24usize,
-        concat!("Size of: ", stringify!(enum_val_t))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<enum_val_t>(),
-        8usize,
-        concat!("Alignment of ", stringify!(enum_val_t))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).name) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(enum_val_t),
-            "::",
-            stringify!(name)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).description) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(enum_val_t),
-            "::",
-            stringify!(description)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).value) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(enum_val_t),
-            "::",
-            stringify!(value)
-        )
-    );
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -40838,6 +40094,75 @@ extern "C" {
 extern "C" {
     pub fn range_copy(scope: *mut wmem_allocator_t, src: *const range_t) -> *mut range_t;
 }
+pub type feature_list = *mut *mut GList;
+pub type gather_feature_func = ::std::option::Option<unsafe extern "C" fn(l: feature_list)>;
+extern "C" {
+    pub fn with_feature(l: feature_list, fmt: *const ::std::os::raw::c_char, ...);
+}
+extern "C" {
+    pub fn without_feature(l: feature_list, fmt: *const ::std::os::raw::c_char, ...);
+}
+extern "C" {
+    pub fn sort_features(l: feature_list);
+}
+extern "C" {
+    pub fn separate_features(l: feature_list, with_list: feature_list, without_list: feature_list);
+}
+extern "C" {
+    pub fn free_features(l: feature_list);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct enum_val_t {
+    pub name: *const ::std::os::raw::c_char,
+    pub description: *const ::std::os::raw::c_char,
+    pub value: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout_enum_val_t() {
+    const UNINIT: ::std::mem::MaybeUninit<enum_val_t> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<enum_val_t>(),
+        24usize,
+        concat!("Size of: ", stringify!(enum_val_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<enum_val_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(enum_val_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).name) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(enum_val_t),
+            "::",
+            stringify!(name)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).description) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(enum_val_t),
+            "::",
+            stringify!(description)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).value) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(enum_val_t),
+            "::",
+            stringify!(value)
+        )
+    );
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct color_t {
@@ -40938,6 +40263,16 @@ pub const elide_mode_e_ELIDE_RIGHT: elide_mode_e = 1;
 pub const elide_mode_e_ELIDE_MIDDLE: elide_mode_e = 2;
 pub const elide_mode_e_ELIDE_NONE: elide_mode_e = 3;
 pub type elide_mode_e = ::std::os::raw::c_uint;
+pub const copy_format_e_COPY_FORMAT_TEXT: copy_format_e = 0;
+pub const copy_format_e_COPY_FORMAT_CSV: copy_format_e = 1;
+pub const copy_format_e_COPY_FORMAT_YAML: copy_format_e = 2;
+pub const copy_format_e_COPY_FORMAT_HTML: copy_format_e = 3;
+pub type copy_format_e = ::std::os::raw::c_uint;
+pub const abs_time_format_e_ABS_TIME_ASCII_NEVER: abs_time_format_e = 0;
+pub const abs_time_format_e_ABS_TIME_ASCII_TREE: abs_time_format_e = 1;
+pub const abs_time_format_e_ABS_TIME_ASCII_COLUMN: abs_time_format_e = 2;
+pub const abs_time_format_e_ABS_TIME_ASCII_ALWAYS: abs_time_format_e = 3;
+pub type abs_time_format_e = ::std::os::raw::c_uint;
 pub const software_update_channel_e_UPDATE_CHANNEL_DEVELOPMENT: software_update_channel_e = 0;
 pub const software_update_channel_e_UPDATE_CHANNEL_STABLE: software_update_channel_e = 1;
 pub type software_update_channel_e = ::std::os::raw::c_uint;
@@ -40950,12 +40285,16 @@ pub struct _e_prefs {
     pub st_client_bg: color_t,
     pub st_server_fg: color_t,
     pub st_server_bg: color_t,
-    pub gui_text_valid: color_t,
-    pub gui_text_invalid: color_t,
-    pub gui_text_deprecated: color_t,
+    pub gui_filter_valid_fg: color_t,
+    pub gui_filter_invalid_fg: color_t,
+    pub gui_filter_deprecated_fg: color_t,
+    pub gui_filter_valid_bg: color_t,
+    pub gui_filter_invalid_bg: color_t,
+    pub gui_filter_deprecated_bg: color_t,
     pub restore_filter_after_following_stream: bool,
     pub gui_toolbar_main_style: ::std::os::raw::c_int,
     pub gui_font_name: *mut ::std::os::raw::c_char,
+    pub gui_color_scheme: ::std::os::raw::c_int,
     pub gui_active_fg: color_t,
     pub gui_active_bg: color_t,
     pub gui_active_style: ::std::os::raw::c_int,
@@ -40998,6 +40337,9 @@ pub struct _e_prefs {
     pub gui_interfaces_remote_display: bool,
     pub gui_io_graph_automatic_update: bool,
     pub gui_io_graph_enable_legend: bool,
+    pub gui_plot_automatic_update: bool,
+    pub gui_plot_enable_legend: bool,
+    pub gui_plot_enable_auto_scroll: bool,
     pub gui_packet_details_show_byteview: bool,
     pub capture_device: *mut ::std::os::raw::c_char,
     pub capture_devices_linktypes: *mut ::std::os::raw::c_char,
@@ -41020,6 +40362,7 @@ pub struct _e_prefs {
     pub tap_update_interval: ::std::os::raw::c_uint,
     pub display_hidden_proto_items: bool,
     pub display_byte_fields_with_spaces: bool,
+    pub display_abs_time_ascii: abs_time_format_e,
     pub enable_incomplete_dissectors_check: bool,
     pub incomplete_dissectors_check_debug: bool,
     pub strict_conversation_tracking_heuristics: bool,
@@ -41040,6 +40383,8 @@ pub struct _e_prefs {
     pub gui_show_selected_packet: bool,
     pub gui_show_file_load_time: bool,
     pub gui_packet_list_elide_mode: elide_mode_e,
+    pub gui_packet_list_copy_format_options_for_keyboard_shortcut: copy_format_e,
+    pub gui_packet_list_copy_text_with_aligned_columns: bool,
     pub gui_packet_list_show_related: bool,
     pub gui_packet_list_show_minimap: bool,
     pub gui_packet_list_sortable: bool,
@@ -41060,6 +40405,8 @@ pub struct _e_prefs {
     pub st_sort_defcolflag: ::std::os::raw::c_int,
     pub st_sort_defdescending: bool,
     pub st_sort_showfullname: bool,
+    pub st_format: ::std::os::raw::c_int,
+    pub conv_machine_readable: bool,
     pub extcap_save_on_start: bool,
 }
 #[test]
@@ -41068,7 +40415,7 @@ fn bindgen_test_layout__e_prefs() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_e_prefs>(),
-        480usize,
+        528usize,
         concat!("Size of: ", stringify!(_e_prefs))
     );
     assert_eq!(
@@ -41137,33 +40484,63 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).gui_text_valid) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_filter_valid_fg) as usize - ptr as usize },
         36usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
             "::",
-            stringify!(gui_text_valid)
+            stringify!(gui_filter_valid_fg)
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).gui_text_invalid) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_filter_invalid_fg) as usize - ptr as usize },
         42usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
             "::",
-            stringify!(gui_text_invalid)
+            stringify!(gui_filter_invalid_fg)
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).gui_text_deprecated) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_filter_deprecated_fg) as usize - ptr as usize },
         48usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
             "::",
-            stringify!(gui_text_deprecated)
+            stringify!(gui_filter_deprecated_fg)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_filter_valid_bg) as usize - ptr as usize },
+        54usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_filter_valid_bg)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_filter_invalid_bg) as usize - ptr as usize },
+        60usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_filter_invalid_bg)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_filter_deprecated_bg) as usize - ptr as usize },
+        66usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_filter_deprecated_bg)
         )
     );
     assert_eq!(
@@ -41171,7 +40548,7 @@ fn bindgen_test_layout__e_prefs() {
             ::std::ptr::addr_of!((*ptr).restore_filter_after_following_stream) as usize
                 - ptr as usize
         },
-        54usize,
+        72usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41181,7 +40558,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_toolbar_main_style) as usize - ptr as usize },
-        56usize,
+        76usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41191,7 +40568,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_font_name) as usize - ptr as usize },
-        64usize,
+        80usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41200,8 +40577,18 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_color_scheme) as usize - ptr as usize },
+        88usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_color_scheme)
+        )
+    );
+    assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_active_fg) as usize - ptr as usize },
-        72usize,
+        92usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41211,7 +40598,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_active_bg) as usize - ptr as usize },
-        78usize,
+        98usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41221,7 +40608,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_active_style) as usize - ptr as usize },
-        84usize,
+        104usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41231,7 +40618,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_inactive_fg) as usize - ptr as usize },
-        88usize,
+        108usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41241,7 +40628,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_inactive_bg) as usize - ptr as usize },
-        94usize,
+        114usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41251,7 +40638,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_inactive_style) as usize - ptr as usize },
-        100usize,
+        120usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41261,7 +40648,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_marked_fg) as usize - ptr as usize },
-        104usize,
+        124usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41271,7 +40658,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_marked_bg) as usize - ptr as usize },
-        110usize,
+        130usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41281,7 +40668,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_ignored_fg) as usize - ptr as usize },
-        116usize,
+        136usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41291,7 +40678,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_ignored_bg) as usize - ptr as usize },
-        122usize,
+        142usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41301,7 +40688,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_colorized_fg) as usize - ptr as usize },
-        128usize,
+        152usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41311,7 +40698,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_colorized_bg) as usize - ptr as usize },
-        136usize,
+        160usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41321,7 +40708,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_geometry_save_position) as usize - ptr as usize },
-        144usize,
+        168usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41331,7 +40718,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_geometry_save_size) as usize - ptr as usize },
-        145usize,
+        169usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41341,7 +40728,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_geometry_save_maximized) as usize - ptr as usize },
-        146usize,
+        170usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41351,7 +40738,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_recent_df_entries_max) as usize - ptr as usize },
-        148usize,
+        172usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41361,7 +40748,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_recent_files_count_max) as usize - ptr as usize },
-        152usize,
+        176usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41371,7 +40758,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_fileopen_style) as usize - ptr as usize },
-        156usize,
+        180usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41381,7 +40768,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_fileopen_dir) as usize - ptr as usize },
-        160usize,
+        184usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41391,7 +40778,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_fileopen_preview) as usize - ptr as usize },
-        168usize,
+        192usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41401,7 +40788,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_tlskeylog_command) as usize - ptr as usize },
-        176usize,
+        200usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41411,7 +40798,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_ask_unsaved) as usize - ptr as usize },
-        184usize,
+        208usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41421,7 +40808,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_autocomplete_filter) as usize - ptr as usize },
-        185usize,
+        209usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41431,7 +40818,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_find_wrap) as usize - ptr as usize },
-        186usize,
+        210usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41441,7 +40828,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_window_title) as usize - ptr as usize },
-        192usize,
+        216usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41451,7 +40838,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_prepend_window_title) as usize - ptr as usize },
-        200usize,
+        224usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41461,7 +40848,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_start_title) as usize - ptr as usize },
-        208usize,
+        232usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41471,7 +40858,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_version_placement) as usize - ptr as usize },
-        216usize,
+        240usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41481,7 +40868,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_max_export_objects) as usize - ptr as usize },
-        220usize,
+        244usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41491,7 +40878,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_max_tree_items) as usize - ptr as usize },
-        224usize,
+        248usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41501,7 +40888,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_max_tree_depth) as usize - ptr as usize },
-        228usize,
+        252usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41513,7 +40900,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_welcome_page_show_recent) as usize - ptr as usize
         },
-        232usize,
+        256usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41523,7 +40910,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_layout_type) as usize - ptr as usize },
-        236usize,
+        260usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41533,7 +40920,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_layout_content_1) as usize - ptr as usize },
-        240usize,
+        264usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41543,7 +40930,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_layout_content_2) as usize - ptr as usize },
-        244usize,
+        268usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41553,7 +40940,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_layout_content_3) as usize - ptr as usize },
-        248usize,
+        272usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41563,7 +40950,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_packet_dialog_layout) as usize - ptr as usize },
-        252usize,
+        276usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41573,7 +40960,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_interfaces_hide_types) as usize - ptr as usize },
-        256usize,
+        280usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41583,7 +40970,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_interfaces_show_hidden) as usize - ptr as usize },
-        264usize,
+        288usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41595,7 +40982,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_interfaces_remote_display) as usize - ptr as usize
         },
-        265usize,
+        289usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41607,7 +40994,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_io_graph_automatic_update) as usize - ptr as usize
         },
-        266usize,
+        290usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41617,7 +41004,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_io_graph_enable_legend) as usize - ptr as usize },
-        267usize,
+        291usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41626,10 +41013,40 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_plot_automatic_update) as usize - ptr as usize },
+        292usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_plot_automatic_update)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_plot_enable_legend) as usize - ptr as usize },
+        293usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_plot_enable_legend)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).gui_plot_enable_auto_scroll) as usize - ptr as usize },
+        294usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_plot_enable_auto_scroll)
+        )
+    );
+    assert_eq!(
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_packet_details_show_byteview) as usize - ptr as usize
         },
-        268usize,
+        295usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41639,7 +41056,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_device) as usize - ptr as usize },
-        272usize,
+        296usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41649,7 +41066,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_linktypes) as usize - ptr as usize },
-        280usize,
+        304usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41659,7 +41076,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_descr) as usize - ptr as usize },
-        288usize,
+        312usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41669,7 +41086,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_hide) as usize - ptr as usize },
-        296usize,
+        320usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41681,7 +41098,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).capture_devices_monitor_mode) as usize - ptr as usize
         },
-        304usize,
+        328usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41691,7 +41108,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_buffersize) as usize - ptr as usize },
-        312usize,
+        336usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41701,7 +41118,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_snaplen) as usize - ptr as usize },
-        320usize,
+        344usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41711,7 +41128,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_pmode) as usize - ptr as usize },
-        328usize,
+        352usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41721,7 +41138,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_devices_filter) as usize - ptr as usize },
-        336usize,
+        360usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41731,7 +41148,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_prom_mode) as usize - ptr as usize },
-        344usize,
+        368usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41741,7 +41158,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_monitor_mode) as usize - ptr as usize },
-        345usize,
+        369usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41751,7 +41168,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_pcap_ng) as usize - ptr as usize },
-        346usize,
+        370usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41761,7 +41178,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_real_time) as usize - ptr as usize },
-        347usize,
+        371usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41771,7 +41188,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_update_interval) as usize - ptr as usize },
-        348usize,
+        372usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41781,7 +41198,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_no_interface_load) as usize - ptr as usize },
-        352usize,
+        376usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41791,7 +41208,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_no_extcap) as usize - ptr as usize },
-        353usize,
+        377usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41801,7 +41218,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_show_info) as usize - ptr as usize },
-        354usize,
+        378usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41811,7 +41228,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).capture_columns) as usize - ptr as usize },
-        360usize,
+        384usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41821,7 +41238,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).tap_update_interval) as usize - ptr as usize },
-        368usize,
+        392usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41831,7 +41248,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).display_hidden_proto_items) as usize - ptr as usize },
-        372usize,
+        396usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41843,7 +41260,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).display_byte_fields_with_spaces) as usize - ptr as usize
         },
-        373usize,
+        397usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41852,10 +41269,20 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).display_abs_time_ascii) as usize - ptr as usize },
+        400usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(display_abs_time_ascii)
+        )
+    );
+    assert_eq!(
         unsafe {
             ::std::ptr::addr_of!((*ptr).enable_incomplete_dissectors_check) as usize - ptr as usize
         },
-        374usize,
+        404usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41867,7 +41294,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).incomplete_dissectors_check_debug) as usize - ptr as usize
         },
-        375usize,
+        405usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41880,7 +41307,7 @@ fn bindgen_test_layout__e_prefs() {
             ::std::ptr::addr_of!((*ptr).strict_conversation_tracking_heuristics) as usize
                 - ptr as usize
         },
-        376usize,
+        406usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41892,7 +41319,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).conversation_deinterlacing_key) as usize - ptr as usize
         },
-        380usize,
+        408usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41902,7 +41329,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ignore_dup_frames) as usize - ptr as usize },
-        384usize,
+        412usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41914,7 +41341,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).ignore_dup_frames_cache_entries) as usize - ptr as usize
         },
-        388usize,
+        416usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41924,7 +41351,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).filter_expressions_old) as usize - ptr as usize },
-        392usize,
+        420usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41934,7 +41361,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).cols_hide_new) as usize - ptr as usize },
-        393usize,
+        421usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41944,7 +41371,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_update_enabled) as usize - ptr as usize },
-        394usize,
+        422usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41954,7 +41381,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_update_channel) as usize - ptr as usize },
-        396usize,
+        424usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41964,7 +41391,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_update_interval) as usize - ptr as usize },
-        400usize,
+        428usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41974,7 +41401,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_debounce_timer) as usize - ptr as usize },
-        404usize,
+        432usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41984,7 +41411,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).saved_at_version) as usize - ptr as usize },
-        408usize,
+        440usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -41994,7 +41421,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).unknown_prefs) as usize - ptr as usize },
-        416usize,
+        448usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42004,7 +41431,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_packet_list_separator) as usize - ptr as usize },
-        417usize,
+        449usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42016,7 +41443,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_packet_header_column_definition) as usize - ptr as usize
         },
-        418usize,
+        450usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42026,7 +41453,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_packet_list_hover_style) as usize - ptr as usize },
-        419usize,
+        451usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42036,7 +41463,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_show_selected_packet) as usize - ptr as usize },
-        420usize,
+        452usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42046,7 +41473,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_show_file_load_time) as usize - ptr as usize },
-        421usize,
+        453usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42056,7 +41483,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_packet_list_elide_mode) as usize - ptr as usize },
-        424usize,
+        456usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42066,9 +41493,36 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe {
+            ::std::ptr::addr_of!((*ptr).gui_packet_list_copy_format_options_for_keyboard_shortcut)
+                as usize
+                - ptr as usize
+        },
+        460usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_packet_list_copy_format_options_for_keyboard_shortcut)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            ::std::ptr::addr_of!((*ptr).gui_packet_list_copy_text_with_aligned_columns) as usize
+                - ptr as usize
+        },
+        464usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(gui_packet_list_copy_text_with_aligned_columns)
+        )
+    );
+    assert_eq!(
+        unsafe {
             ::std::ptr::addr_of!((*ptr).gui_packet_list_show_related) as usize - ptr as usize
         },
-        428usize,
+        465usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42080,7 +41534,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_packet_list_show_minimap) as usize - ptr as usize
         },
-        429usize,
+        466usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42090,7 +41544,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_packet_list_sortable) as usize - ptr as usize },
-        430usize,
+        467usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42102,7 +41556,7 @@ fn bindgen_test_layout__e_prefs() {
         unsafe {
             ::std::ptr::addr_of!((*ptr).gui_packet_list_cached_rows_max) as usize - ptr as usize
         },
-        432usize,
+        468usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42112,7 +41566,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_decimal_places1) as usize - ptr as usize },
-        436usize,
+        472usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42122,7 +41576,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_decimal_places2) as usize - ptr as usize },
-        440usize,
+        476usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42132,7 +41586,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_decimal_places3) as usize - ptr as usize },
-        444usize,
+        480usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42142,7 +41596,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_rtp_player_use_disk1) as usize - ptr as usize },
-        448usize,
+        484usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42152,7 +41606,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).gui_rtp_player_use_disk2) as usize - ptr as usize },
-        449usize,
+        485usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42162,7 +41616,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).flow_graph_max_export_items) as usize - ptr as usize },
-        452usize,
+        488usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42172,7 +41626,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_enable_burstinfo) as usize - ptr as usize },
-        456usize,
+        492usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42182,7 +41636,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_burst_showcount) as usize - ptr as usize },
-        457usize,
+        493usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42192,7 +41646,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_burst_resolution) as usize - ptr as usize },
-        460usize,
+        496usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42202,7 +41656,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_burst_windowlen) as usize - ptr as usize },
-        464usize,
+        500usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42212,7 +41666,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_casesensitve) as usize - ptr as usize },
-        468usize,
+        504usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42222,7 +41676,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_rng_fixorder) as usize - ptr as usize },
-        469usize,
+        505usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42232,7 +41686,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_rng_nameonly) as usize - ptr as usize },
-        470usize,
+        506usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42242,7 +41696,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_defcolflag) as usize - ptr as usize },
-        472usize,
+        508usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42252,7 +41706,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_defdescending) as usize - ptr as usize },
-        476usize,
+        512usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42262,7 +41716,7 @@ fn bindgen_test_layout__e_prefs() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).st_sort_showfullname) as usize - ptr as usize },
-        477usize,
+        513usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42271,8 +41725,28 @@ fn bindgen_test_layout__e_prefs() {
         )
     );
     assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).st_format) as usize - ptr as usize },
+        516usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(st_format)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).conv_machine_readable) as usize - ptr as usize },
+        520usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(_e_prefs),
+            "::",
+            stringify!(conv_machine_readable)
+        )
+    );
+    assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).extcap_save_on_start) as usize - ptr as usize },
-        478usize,
+        521usize,
         concat!(
             "Offset of field: ",
             stringify!(_e_prefs),
@@ -42483,15 +41957,6 @@ extern "C" {
     );
 }
 extern "C" {
-    pub fn prefs_register_uat_preference_qt(
-        module: *mut module_t,
-        name: *const ::std::os::raw::c_char,
-        title: *const ::std::os::raw::c_char,
-        description: *const ::std::os::raw::c_char,
-        uat: *mut epan_uat,
-    );
-}
-extern "C" {
     pub fn prefs_register_color_preference(
         module: *mut module_t,
         name: *const ::std::os::raw::c_char,
@@ -42595,6 +42060,9 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
+    pub fn prefs_is_preference_obsolete(pref: *mut pref_t) -> bool;
+}
+extern "C" {
     pub fn read_prefs() -> *mut e_prefs;
 }
 extern "C" {
@@ -42610,18 +42078,6 @@ extern "C" {
         prefarg: *mut ::std::os::raw::c_char,
         errmsg: *mut *mut ::std::os::raw::c_char,
     ) -> prefs_set_pref_e;
-}
-extern "C" {
-    pub fn prefs_get_preference_obsolete(pref: *mut pref_t) -> bool;
-}
-extern "C" {
-    pub fn prefs_set_preference_obsolete(pref: *mut pref_t) -> prefs_set_pref_e;
-}
-extern "C" {
-    pub fn prefs_get_uint_value(
-        module_name: *const ::std::os::raw::c_char,
-        pref_name: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_uint;
 }
 extern "C" {
     pub fn prefs_get_range_value(
@@ -42648,6 +42104,9 @@ extern "C" {
 }
 extern "C" {
     pub static mut wireshark_abort_on_too_many_items: bool;
+}
+extern "C" {
+    pub fn ws_dissector_bug(format: *const ::std::os::raw::c_char, ...);
 }
 pub type epan_dissect_t = epan_dissect;
 #[repr(C)]
@@ -42691,6 +42150,28 @@ pub struct packet_provider_funcs {
             fd: *const frame_data,
         ) -> wtap_block_t,
     >,
+    pub get_process_id: ::std::option::Option<
+        unsafe extern "C" fn(
+            prov: *mut packet_provider_data,
+            process_info_id: u32,
+            section_number: ::std::os::raw::c_uint,
+        ) -> i32,
+    >,
+    pub get_process_name: ::std::option::Option<
+        unsafe extern "C" fn(
+            prov: *mut packet_provider_data,
+            process_info_id: u32,
+            section_number: ::std::os::raw::c_uint,
+        ) -> *const ::std::os::raw::c_char,
+    >,
+    pub get_process_uuid: ::std::option::Option<
+        unsafe extern "C" fn(
+            prov: *mut packet_provider_data,
+            process_info_id: u32,
+            section_number: ::std::os::raw::c_uint,
+            uuid_size: *mut usize,
+        ) -> *const u8,
+    >,
 }
 #[test]
 fn bindgen_test_layout_packet_provider_funcs() {
@@ -42699,7 +42180,7 @@ fn bindgen_test_layout_packet_provider_funcs() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<packet_provider_funcs>(),
-        32usize,
+        56usize,
         concat!("Size of: ", stringify!(packet_provider_funcs))
     );
     assert_eq!(
@@ -42745,6 +42226,36 @@ fn bindgen_test_layout_packet_provider_funcs() {
             stringify!(packet_provider_funcs),
             "::",
             stringify!(get_modified_block)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).get_process_id) as usize - ptr as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(packet_provider_funcs),
+            "::",
+            stringify!(get_process_id)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).get_process_name) as usize - ptr as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(packet_provider_funcs),
+            "::",
+            stringify!(get_process_name)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).get_process_uuid) as usize - ptr as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(packet_provider_funcs),
+            "::",
+            stringify!(get_process_uuid)
         )
     );
 }
@@ -42906,6 +42417,28 @@ extern "C" {
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
+    pub fn epan_get_process_id(
+        session: *const epan_t,
+        process_info_id: u32,
+        section_number: ::std::os::raw::c_uint,
+    ) -> i32;
+}
+extern "C" {
+    pub fn epan_get_process_name(
+        session: *const epan_t,
+        process_info_id: u32,
+        section_number: ::std::os::raw::c_uint,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn epan_get_process_uuid(
+        session: *const epan_t,
+        process_info_id: u32,
+        section_number: ::std::os::raw::c_uint,
+        uuid_size: *mut usize,
+    ) -> *const u8;
+}
+extern "C" {
     pub fn epan_get_frame_ts(session: *const epan_t, frame_num: u32) -> *const nstime_t;
 }
 extern "C" {
@@ -42950,7 +42483,6 @@ extern "C" {
         edt: *mut epan_dissect_t,
         file_type_subtype: ::std::os::raw::c_int,
         rec: *mut wtap_rec,
-        tvb: *mut tvbuff_t,
         fd: *mut frame_data,
         cinfo: *mut epan_column_info,
     );
@@ -42960,7 +42492,6 @@ extern "C" {
         edt: *mut epan_dissect_t,
         file_type_subtype: ::std::os::raw::c_int,
         rec: *mut wtap_rec,
-        tvb: *mut tvbuff_t,
         fd: *mut frame_data,
         cinfo: *mut epan_column_info,
     );
@@ -42969,7 +42500,6 @@ extern "C" {
     pub fn epan_dissect_file_run(
         edt: *mut epan_dissect_t,
         rec: *mut wtap_rec,
-        tvb: *mut tvbuff_t,
         fd: *mut frame_data,
         cinfo: *mut epan_column_info,
     );
@@ -42978,13 +42508,18 @@ extern "C" {
     pub fn epan_dissect_file_run_with_taps(
         edt: *mut epan_dissect_t,
         rec: *mut wtap_rec,
-        tvb: *mut tvbuff_t,
         fd: *mut frame_data,
         cinfo: *mut epan_column_info,
     );
 }
 extern "C" {
     pub fn epan_dissect_prime_with_dfilter(edt: *mut epan_dissect_t, dfcode: *const epan_dfilter);
+}
+extern "C" {
+    pub fn epan_dissect_prime_with_dfilter_print(
+        edt: *mut epan_dissect_t,
+        dfcode: *const epan_dfilter,
+    );
 }
 extern "C" {
     pub fn epan_dissect_prime_with_hfid(edt: *mut epan_dissect_t, hfid: ::std::os::raw::c_int);
@@ -43016,6 +42551,7 @@ extern "C" {
         edt: *mut epan_dissect_t,
         ids: *mut GSList,
         occurrence: ::std::os::raw::c_int,
+        display_details: bool,
         result: *mut ::std::os::raw::c_char,
         expr: *mut ::std::os::raw::c_char,
         size: ::std::os::raw::c_int,
@@ -43061,20 +42597,21 @@ pub const COL_UNRES_NET_SRC: _bindgen_ty_21 = 29;
 pub const COL_DEF_NET_DST: _bindgen_ty_21 = 30;
 pub const COL_DEF_NET_SRC: _bindgen_ty_21 = 31;
 pub const COL_NUMBER: _bindgen_ty_21 = 32;
-pub const COL_PACKET_LENGTH: _bindgen_ty_21 = 33;
-pub const COL_PROTOCOL: _bindgen_ty_21 = 34;
-pub const COL_REL_TIME: _bindgen_ty_21 = 35;
-pub const COL_DEF_SRC: _bindgen_ty_21 = 36;
-pub const COL_DEF_SRC_PORT: _bindgen_ty_21 = 37;
-pub const COL_RES_SRC: _bindgen_ty_21 = 38;
-pub const COL_UNRES_SRC: _bindgen_ty_21 = 39;
-pub const COL_RES_SRC_PORT: _bindgen_ty_21 = 40;
-pub const COL_UNRES_SRC_PORT: _bindgen_ty_21 = 41;
-pub const COL_UTC_YMD_TIME: _bindgen_ty_21 = 42;
-pub const COL_UTC_YDOY_TIME: _bindgen_ty_21 = 43;
-pub const COL_UTC_TIME: _bindgen_ty_21 = 44;
-pub const COL_CLS_TIME: _bindgen_ty_21 = 45;
-pub const NUM_COL_FMTS: _bindgen_ty_21 = 46;
+pub const COL_NUMBER_DIS: _bindgen_ty_21 = 33;
+pub const COL_PACKET_LENGTH: _bindgen_ty_21 = 34;
+pub const COL_PROTOCOL: _bindgen_ty_21 = 35;
+pub const COL_REL_TIME: _bindgen_ty_21 = 36;
+pub const COL_DEF_SRC: _bindgen_ty_21 = 37;
+pub const COL_DEF_SRC_PORT: _bindgen_ty_21 = 38;
+pub const COL_RES_SRC: _bindgen_ty_21 = 39;
+pub const COL_UNRES_SRC: _bindgen_ty_21 = 40;
+pub const COL_RES_SRC_PORT: _bindgen_ty_21 = 41;
+pub const COL_UNRES_SRC_PORT: _bindgen_ty_21 = 42;
+pub const COL_UTC_YMD_TIME: _bindgen_ty_21 = 43;
+pub const COL_UTC_YDOY_TIME: _bindgen_ty_21 = 44;
+pub const COL_UTC_TIME: _bindgen_ty_21 = 45;
+pub const COL_CLS_TIME: _bindgen_ty_21 = 46;
+pub const NUM_COL_FMTS: _bindgen_ty_21 = 47;
 pub type _bindgen_ty_21 = ::std::os::raw::c_uint;
 extern "C" {
     pub fn col_get_writable(cinfo: *mut column_info, col: ::std::os::raw::c_int) -> bool;
@@ -43229,6 +42766,9 @@ extern "C" {
 }
 extern "C" {
     pub fn packet_cache_proto_handles();
+}
+extern "C" {
+    pub fn packet_all_tables_sort_handles();
 }
 extern "C" {
     pub fn packet_cleanup();
@@ -43404,7 +42944,7 @@ extern "C" {
 extern "C" {
     pub fn dissector_add_uint_range(
         abbrev: *const ::std::os::raw::c_char,
-        range: *mut epan_range,
+        range: *mut range_t,
         handle: dissector_handle_t,
     );
 }
@@ -43425,7 +42965,7 @@ extern "C" {
 extern "C" {
     pub fn dissector_delete_uint_range(
         abbrev: *const ::std::os::raw::c_char,
-        range: *mut epan_range,
+        range: *mut range_t,
         handle: dissector_handle_t,
     );
 }
@@ -43455,7 +42995,7 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn dissector_try_uint_new(
+    pub fn dissector_try_uint_with_data(
         sub_dissectors: dissector_table_t,
         uint_val: u32,
         tvb: *mut tvbuff_t,
@@ -43511,17 +43051,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    pub fn dissector_try_string(
-        sub_dissectors: dissector_table_t,
-        string: *const ::std::os::raw::c_char,
-        tvb: *mut tvbuff_t,
-        pinfo: *mut packet_info,
-        tree: *mut proto_tree,
-        data: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn dissector_try_string_new(
+    pub fn dissector_try_string_with_data(
         sub_dissectors: dissector_table_t,
         string: *const ::std::os::raw::c_char,
         tvb: *mut tvbuff_t,
@@ -43606,16 +43136,7 @@ extern "C" {
     );
 }
 extern "C" {
-    pub fn dissector_try_guid(
-        sub_dissectors: dissector_table_t,
-        guid_val: *mut guid_key,
-        tvb: *mut tvbuff_t,
-        pinfo: *mut packet_info,
-        tree: *mut proto_tree,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn dissector_try_guid_new(
+    pub fn dissector_try_guid_with_data(
         sub_dissectors: dissector_table_t,
         guid_val: *mut guid_key,
         tvb: *mut tvbuff_t,
@@ -43639,15 +43160,7 @@ extern "C" {
     ) -> dissector_handle_t;
 }
 extern "C" {
-    pub fn dissector_try_payload(
-        sub_dissectors: dissector_table_t,
-        tvb: *mut tvbuff_t,
-        pinfo: *mut packet_info,
-        tree: *mut proto_tree,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn dissector_try_payload_new(
+    pub fn dissector_try_payload_with_data(
         sub_dissectors: dissector_table_t,
         tvb: *mut tvbuff_t,
         pinfo: *mut packet_info,
@@ -44058,12 +43571,6 @@ extern "C" {
     ) -> depend_dissector_list_t;
 }
 extern "C" {
-    pub fn dissect_init();
-}
-extern "C" {
-    pub fn dissect_cleanup();
-}
-extern "C" {
     pub fn set_actual_length(tvb: *mut tvbuff_t, specified_len: ::std::os::raw::c_uint);
 }
 extern "C" {
@@ -44093,32 +43600,55 @@ extern "C" {
 extern "C" {
     pub fn final_registration_all_protocols();
 }
-extern "C" {
-    pub fn add_new_data_source(
-        pinfo: *mut packet_info,
-        tvb: *mut tvbuff_t,
-        name: *const ::std::os::raw::c_char,
-    );
-}
-extern "C" {
-    pub fn remove_last_data_source(pinfo: *mut packet_info);
-}
+pub const data_source_media_type_e_DS_MEDIA_TYPE_APPLICATION_OCTET_STREAM:
+    data_source_media_type_e = 0;
+pub const data_source_media_type_e_DS_MEDIA_TYPE_APPLICATION_JSON: data_source_media_type_e = 1;
+pub type data_source_media_type_e = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct data_source {
     _unused: [u8; 0],
 }
 extern "C" {
-    pub fn get_data_source_name(src: *const data_source) -> *mut ::std::os::raw::c_char;
+    pub fn add_new_data_source(
+        pinfo: *mut packet_info,
+        tvb: *mut tvbuff_t,
+        name: *const ::std::os::raw::c_char,
+    ) -> *mut data_source;
+}
+extern "C" {
+    pub fn set_data_source_name(
+        pinfo: *mut packet_info,
+        src: *mut data_source,
+        name: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn set_data_source_media_type(src: *mut data_source, media_type: data_source_media_type_e);
+}
+extern "C" {
+    pub fn remove_last_data_source(pinfo: *mut packet_info);
+}
+extern "C" {
+    pub fn get_data_source_description(src: *const data_source) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn get_data_source_tvb(src: *const data_source) -> *mut tvbuff_t;
 }
 extern "C" {
-    pub fn get_data_source_tvb_by_name(
-        pinfo: *mut packet_info,
+    pub fn get_data_source_by_name(
+        pinfo: *const packet_info,
         name: *const ::std::os::raw::c_char,
-    ) -> *mut tvbuff_t;
+    ) -> *mut data_source;
+}
+extern "C" {
+    pub fn get_data_source_by_tvb(
+        pinfo: *const packet_info,
+        tvb: *const tvbuff_t,
+    ) -> *mut data_source;
+}
+extern "C" {
+    pub fn get_data_source_media_type(src: *const data_source) -> data_source_media_type_e;
 }
 extern "C" {
     pub fn free_data_sources(pinfo: *mut packet_info);
@@ -44226,7 +43756,6 @@ extern "C" {
         edt: *mut epan_dissect,
         file_type_subtype: ::std::os::raw::c_int,
         rec: *mut wtap_rec,
-        tvb: *mut tvbuff_t,
         fd: *mut frame_data,
         cinfo: *mut column_info,
     );
@@ -44235,7 +43764,6 @@ extern "C" {
     pub fn dissect_file(
         edt: *mut epan_dissect,
         rec: *mut wtap_rec,
-        tvb: *mut tvbuff_t,
         fd: *mut frame_data,
         cinfo: *mut column_info,
     );

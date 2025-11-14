@@ -20,18 +20,8 @@ use zenoh_impl::ZenohProtocol;
 use zenoh_protocol::transport::{BatchSize, TransportMessage};
 use zenoh_transport::common::batch::Decode;
 
-// Pacakge version: "0.2.0\0"
-#[no_mangle]
-#[used]
-static plugin_version: [std::ffi::c_char; 6usize] = [48, 46, 50, 46, 48, 0];
-
-// Wireshark version: 4.4
-#[no_mangle]
-#[used]
-static plugin_want_major: std::ffi::c_int = 4;
-#[no_mangle]
-#[used]
-static plugin_want_minor: std::ffi::c_int = 4;
+// Version symbols are generated at build time from Cargo.toml metadata
+include!(concat!(env!("OUT_DIR"), "/version.rs"));
 
 // Max number of summary of batch in one packet
 static MAX_PACKET_SUMMARY: usize = 5;
