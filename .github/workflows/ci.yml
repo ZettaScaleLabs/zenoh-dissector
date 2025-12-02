@@ -62,9 +62,8 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt install -y software-properties-common
-          sudo add-apt-repository -y ppa:wireshark-dev/stable
-          sudo apt install -y wireshark-dev
-          sudo apt install -y --allow-change-held-packages wireshark tshark
+          sudo add-apt-repository -y ppa:wireshark-dev/stable-staging
+          sudo apt install -y wireshark-dev wireshark tshark
 
       - name: Install Wireshark (macOS)
         if: matrix.platform == 'macos'
