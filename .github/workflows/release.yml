@@ -96,7 +96,7 @@ jobs:
 
       - uses: hustcer/setup-nu@v3
         with:
-          version: '0.100'
+          version: "0.100"
 
       - name: Extract Wireshark version from Cargo.toml
         id: wireshark-version
@@ -198,7 +198,7 @@ jobs:
 
       - uses: hustcer/setup-nu@v3
         with:
-          version: '0.100'
+          version: "0.100"
 
       - name: Download the artifacts of previous builds
         uses: actions/download-artifact@v4
@@ -220,7 +220,7 @@ jobs:
           let metadata = (cargo metadata --format-version 1 | from json)
           let pkg_ver = ($metadata.packages | where name == "zenoh-dissector" | get version | first)
           let zenoh_ver = ($metadata.packages | where name == "zenoh-protocol" | get version | first)
-          let wireshark_ver = ($metadata.workspace_metadata.wireshark_version)
+          let wireshark_ver = ($metadata.metadata.wireshark_version)
 
           print $"Package version: ($pkg_ver)"
           print $"Zenoh version: ($zenoh_ver)"
