@@ -16,7 +16,7 @@ resolver = "2"
 members = ["zenoh-dissector", "epan-sys"]
 
 [workspace.package]
-version = "1.6.2"
+version = "1.7.0"
 edition = "2021"
 
 [workspace.metadata]
