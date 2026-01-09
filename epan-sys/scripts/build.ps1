@@ -43,6 +43,28 @@ if (-not (Test-Path (Join-Path $SrcDir "CMakeLists.txt"))) {
 
     # Clean up intermediate .tar file
     Remove-Item $tarPath -ErrorAction SilentlyContinue
+
+    # Apply patch to Wireshark to correct docbook URL
+    Write-Host "Patching DocBook location..."
+    $PatchUrl = "https://gitlab.com/wireshark/wireshark/-/commit/2be6899941c73a4406a459b6677d0aa0929477a0.patch"
+    $PatchFile = Join-Path $PWD "docbook-url-fix.patch"
+
+    Invoke-WebRequest -Uri $PatchUrl -OutFile $PatchFile -UseBasicParsing
+    Push-Location $SrcDir
+
+    # Use git to patch the file if available, otherwise use patch command
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        git apply "$PatchFile"
+    } else {
+        # Fall‑back to the BSD‑style `patch` command (available via GnuWin32 or Git Bash)
+        & patch -p1 -i "$PatchFile"
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Applying the DocBook URL patch failed."
+        exit 1
+    }
+    Pop-Location
 }
 
 # Create build directory
