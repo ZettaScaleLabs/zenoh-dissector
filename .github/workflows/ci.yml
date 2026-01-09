@@ -18,8 +18,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: DavidAnson/markdownlint-cli2-action@v18
         with:
-          config: '.markdownlint.yaml'
-          globs: '**/README.md'
+          config: ".markdownlint.yaml"
+          globs: "**/README.md"
 
   platform_checks:
     name: Run checks on ${{ matrix.os }}
@@ -40,7 +40,7 @@ jobs:
 
       - uses: hustcer/setup-nu@v3
         with:
-          version: '0.100'
+          version: "0.100"
 
       - name: Extract Wireshark version from Cargo.toml
         id: wireshark-version
