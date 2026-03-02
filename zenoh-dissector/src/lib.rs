@@ -354,9 +354,6 @@ unsafe fn try_dissect_in_zenoh(
             }
 
             packet_summary = batch_summary;
-
-            // Update the range of the buffer to display
-            tree_args.start += tree_args.length;
         }
 
         anyhow::Ok(packet_summary)
