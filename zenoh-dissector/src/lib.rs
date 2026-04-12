@@ -486,6 +486,9 @@ unsafe fn update_zid_fields(
     tree_args: &TreeArgs,
 ) {
     let conv_state = conversation_state(pinfo);
+    if conv_state.is_null() {
+        return;
+    }
 
     if let Some(src) = (*conv_state).source(pinfo) {
         epan_sys::proto_tree_add_string(
