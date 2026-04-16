@@ -11,6 +11,7 @@
 // Contributors:
 //   ZettaScale Zenoh Team, <zenoh@zettascale.tech>
 //
+use crate::span::{ByteSpan, SpanMap};
 use anyhow::{bail, Result};
 use std::{collections::HashMap, ffi::CString};
 
@@ -19,7 +20,6 @@ type HFPointerMap = HashMap<String, std::ffi::c_int>;
 // Pointer HashMap of Subtree
 type STPointerMap = HashMap<String, std::ffi::c_int>;
 
-#[derive(Debug, Clone, Copy)]
 pub struct TreeArgs<'a> {
     pub tree: *mut epan_sys::proto_tree,
     pub tvb: *mut epan_sys::tvbuff,
@@ -27,6 +27,11 @@ pub struct TreeArgs<'a> {
     pub st_map: &'a STPointerMap,
     pub start: usize,
     pub length: usize,
+    /// Per-field byte spans shared across the whole transport message.
+    pub spans: Option<&'a SpanMap>,
+    /// Per-item remapped span map for `#[dissect(vec)]` rendering.
+    /// Built by the vec renderer for each item index; checked before `spans`.
+    pub local_spans: Option<SpanMap>,
 }
 
 impl TreeArgs<'_> {
@@ -46,22 +51,44 @@ impl TreeArgs<'_> {
         }
     }
 
+    pub fn field_span(&self, field_key: &str) -> (usize, usize) {
+        // local_spans (per-vec-item remapping) takes priority over shared spans
+        if let Some(ref m) = self.local_spans {
+            if let Some(s) = m.get(field_key) {
+                return (s.start, s.len());
+            }
+        }
+        self.spans
+            .and_then(|m| m.get(field_key))
+            .map(|s: &ByteSpan| (s.start, s.len()))
+            .unwrap_or((self.start, 0))
+    }
+
     pub fn make_subtree(&self, key: &str, name: &str) -> Result<Self> {
-        let mut new_args = *self;
+        let (sub_start, sub_len) = self.field_span(key);
         let name_c_str = CString::new(name).unwrap();
-        new_args.tree = unsafe {
+        let new_tree = unsafe {
             let ti = epan_sys::proto_tree_add_none_format(
                 self.tree,
                 self.get_hf(key)?,
                 self.tvb,
-                self.start as _,
-                self.length as _,
+                sub_start as _,
+                sub_len as _,
                 name_c_str.as_ptr(),
             );
             epan_sys::proto_item_add_subtree(ti, self.get_st(key)?)
         };
 
-        Ok(new_args)
+        Ok(Self {
+            tree: new_tree,
+            tvb: self.tvb,
+            hf_map: self.hf_map,
+            st_map: self.st_map,
+            start: sub_start,
+            length: sub_len,
+            spans: self.spans,
+            local_spans: self.local_spans.clone(),
+        })
     }
 }
 

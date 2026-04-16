@@ -24,11 +24,16 @@ use zenoh_transport::common::batch::Decode;
 mod conversation;
 mod header_field;
 mod macros;
+mod span;
 mod tree;
 mod utils;
 mod wireshark;
 mod ws_log;
 mod zenoh_impl;
+mod zenoh_spans;
+
+use span::SpanMap;
+use zenoh_spans::record_transport_message_spans;
 
 /// Max number of message summaries in one batch.
 const MAX_BATCH_SUMMARY: usize = 5;
@@ -250,8 +255,7 @@ unsafe extern "C" fn register_handoff() {
     });
 }
 
-unsafe extern "C" fn dissect_zenoh_heur(
-    tvb: *mut epan_sys::tvbuff,
+unsafe extern "C" fn dissect_zenoh_heur(    tvb: *mut epan_sys::tvbuff,
     pinfo: *mut epan_sys::_packet_info,
     tree: *mut epan_sys::_proto_node,
     data: *mut std::ffi::c_void,
@@ -432,6 +436,8 @@ unsafe extern "C" fn dissect_pdu_zenoh_tcp(
             st_map: &borrowed_data.st_map,
             start: 0,
             length: tvb_len,
+            spans: None,
+            local_spans: None,
         }
         .make_subtree("zenoh.batch", &format!("Batch, Len: {payload_len}"))
         .unwrap();
@@ -441,12 +447,33 @@ unsafe extern "C" fn dissect_pdu_zenoh_tcp(
             conversation::update_state(pinfo, &m.msg);
         }
 
-        for m in &msgs {
+        // Build per-field span maps for each message (payload-relative, then shifted).
+        let span_maps: Vec<SpanMap> = msgs.iter().map(|m| {
+            let mut span_map = SpanMap::new();
+            #[allow(static_mut_refs)]
+            if !IS_COMPRESSION && m.offset + m.len <= payload_slice.len() {
+                let msg_bytes = &payload_slice[m.offset..m.offset + m.len];
+                let mut cursor = span::SpanCursor::new(msg_bytes);
+                if let Err(e) = record_transport_message_spans(&m.msg, &mut cursor, "zenoh", &mut span_map) {
+                    ws_log::message!("span recording error: {e}");
+                    span_map.clear();
+                }
+                for s in span_map.values_mut() {
+                    s.start += BATCH_HEADER_LEN + m.offset;
+                    s.end += BATCH_HEADER_LEN + m.offset;
+                }
+            }
+            span_map
+        }).collect();
+
+        for (m, span_map) in msgs.iter().zip(span_maps.iter()) {
             // Message offsets are relative to the batch payload; shift by BATCH_HEADER_LEN
             // to make them relative to the TVB.
             let msg_tree = TreeArgs {
                 start: BATCH_HEADER_LEN + m.offset,
                 length: m.len,
+                spans: if span_map.is_empty() { None } else { Some(span_map) },
+                local_spans: None,
                 ..batch_tree
             };
             m.msg.add_to_tree("zenoh", &msg_tree).unwrap();
@@ -547,6 +574,8 @@ unsafe extern "C" fn dissect_zenoh_udp(
             st_map: &borrowed_data.st_map,
             start: 0,
             length: tvb_len,
+            spans: None,
+            local_spans: None,
         };
 
         for m in &msgs {
@@ -554,10 +583,30 @@ unsafe extern "C" fn dissect_zenoh_udp(
         }
         conversation::update_tree(tvb, pinfo, zenoh_tree, ti);
 
-        for m in &msgs {
+        let span_maps: Vec<SpanMap> = msgs.iter().map(|m| {
+            let mut span_map = SpanMap::new();
+            #[allow(static_mut_refs)]
+            if !IS_COMPRESSION && m.offset + m.len <= tvb_slice.len() {
+                let msg_bytes = &tvb_slice[m.offset..m.offset + m.len];
+                let mut cursor = span::SpanCursor::new(msg_bytes);
+                if let Err(e) = record_transport_message_spans(&m.msg, &mut cursor, "zenoh", &mut span_map) {
+                    ws_log::message!("span recording error: {e}");
+                    span_map.clear();
+                }
+                for s in span_map.values_mut() {
+                    s.start += m.offset;
+                    s.end += m.offset;
+                }
+            }
+            span_map
+        }).collect();
+
+        for (m, span_map) in msgs.iter().zip(span_maps.iter()) {
             let msg_tree = TreeArgs {
                 start: m.offset,
                 length: m.len,
+                spans: if span_map.is_empty() { None } else { Some(span_map) },
+                local_spans: None,
                 ..tree_args
             };
             m.msg.add_to_tree("zenoh", &msg_tree).unwrap();

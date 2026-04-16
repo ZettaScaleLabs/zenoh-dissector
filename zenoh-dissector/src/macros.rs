@@ -172,6 +172,8 @@ macro_rules! impl_for_struct {
             fn add_to_tree(&self, prefix: &str, args: &TreeArgs) -> Result<()> {
                 $(
                     let hf_index = args.get_hf(&format!("{prefix}.{}", stringify!{$field_name}))?;
+                    let field_key = format!("{prefix}.{}", stringify!{$field_name});
+                    let (field_start, field_len) = args.field_span(&field_key);
                     unsafe {
                         let field_name_c_str = std::ffi::CString::new(format!("{:?}", self.$field_name)).unwrap();
                         // The codec doesn't expose per-field byte offsets, so we prevent wireshark
@@ -180,8 +182,8 @@ macro_rules! impl_for_struct {
                             args.tree,
                             hf_index,
                             args.tvb,
-                            args.start as _,
-                            0,
+                            field_start as _,
+                            field_len as _,
                             field_name_c_str.as_ptr(),
                         );
                     }
@@ -189,7 +191,7 @@ macro_rules! impl_for_struct {
 
                 // HACK(fuzzypixelz): recursively created trees will have an incorrect length. Only
                 // the Transport layer has an accurate length.
-                let args = $crate::tree::TreeArgs { length: 0, ..*args };
+                let args = $crate::tree::TreeArgs { length: 0, local_spans: None, ..*args };
 
                 $(
                     for item in &self.$expand_vec_as_field {

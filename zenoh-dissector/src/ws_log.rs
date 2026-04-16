@@ -98,13 +98,15 @@ pub(crate) mod __private {
 
     #[track_caller]
     pub(crate) fn with_level(level: epan_sys::ws_log_level, s: String) {
+        let caller = Location::caller();
+        let file_c_str = CString::new(caller.file()).unwrap();
         unsafe {
             let c_str = CString::new(s).unwrap();
             epan_sys::ws_log_full(
                 c"Zenoh".as_ptr(),
                 level,
-                Location::caller().file_as_c_str().as_ptr(),
-                Location::caller().line() as _,
+                file_c_str.as_ptr(),
+                caller.line() as _,
                 ptr::null(),
                 c"%s".as_ptr(),
                 c_str.as_ptr(),
