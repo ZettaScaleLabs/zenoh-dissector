@@ -96,21 +96,45 @@ jobs:
         if: matrix.platform == 'windows'
         shell: powershell
         run: |
+          Write-Host "Contents of C:\wsbuild:"
+          Get-ChildItem C:\wsbuild -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $($_.Name)" }
+
           $libsDir = Get-ChildItem C:\wsbuild -Directory -ErrorAction SilentlyContinue |
             Where-Object { $_.Name -like "wireshark-x64-libs-*" } |
             Select-Object -First 1
           if (-not $libsDir) {
-            Write-Host "WARNING: no wireshark-x64-libs-* directory found in C:\wsbuild"
-            Get-ChildItem C:\wsbuild -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $_" }
+            Write-Host "ERROR: no wireshark-x64-libs-* directory found in C:\wsbuild"
             exit 1
           }
-          $vcpkgDir = Get-ChildItem (Join-Path $libsDir.FullName "vcpkg-export") -Directory -ErrorAction SilentlyContinue |
-            Select-Object -First 1
-          $pkgPath = Join-Path $vcpkgDir.FullName "installed\x64-windows\lib\pkgconfig"
-          if (-not (Test-Path $pkgPath)) {
-            Write-Host "WARNING: pkgconfig directory not found at $pkgPath"
+          Write-Host "Found libs dir: $($libsDir.FullName)"
+          Write-Host "Contents:"
+          Get-ChildItem $libsDir.FullName -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $($_.Name)" }
+
+          # Try vcpkg-export/<hash>/installed/x64-windows/lib/pkgconfig
+          $vcpkgExport = Join-Path $libsDir.FullName "vcpkg-export"
+          $pkgPath = $null
+          if (Test-Path $vcpkgExport) {
+            $vcpkgDir = Get-ChildItem $vcpkgExport -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($vcpkgDir) {
+              $candidate = Join-Path $vcpkgDir.FullName "installed\x64-windows\lib\pkgconfig"
+              if (Test-Path $candidate) { $pkgPath = $candidate }
+            }
+          }
+
+          # Fallback: search recursively for pkgconfig containing glib-2.0.pc
+          if (-not $pkgPath) {
+            Write-Host "vcpkg-export path not found, searching recursively for glib-2.0.pc..."
+            $glibPc = Get-ChildItem $libsDir.FullName -Recurse -Filter "glib-2.0.pc" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($glibPc) {
+              $pkgPath = $glibPc.DirectoryName
+            }
+          }
+
+          if (-not $pkgPath) {
+            Write-Host "ERROR: could not find pkgconfig directory with glib-2.0.pc under $($libsDir.FullName)"
             exit 1
           }
+
           Write-Host "PKG_CONFIG_PATH=$pkgPath"
           echo "PKG_CONFIG_PATH=$pkgPath" >> $env:GITHUB_ENV
 
