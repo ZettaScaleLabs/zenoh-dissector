@@ -56,6 +56,30 @@ thread_local! {
     static KEY_EXPR_TABLE: RefCell<HashMap<ExprId, String>> = RefCell::new(HashMap::new());
 }
 
+// Thread-local table mapping sender_port → ZID string.
+// Populated when InitSyn/InitAck/Join messages are seen.
+thread_local! {
+    static ZID_TABLE: RefCell<HashMap<u32, String>> = RefCell::new(HashMap::new());
+}
+
+/// Extract ZID from InitSyn/InitAck/Join and store sender_port → ZID.
+fn update_zid_table(msg: &TransportMessage, srcport: u32) {
+    let zid_str = match &msg.body {
+        TransportBody::InitSyn(m) => Some(format!("{}", m.zid)),
+        TransportBody::InitAck(m) => Some(format!("{}", m.zid)),
+        TransportBody::Join(m) => Some(format!("{}", m.zid)),
+        _ => None,
+    };
+    if let Some(zid) = zid_str {
+        ZID_TABLE.with(|t| { t.borrow_mut().insert(srcport, zid); });
+    }
+}
+
+/// Look up the ZID for a given port (returns None if not yet seen).
+fn lookup_zid(port: u32) -> Option<String> {
+    ZID_TABLE.with(|t| t.borrow().get(&port).cloned())
+}
+
 /// Walk a TransportMessage looking for DeclareKeyExpr declarations and update the table.
 fn update_key_expr_table(msg: &TransportMessage) {
     if let TransportBody::Frame(frame) = &msg.body {
@@ -507,6 +531,7 @@ unsafe extern "C" fn dissect_pdu_zenoh_tcp(
         // Update conversation state (ZIDs) from this batch's messages.
         for m in &msgs {
             conversation::update_state(pinfo, &m.msg);
+            update_zid_table(&m.msg, (*pinfo).srcport);
             update_key_expr_table(&m.msg);
         }
 
@@ -556,7 +581,10 @@ unsafe extern "C" fn dissect_pdu_zenoh_tcp(
         batch_summary
     });
 
-    let summary_c_str = CString::new(format!("{summary}")).unwrap();
+    let zid_annotation = lookup_zid((*pinfo).srcport)
+        .map(|z| format!(" [ZID:{z}]"))
+        .unwrap_or_default();
+    let summary_c_str = CString::new(format!("{}{} {summary}", (*pinfo).srcport, zid_annotation)).unwrap();
     epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as _);
     epan_sys::col_add_str(
         (*pinfo).cinfo,
@@ -707,6 +735,8 @@ unsafe extern "C" fn dissect_zenoh_udp(
 
         for m in &msgs {
             conversation::update_state(pinfo, &m.msg);
+            update_zid_table(&m.msg, (*pinfo).srcport);
+            update_key_expr_table(&m.msg);
         }
         conversation::update_tree(tvb, pinfo, zenoh_tree, ti);
 
