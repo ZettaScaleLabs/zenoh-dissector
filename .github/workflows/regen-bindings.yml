@@ -2,6 +2,11 @@ name: Regenerate Bindings
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/regen-bindings.yml
+      - epan-sys/wrapper.h
+      - epan-sys/build.rs
 
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
@@ -99,10 +104,35 @@ jobs:
           name: bindings-${{ matrix.platform }}
           path: ${{ matrix.output }}
 
+  check:
+    name: Check regenerated bindings
+    runs-on: ubuntu-latest
+    needs: regen
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Linux bindings
+        uses: actions/download-artifact@v4
+        with:
+          name: bindings-linux
+          path: epan-sys/
+
+      - name: Download Windows bindings
+        uses: actions/download-artifact@v4
+        with:
+          name: bindings-windows
+          path: epan-sys/
+
+      - name: Show diff
+        run: git diff --stat epan-sys/bindings.rs epan-sys/bindings_windows.rs
+
   pr:
     name: Open PR with regenerated bindings
     runs-on: ubuntu-latest
     needs: regen
+    if: github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
       pull-requests: write
