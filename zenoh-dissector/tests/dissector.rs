@@ -27,8 +27,16 @@ use std::{
 use zenoh_buffers::writer::DidntWrite;
 use zenoh_codec::{WCodec, Zenoh080};
 use zenoh_protocol::{
-    core::{Resolution, WhatAmI, ZenohIdProto},
-    transport::{BatchSize, InitSyn, TransportBody, TransportMessage, init::ext::PatchType},
+    core::{ExprId, Reliability, Resolution, WhatAmI, WireExpr, ZenohIdProto},
+    network::{
+        declare::{self, ext as dec_ext, DeclareKeyExpr, DeclareSubscriber},
+        Declare, NetworkBody, NetworkMessage,
+    },
+    transport::{
+        BatchSize, Frame, InitSyn, TransportBody, TransportMessage,
+        frame::ext as frame_ext,
+        init::ext::PatchType,
+    },
 };
 
 // TODO(post-zids-and-trees-merge): change to "zenoh.transport"
@@ -337,4 +345,104 @@ fn trailing_byte_batch_boundary_triggers_reassembly() {
          Bug 4: trailing byte at batch boundary prevented reassembly of the second batch.\n\
          PDML:\n{pdml}"
     );
+}
+
+/// Multi-message frame span collision: when a single Frame carries two Declare
+/// sub-messages (e.g. DeclareKeyExpr then DeclareSubscriber), all messages share
+/// the same span-map prefix key. Recording spans for all messages and letting later
+/// ones overwrite means the first Declare's fields get the second Declare's byte
+/// positions — the first sub-message highlights the wrong bytes in the hex panel.
+///
+/// We assert that:
+///   1. `declare_key_expr.id` has `size=1` (1 VLE byte) at the correct position.
+///   2. `declare_key_expr.id.pos` < `declare_subscriber.id.pos`
+///      (the key-expr id appears before the subscriber id in the packet).
+///
+/// With the old "record all, last wins" behaviour both fields point to the same
+/// (second message's) position so assertion 2 fails: key-expr id pos ≥ subscriber pos.
+#[test]
+fn first_declare_in_multi_message_frame_highlights_correct_bytes() {
+    if !tshark_available() {
+        eprintln!("skipping: tshark not found");
+        return;
+    }
+    install_dissector();
+
+    // Build a Frame carrying two Declare messages back-to-back.
+    let key_expr_suffix = "demo/example";
+    let subscriber_suffix = "/**";
+
+    let decl1 = NetworkMessage {
+        body: NetworkBody::Declare(Declare {
+            interest_id: None,
+            ext_qos: dec_ext::QoSType::DEFAULT,
+            ext_tstamp: None,
+            ext_nodeid: dec_ext::NodeIdType::DEFAULT,
+            body: declare::DeclareBody::DeclareKeyExpr(DeclareKeyExpr {
+                id: 1 as ExprId,
+                wire_expr: WireExpr::from(key_expr_suffix),
+            }),
+        }),
+        reliability: Reliability::Reliable,
+    };
+
+    let decl2 = NetworkMessage {
+        body: NetworkBody::Declare(Declare {
+            interest_id: None,
+            ext_qos: dec_ext::QoSType::DEFAULT,
+            ext_tstamp: None,
+            ext_nodeid: dec_ext::NodeIdType::DEFAULT,
+            body: declare::DeclareBody::DeclareSubscriber(DeclareSubscriber {
+                id: 0,
+                wire_expr: WireExpr::from(subscriber_suffix),
+            }),
+        }),
+        reliability: Reliability::Reliable,
+    };
+
+    let frame_msg = TransportMessage {
+        body: TransportBody::Frame(Frame {
+            reliability: Reliability::Reliable,
+            sn: 1,
+            ext_qos: frame_ext::QoSType::DEFAULT,
+            payload: vec![decl1, decl2],
+        }),
+    };
+
+    let payload = encode_transport(&frame_msg);
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("multi_declare.pcap");
+    write_single_pcap(&pcap, &payload);
+    let pdml = run_tshark(&pcap);
+
+    // The first Declare's id field must have size=1 (exactly one VLE byte).
+    let key_expr_id_field = format!("{TRANSPORT_PREFIX}.frame.payload.body.declare.body.declare_key_expr.id");
+    let key_expr_spans = field_spans(&pdml, &key_expr_id_field);
+    assert!(!key_expr_spans.is_empty(), "declare_key_expr.id not found in PDML:\n{pdml}");
+    let (key_expr_pos, key_expr_size) = key_expr_spans[0];
+    assert_eq!(
+        key_expr_size, 1,
+        "declare_key_expr.id must be 1 byte, got {key_expr_size}. \
+         If size equals the subscriber id's size at the subscriber's position, \
+         the first Declare's spans are being overwritten by the second."
+    );
+
+    // The second Declare's id field: if it was given a non-zero byte range, it must
+    // be at a higher byte offset than the first Declare's id.
+    // With the old "last wins" bug, key_expr.id would be given the subscriber's
+    // position (key_expr_pos ≥ subscriber_pos, both pointing to the same bytes).
+    let sub_id_field = format!("{TRANSPORT_PREFIX}.frame.payload.body.declare.body.declare_subscriber.id");
+    let sub_spans = field_spans(&pdml, &sub_id_field);
+    if let Some(&(sub_pos, sub_size)) = sub_spans.first() {
+        if sub_size > 0 {
+            assert!(
+                key_expr_pos < sub_pos,
+                "declare_key_expr.id at pos={key_expr_pos} must precede \
+                 declare_subscriber.id at pos={sub_pos}. \
+                 Both pointing to the same or later position means the first Declare's \
+                 span was overwritten by the second (multi-message frame span collision bug)."
+            );
+        }
+        // size=0 is acceptable — only the first message gets recorded spans in the
+        // current design; subsequent messages intentionally fall back to size=0.
+    }
 }

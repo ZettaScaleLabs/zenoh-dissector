@@ -406,15 +406,18 @@ impl RecordSpansWithHeader for Frame {
             map,
         )?;
 
-        // Walk each NetworkMessage payload and record spans.
-        // All messages use the same prefix key since impl_for_struct! uses the
-        // field name (not an index) — in frames with multiple messages, the last
-        // decoded message's spans overwrite earlier ones, which is acceptable.
+        // Record spans only for the first NetworkMessage in the payload.
+        // All messages share the same prefix key in the span map (the tree uses
+        // fixed field names, not indices). Recording only the first ensures it
+        // highlights correctly; later messages show size=0 (no highlight).
+        // Recording all and letting later overwrites win would cause the first
+        // Declare's fields to highlight the last Declare's bytes instead.
         let payload_prefix = format!("{prefix}.payload");
-        for nmsg in &self.payload {
-            if let Err(e) = record_network_message_spans(nmsg, cursor, &payload_prefix, map) {
-                eprintln!("zenoh-dissector: network message span error at {payload_prefix}: {e}");
-                break;
+        if let Some(nmsg) = self.payload.first() {
+            let mut single_map = SpanMap::new();
+            match record_network_message_spans(nmsg, cursor, &payload_prefix, &mut single_map) {
+                Ok(()) => map.extend(single_map),
+                Err(e) => eprintln!("zenoh-dissector: network message span error at {payload_prefix}: {e}"),
             }
         }
         Ok(())
