@@ -1,7 +1,19 @@
+//
+// Copyright (c) 2026 ZettaScale Technology
+//
+// This program and the accompanying materials are made available under the
+// terms of the Eclipse Public License 2.0 which is available at
+// http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+// which is available at https://www.apache.org/licenses/LICENSE-2.0.
+//
+// SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+//
+// Contributors:
+//   ZettaScale Zenoh Team, <zenoh@zettascale.tech>
+//
 use crate::header_field::*;
 use crate::macros::{impl_for_enum, impl_for_struct};
 use crate::tree::*;
-use crate::utils::nul_terminated_str;
 use anyhow::Result;
 use convert_case::{Case, Casing};
 
@@ -14,14 +26,15 @@ mod impl_for_zenoh_protocol {
 
     impl Registration for ZenohProtocol {
         fn generate_hf_map(prefix: &str) -> HeaderFieldMap {
-            let mut hf_map =
-                HeaderFieldMap::new().add(prefix.to_string(), "ZenohProtocol", FieldKind::Branch);
+            let mut hf_map = HeaderFieldMap::new()
+                .add(prefix.to_string(), "Zenoh Protocol", FieldKind::Branch)
+                .add(format!("{prefix}.batch"), "Batch", FieldKind::Branch);
             hf_map.extend(TransportMessage::generate_hf_map(prefix));
             hf_map
         }
 
         fn generate_subtree_names(prefix: &str) -> Vec<String> {
-            let mut names = vec![prefix.to_string()];
+            let mut names = vec![prefix.to_string(), format!("{prefix}.batch")];
             names.extend(TransportMessage::generate_subtree_names(prefix));
             names
         }
@@ -103,9 +116,7 @@ mod impl_for_transport {
 
     // KeepAlive
     impl_for_struct! {
-        struct KeepAlive {
-
-        }
+        struct KeepAlive {}
     }
 
     // Frame
@@ -114,7 +125,7 @@ mod impl_for_transport {
             reliability: Reliability,
             sn: TransportSn,
             ext_qos: QoSType,
-            #[dissect(vec)]
+            #[dissect(expand_vec_as = "network")]
             payload: Vec<NetworkMessage>,
         }
     }
@@ -173,7 +184,7 @@ mod impl_for_transport {
     // TransportMessage
     impl_for_struct! {
         struct TransportMessage {
-            #[dissect(expand)]
+            #[dissect(expand_as = "transport")]
             body: TransportBody,
         }
     }
@@ -410,8 +421,7 @@ mod impl_for_network {
 
         // DeclareFinal
         impl_for_struct! {
-            struct DeclareFinal {
-            }
+            struct DeclareFinal {}
         }
     }
 

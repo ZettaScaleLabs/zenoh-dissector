@@ -1,6 +1,18 @@
-use crate::utils::nul_terminated_str;
+//
+// Copyright (c) 2026 ZettaScale Technology
+//
+// This program and the accompanying materials are made available under the
+// terms of the Eclipse Public License 2.0 which is available at
+// http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+// which is available at https://www.apache.org/licenses/LICENSE-2.0.
+//
+// SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+//
+// Contributors:
+//   ZettaScale Zenoh Team, <zenoh@zettascale.tech>
+//
 use anyhow::{bail, Result};
-use std::collections::HashMap;
+use std::{collections::HashMap, ffi::CString};
 
 // Pointer HashMap of Header Feild
 type HFPointerMap = HashMap<String, std::ffi::c_int>;
@@ -36,6 +48,7 @@ impl TreeArgs<'_> {
 
     pub fn make_subtree(&self, key: &str, name: &str) -> Result<Self> {
         let mut new_args = *self;
+        let name_c_str = CString::new(name).unwrap();
         new_args.tree = unsafe {
             let ti = epan_sys::proto_tree_add_none_format(
                 self.tree,
@@ -43,7 +56,7 @@ impl TreeArgs<'_> {
                 self.tvb,
                 self.start as _,
                 self.length as _,
-                nul_terminated_str(name).unwrap(),
+                name_c_str.as_ptr(),
             );
             epan_sys::proto_item_add_subtree(ti, self.get_st(key)?)
         };

@@ -1,4 +1,17 @@
-use crate::{header_field::FieldKind, utils::nul_terminated_str};
+//
+// Copyright (c) 2026 ZettaScale Technology
+//
+// This program and the accompanying materials are made available under the
+// terms of the Eclipse Public License 2.0 which is available at
+// http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+// which is available at https://www.apache.org/licenses/LICENSE-2.0.
+//
+// SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+//
+// Contributors:
+//   ZettaScale Zenoh Team, <zenoh@zettascale.tech>
+//
+use crate::{header_field::FieldKind, utils::leak_nul_terminated_str};
 use anyhow::Result;
 use epan_sys::{field_display_e, ftenum};
 
@@ -36,9 +49,12 @@ pub fn register_header_field(
     let (field_display, field_type) = field_kind.convert();
     let hf_register_info = epan_sys::hf_register_info {
         p_id: hf_index_ptr,
+        // We have no choice but to leak the strings here,
+        // see https://github.com/wireshark/wireshark/blob/efbbb5b7f84f62fc4c45bb4c9169e6fefc360e26/epan/proto.c#L9003-L9004
+        // Still, this is okay since this function is only called in `register_protoinfo`
         hfinfo: epan_sys::header_field_info {
-            name: nul_terminated_str(field_name)?,
-            abbrev: nul_terminated_str(filter_name)?,
+            name: leak_nul_terminated_str(field_name)?,
+            abbrev: leak_nul_terminated_str(filter_name)?,
             type_: field_type,
             display: field_display as _,
             strings: std::ptr::null(),
