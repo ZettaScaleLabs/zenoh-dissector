@@ -62,7 +62,7 @@ jobs:
         shell: nu {0}
         run: |
           let installed = (choco list -l -r --id-only | lines)
-          let install_list = ["xsltproc", "nsis", "winflexbison3", "cmake", "7zip"]
+          let install_list = ["xsltproc", "nsis", "winflexbison3", "cmake", "7zip", "pkgconfiglite"]
 
           for pkg in $install_list {
             if $pkg not-in $installed {
