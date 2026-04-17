@@ -32,4 +32,4 @@ zenoh-transport = { workspace = true }
 cargo_metadata = "0.18"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]

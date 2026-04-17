@@ -17,6 +17,7 @@ use crate::tree::*;
 use anyhow::Result;
 use convert_case::{Case, Casing};
 
+
 pub struct ZenohProtocol;
 
 mod impl_for_zenoh_protocol {
@@ -520,5 +521,137 @@ mod impl_for_scouting {
             #[dissect(expand)]
             body: ScoutingBody,
         }
+    }
+}
+
+#[cfg(test)]
+mod registration_tests {
+    use super::*;
+    use crate::header_field::{FieldKind, Registration};
+    use zenoh_protocol::{
+        network::NetworkBody,
+        scouting::ScoutingBody,
+        transport::TransportBody,
+    };
+
+    // -------------------------------------------------------------------------
+    // Helper: assert a prefix appears in both hf_map AND subtree_names.
+    // This is the invariant that `make_subtree(prefix, ...)` requires at runtime:
+    //   get_hf(prefix) → must be in hf_map
+    //   get_st(prefix) → must be in subtree_names (becomes st_map at registration time)
+    // -------------------------------------------------------------------------
+    fn assert_subtree_consistent(prefix: &str, hf_map: &crate::header_field::HeaderFieldMap, subtree_names: &[String]) {
+        assert!(
+            hf_map.contains_key(prefix),
+            "prefix '{prefix}' missing from hf_map — make_subtree will bail at runtime"
+        );
+        assert!(
+            subtree_names.contains(&prefix.to_string()),
+            "prefix '{prefix}' missing from subtree_names — get_st will bail at runtime"
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Bug 2: impl_for_enum! must register each variant as a Branch node.
+    // Old code only registered the enum's own prefix ("zenoh.body"), not each
+    // variant ("zenoh.body.init_syn", "zenoh.body.frame", ...).
+    // Consequence: add_to_tree called make_subtree on an unregistered prefix.
+    // -------------------------------------------------------------------------
+    #[test]
+    fn transport_body_variants_registered_as_branches() {
+        let hf = TransportBody::generate_hf_map("zenoh.body");
+        let variants = [
+            "init_syn", "init_ack", "open_syn", "open_ack",
+            "close", "keep_alive", "frame", "fragment", "oam", "join",
+        ];
+        for v in variants {
+            let key = format!("zenoh.body.{v}");
+            assert!(
+                hf.contains_key(&key),
+                "variant branch '{key}' missing from hf_map"
+            );
+            assert!(
+                matches!(hf[&key].kind, FieldKind::Branch),
+                "variant '{key}' must be FieldKind::Branch"
+            );
+        }
+    }
+
+    #[test]
+    fn transport_body_variants_registered_as_subtrees() {
+        let names = TransportBody::generate_subtree_names("zenoh.body");
+        let variants = [
+            "init_syn", "init_ack", "open_syn", "open_ack",
+            "close", "keep_alive", "frame", "fragment", "oam", "join",
+        ];
+        for v in variants {
+            let key = format!("zenoh.body.{v}");
+            assert!(
+                names.contains(&key),
+                "variant subtree '{key}' missing from generate_subtree_names"
+            );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Bug 1: KeepAlive has no fields — the variant must still register itself
+    // so that make_subtree succeeds when a KeepAlive packet arrives.
+    // -------------------------------------------------------------------------
+    #[test]
+    fn keep_alive_variant_is_consistent() {
+        let hf = TransportBody::generate_hf_map("zenoh.body");
+        let names = TransportBody::generate_subtree_names("zenoh.body");
+        assert_subtree_consistent("zenoh.body.keep_alive", &hf, &names);
+    }
+
+    // -------------------------------------------------------------------------
+    // NetworkBody variants (Push, Request, Response, Declare, …) must also be
+    // consistently registered — same pattern as TransportBody.
+    // -------------------------------------------------------------------------
+    #[test]
+    fn network_body_variants_registered() {
+        let hf = NetworkBody::generate_hf_map("zenoh.body.frame.body");
+        let names = NetworkBody::generate_subtree_names("zenoh.body.frame.body");
+        for v in ["push", "request", "response", "response_final", "interest", "declare", "oam"] {
+            let key = format!("zenoh.body.frame.body.{v}");
+            assert_subtree_consistent(&key, &hf, &names);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // ScoutingBody variants (Scout, Hello) must also be consistently registered.
+    // -------------------------------------------------------------------------
+    #[test]
+    fn scouting_body_variants_registered() {
+        let hf = ScoutingBody::generate_hf_map("zenoh.body");
+        let names = ScoutingBody::generate_subtree_names("zenoh.body");
+        for v in ["scout", "hello"] {
+            let key = format!("zenoh.body.{v}");
+            assert_subtree_consistent(&key, &hf, &names);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Global invariant: for the full ZenohProtocol registration, every key that
+    // appears in hf_map as FieldKind::Branch must also appear in subtree_names.
+    // Catches any future macro change that breaks the Branch ↔ subtree symmetry.
+    // -------------------------------------------------------------------------
+    #[test]
+    fn all_hf_branches_have_subtree_entries() {
+        let hf = ZenohProtocol::generate_hf_map("zenoh");
+        let names: std::collections::HashSet<String> =
+            ZenohProtocol::generate_subtree_names("zenoh").into_iter().collect();
+
+        let mut missing = vec![];
+        for (key, field) in hf.iter() {
+            if matches!(field.kind, FieldKind::Branch) && !names.contains(key) {
+                missing.push(key.as_str());
+            }
+        }
+        missing.sort();
+        assert!(
+            missing.is_empty(),
+            "Branch nodes in hf_map have no subtree entry (make_subtree will bail): {missing:?}"
+        );
     }
 }

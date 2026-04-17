@@ -59,6 +59,11 @@ impl<'a> SpanCursor<'a> {
             .map_err(|_| anyhow!("SpanCursor: codec decode failed"))
     }
 
+    /// Skip all remaining bytes.
+    pub fn skip_remaining(&mut self) {
+        self.remaining = &self.remaining[self.remaining.len()..];
+    }
+
     /// Skip `n` bytes without recording a span.
     pub fn skip(&mut self, n: usize) -> Result<()> {
         if self.remaining.len() < n {

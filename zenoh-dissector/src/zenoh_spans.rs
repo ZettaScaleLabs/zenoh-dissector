@@ -170,7 +170,14 @@ impl RecordSpans for TransportMessage {
             TransportBody::Join(m) => {
                 m.record_spans_with_header(header, cursor, &format!("{body_prefix}.join"), map)
             }
-            TransportBody::Close(_) => Ok(()),
+            TransportBody::Close(m) => {
+                let b = cursor.checkpoint();
+                let _: u8 = cursor.decode()?; // reason byte
+                map.insert(format!("{body_prefix}.close.reason"), cursor.span_since(b));
+                // session is encoded as flag S in the header — no separate byte
+                let _ = m;
+                Ok(())
+            }
         }
     }
 }
@@ -390,8 +397,14 @@ impl RecordSpansWithHeader for Frame {
         let _: TransportSn = cursor.decode()?;
         map.insert(format!("{prefix}.sn"), cursor.span_since(b));
 
-        // extensions (ext_qos only for Frame)
-        skip_extensions(cursor, imsg::has_flag(header, 0x80))?;
+        // Frame: ext_qos=UNIT|0x1 (when present, signals reliable QoS priority)
+        record_extension_spans(
+            cursor,
+            imsg::has_flag(header, 0x80),
+            prefix,
+            &[(iext::ENC_UNIT | 0x1, "ext_qos")],
+            map,
+        )?;
 
         // Walk each NetworkMessage payload and record spans.
         // All messages use the same prefix key since impl_for_struct! uses the
@@ -592,7 +605,57 @@ fn record_push_spans(
         &format!("{prefix}.push"),
         NET_EXT,
         map,
-    )
+    )?;
+    record_put_body_spans(cursor, &format!("{prefix}.push.payload"), map)
+}
+
+// ---------------------------------------------------------------------------
+// Put body: header byte + optional timestamp + optional encoding + extensions + payload
+// ---------------------------------------------------------------------------
+fn record_put_body_spans(
+    cursor: &mut SpanCursor,
+    prefix: &str, // e.g. "zenoh.body.frame.payload.body.push.payload"
+    map: &mut SpanMap,
+) -> Result<()> {
+    use zenoh_protocol::zenoh::put::flag as put_flag;
+
+    let put_header: u8 = cursor.decode()?;
+
+    let put_prefix = format!("{prefix}.put");
+
+    if imsg::has_flag(put_header, put_flag::T) {
+        // Timestamp: u64 (VLE) + u8 size + [u8; size]
+        let b = cursor.checkpoint();
+        let _: u64 = cursor.decode()?;
+        let id_size: u8 = cursor.decode()?;
+        cursor.skip(id_size as usize)?;
+        map.insert(format!("{put_prefix}.timestamp"), cursor.span_since(b));
+    }
+
+    if imsg::has_flag(put_header, put_flag::E) {
+        let b = cursor.checkpoint();
+        // Encoding: VLE-bounded u32 (id<<1 | schema_flag), optional VLE-bounded schema bytes
+        let enc_raw: u64 = cursor.decode()?;
+        if (enc_raw & 0x01) != 0 {
+            // has schema
+            let schema_len: u64 = cursor.decode()?;
+            cursor.skip(schema_len as usize)?;
+        }
+        map.insert(format!("{put_prefix}.encoding"), cursor.span_since(b));
+    }
+
+    // Put extensions: ext_sinfo=ZBUF|0x1=0x41, ext_attachment=ZBUF|0x5=0x45
+    skip_extensions(cursor, imsg::has_flag(put_header, put_flag::Z))?;
+
+    // Payload = all remaining bytes in the cursor
+    let b = cursor.checkpoint();
+    cursor.skip_remaining();
+    let span = cursor.span_since(b);
+    if span.len() > 0 {
+        map.insert(format!("{put_prefix}.payload"), span);
+    }
+
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -856,4 +919,178 @@ fn record_hello_spans(
     skip_extensions(cursor, imsg::has_flag(header, hello_flag::Z))?;
     let _ = (msg, scouting_id::HELLO); // suppress unused warnings
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use zenoh_codec::{WCodec, Zenoh080};
+    use zenoh_protocol::{
+        core::{Reliability, WhatAmI, WireExpr},
+        network::{
+            declare::ext as dec_ext, DeclareBody, DeclareKeyExpr, NetworkBody, NetworkMessage,
+            Push,
+        },
+        scouting::{hello::HelloProto, scout::Scout, ScoutingBody, ScoutingMessage},
+        transport::{BatchSize, InitSyn, TransportBody, TransportMessage},
+    };
+
+    use zenoh_buffers::writer::DidntWrite;
+
+    fn encode<T>(msg: &T) -> Vec<u8>
+    where
+        for<'w> Zenoh080: WCodec<&'w T, &'w mut Vec<u8>, Output = Result<(), DidntWrite>>,
+    {
+        let mut buf = Vec::new();
+        Zenoh080::new().write(&mut buf, msg).unwrap();
+        buf
+    }
+
+    fn make_init_syn() -> TransportMessage {
+        use zenoh_protocol::core::Resolution;
+        TransportMessage {
+            body: TransportBody::InitSyn(InitSyn {
+                version: 0x08,
+                whatami: WhatAmI::Client,
+                zid: zenoh_protocol::core::ZenohIdProto::rand(),
+                resolution: Resolution::default(),
+                batch_size: BatchSize::default(),
+                ext_qos: None,
+                ext_qos_link: None,
+                ext_auth: None,
+                ext_mlink: None,
+                ext_lowlatency: None,
+                ext_compression: None,
+                ext_patch: zenoh_protocol::transport::init::ext::PatchType::NONE,
+            }),
+        }
+    }
+
+    #[test]
+    fn test_init_syn_version_whatami_spans() {
+        let msg = make_init_syn();
+        let buf = encode(&msg);
+        let mut cursor = SpanCursor::new(&buf);
+        let mut map = SpanMap::new();
+        record_transport_message_spans(&msg, &mut cursor, "zenoh", &mut map).unwrap();
+
+        let v = &map["zenoh.body.init_syn.version"];
+        assert_eq!(v.end - v.start, 1, "version must be 1 byte");
+
+        let w = &map["zenoh.body.init_syn.whatami"];
+        assert_eq!(w.end - w.start, 1, "whatami must be 1 byte");
+
+        let z = &map["zenoh.body.init_syn.zid"];
+        assert!(z.end > z.start, "zid must span at least 1 byte");
+    }
+
+    fn make_push_net_msg(key: &str) -> NetworkMessage {
+        use zenoh_protocol::network::push::ext as push_ext;
+        NetworkMessage {
+            reliability: Reliability::BestEffort,
+            body: NetworkBody::Push(Push {
+                wire_expr: WireExpr::from(key).to_owned(),
+                ext_qos: push_ext::QoSType::DEFAULT,
+                ext_tstamp: None,
+                ext_nodeid: push_ext::NodeIdType::DEFAULT,
+                payload: zenoh_protocol::zenoh::PushBody::Put(zenoh_protocol::zenoh::Put {
+                    timestamp: None,
+                    encoding: zenoh_protocol::core::Encoding::default(),
+                    ext_sinfo: None,
+                    ext_attachment: None,
+                    ext_unknown: vec![],
+                    payload: zenoh_buffers::ZBuf::default(),
+                }),
+            }),
+        }
+    }
+
+    #[test]
+    fn test_push_wire_expr_span() {
+        let key = "demo/example/test";
+        let net_msg = make_push_net_msg(key);
+        let buf = encode(&net_msg);
+        let mut cursor = SpanCursor::new(&buf);
+        let mut map = SpanMap::new();
+        record_network_message_spans(&net_msg, &mut cursor, "zenoh", &mut map).unwrap();
+
+        let we = &map["zenoh.body.push.wire_expr"];
+        let span_len = we.end - we.start;
+        // wire_expr with scope=0 encodes: VLE(0) + VLE(len) + bytes
+        let expected = 1 + 1 + key.len();
+        assert_eq!(span_len, expected, "wire_expr span length mismatch");
+    }
+
+    #[test]
+    fn test_declare_key_expr_id_span() {
+        use zenoh_protocol::network::Declare;
+
+        let net_msg = NetworkMessage {
+            reliability: Reliability::BestEffort,
+            body: NetworkBody::Declare(Declare {
+                interest_id: None,
+                ext_qos: dec_ext::QoSType::DEFAULT,
+                ext_tstamp: None,
+                ext_nodeid: dec_ext::NodeIdType::DEFAULT,
+                body: DeclareBody::DeclareKeyExpr(DeclareKeyExpr {
+                    id: 1,
+                    wire_expr: WireExpr::from("test/key").to_owned(),
+                }),
+            }),
+        };
+        let buf = encode(&net_msg);
+        let mut cursor = SpanCursor::new(&buf);
+        let mut map = SpanMap::new();
+        record_network_message_spans(&net_msg, &mut cursor, "zenoh", &mut map).unwrap();
+
+        let id_span = &map["zenoh.body.declare.body.declare_key_expr.id"];
+        assert_eq!(id_span.end - id_span.start, 1, "expr id must be 1 byte");
+    }
+
+    #[test]
+    fn test_scout_spans() {
+        let msg = ScoutingMessage {
+            body: ScoutingBody::Scout(Scout {
+                version: 0x08,
+                what: zenoh_protocol::core::WhatAmIMatcher::empty(),
+                zid: None,
+            }),
+        };
+        let buf = encode(&msg);
+        let mut cursor = SpanCursor::new(&buf);
+        let mut map = SpanMap::new();
+        record_scouting_message_spans(&msg, &mut cursor, "zenoh", &mut map).unwrap();
+
+        let v = &map["zenoh.body.scout.version"];
+        assert_eq!(v.end - v.start, 1, "Scout.version must be 1 byte");
+
+        let w = &map["zenoh.body.scout.what"];
+        assert_eq!(w.end - w.start, 1, "Scout.what must be 1 byte");
+    }
+
+    #[test]
+    fn test_hello_spans() {
+        let zid = zenoh_protocol::core::ZenohIdProto::rand();
+        let msg = ScoutingMessage {
+            body: ScoutingBody::Hello(HelloProto {
+                version: 0x08,
+                whatami: WhatAmI::Router,
+                zid,
+                locators: vec![],
+            }),
+        };
+        let buf = encode(&msg);
+        let mut cursor = SpanCursor::new(&buf);
+        let mut map = SpanMap::new();
+        record_scouting_message_spans(&msg, &mut cursor, "zenoh", &mut map).unwrap();
+
+        let v = &map["zenoh.body.hello.version"];
+        assert_eq!(v.end - v.start, 1, "Hello.version must be 1 byte");
+
+        let w = &map["zenoh.body.hello.whatami"];
+        assert_eq!(w.end - w.start, 1, "Hello.whatami must be 1 byte");
+
+        let z = &map["zenoh.body.hello.zid"];
+        assert!(z.end > z.start, "Hello.zid must span at least 1 byte");
+    }
 }
