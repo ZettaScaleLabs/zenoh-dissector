@@ -42,7 +42,15 @@ jobs:
         run: |
           sudo apt install -y software-properties-common
           sudo add-apt-repository -y ppa:wireshark-dev/stable-staging
-          sudo apt install -y wireshark-dev=${{ steps.wireshark-version.outputs.version }}-*
+          sudo apt-get update -y
+          EXPECTED="${{ steps.wireshark-version.outputs.version }}"
+          PKG_VER=$(apt-cache madison wireshark-dev | awk '{print $3}' | grep "^${EXPECTED}" | head -1)
+          if [ -z "$PKG_VER" ]; then
+            echo "ERROR: wireshark-dev ${EXPECTED} not found in PPA. Available versions:"
+            apt-cache madison wireshark-dev | awk '{print $3}'
+            exit 1
+          fi
+          sudo apt install -y wireshark-dev="$PKG_VER"
 
       - name: Install Wireshark dependencies (Windows)
         if: matrix.platform == 'windows'
