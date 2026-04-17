@@ -38,7 +38,10 @@ use zenoh_spans::{record_transport_message_spans, record_scouting_message_spans}
 use zenoh_buffers::reader::{HasReader, Reader};
 use zenoh_codec::{RCodec, Zenoh080};
 use zenoh_protocol::common::imsg;
+use zenoh_protocol::core::ExprId;
+use zenoh_protocol::network::{DeclareBody, NetworkBody};
 use zenoh_protocol::scouting::{id as scouting_id, ScoutingMessage};
+use zenoh_protocol::transport::TransportBody;
 
 /// Max number of message summaries in one batch.
 const MAX_BATCH_SUMMARY: usize = 5;
@@ -46,6 +49,58 @@ const MAX_BATCH_SUMMARY: usize = 5;
 const MSG_SUMMARY_LIMIT: usize = 30;
 /// Length of the batch size header prepended to each Zenoh batch in TCP streams.
 const BATCH_HEADER_LEN: usize = 2;
+
+// Thread-local table mapping expr_id → resolved key expression suffix.
+// Populated when DeclareKeyExpr messages are seen.
+thread_local! {
+    static KEY_EXPR_TABLE: RefCell<HashMap<ExprId, String>> = RefCell::new(HashMap::new());
+}
+
+/// Walk a TransportMessage looking for DeclareKeyExpr declarations and update the table.
+fn update_key_expr_table(msg: &TransportMessage) {
+    if let TransportBody::Frame(frame) = &msg.body {
+        for nmsg in &frame.payload {
+            if let NetworkBody::Declare(decl) = &nmsg.body {
+                if let DeclareBody::DeclareKeyExpr(dke) = &decl.body {
+                    // Build the full resolved key expression string.
+                    // If scope == 0, the suffix is the complete key.
+                    // If scope != 0, look up the scope's resolved string and concatenate.
+                    let resolved = if dke.wire_expr.scope == 0 {
+                        dke.wire_expr.suffix.to_string()
+                    } else {
+                        KEY_EXPR_TABLE.with(|t| {
+                            let table = t.borrow();
+                            if let Some(base) = table.get(&dke.wire_expr.scope) {
+                                format!("{}{}", base, dke.wire_expr.suffix)
+                            } else {
+                                format!("{}:{}", dke.wire_expr.scope, dke.wire_expr.suffix)
+                            }
+                        })
+                    };
+                    KEY_EXPR_TABLE.with(|t| {
+                        t.borrow_mut().insert(dke.id, resolved);
+                    });
+                }
+            }
+        }
+    }
+}
+
+/// Resolve a wire_expr scope+suffix to a human-readable key expression string.
+pub fn resolve_wire_expr(wire_expr: &zenoh_protocol::core::WireExpr<'_>) -> String {
+    if wire_expr.scope == 0 {
+        wire_expr.suffix.to_string()
+    } else {
+        KEY_EXPR_TABLE.with(|t| {
+            let table = t.borrow();
+            if let Some(base) = table.get(&wire_expr.scope) {
+                format!("{}{}", base, wire_expr.suffix)
+            } else {
+                format!("{}:{}", wire_expr.scope, wire_expr.suffix)
+            }
+        })
+    }
+}
 
 // Version symbols are generated at build time from Cargo.toml metadata
 include!(concat!(env!("OUT_DIR"), "/version.rs"));
@@ -452,6 +507,7 @@ unsafe extern "C" fn dissect_pdu_zenoh_tcp(
         // Update conversation state (ZIDs) from this batch's messages.
         for m in &msgs {
             conversation::update_state(pinfo, &m.msg);
+            update_key_expr_table(&m.msg);
         }
 
         // Build per-field span maps for each message (payload-relative, then shifted).

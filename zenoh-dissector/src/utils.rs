@@ -18,7 +18,7 @@ use std::{
 };
 use zenoh_buffers::ZSlice;
 use zenoh_protocol::{
-    network::{NetworkBody, NetworkMessage},
+    network::{DeclareBody, NetworkBody, NetworkMessage},
     transport::{BatchSize, TransportMessage},
 };
 use zenoh_transport::common::batch::{BatchConfig, RBatch};
@@ -102,12 +102,38 @@ pub(crate) fn network_message_summary(msg: &NetworkMessage) -> String {
     use NetworkBody::*;
     match &msg.body {
         OAM(_) => "OAM".to_string(),
-        Push(_) => "Push".to_string(),
-        Request(_) => "Request".to_string(),
+        Push(p) => {
+            let key = crate::resolve_wire_expr(&p.wire_expr);
+            if key.is_empty() { "Push".to_string() } else { format!("Push({key})") }
+        }
+        Request(r) => {
+            let key = crate::resolve_wire_expr(&r.wire_expr);
+            if key.is_empty() { "Request".to_string() } else { format!("Request({key})") }
+        }
         Response(_) => "Response".to_string(),
         ResponseFinal(_) => "ResponseFinal".to_string(),
         Interest(_) => "Interest".to_string(),
-        Declare(_) => "Declare".to_string(),
+        Declare(d) => {
+            match &d.body {
+                DeclareBody::DeclareKeyExpr(dke) => {
+                    let key = crate::resolve_wire_expr(&dke.wire_expr);
+                    format!("DeclareKeyExpr({key}→{})", dke.id)
+                }
+                DeclareBody::DeclareSubscriber(ds) => {
+                    let key = crate::resolve_wire_expr(&ds.wire_expr);
+                    if key.is_empty() { "DeclareSubscriber".to_string() } else { format!("DeclareSubscriber({key})") }
+                }
+                DeclareBody::DeclareQueryable(dq) => {
+                    let key = crate::resolve_wire_expr(&dq.wire_expr);
+                    if key.is_empty() { "DeclareQueryable".to_string() } else { format!("DeclareQueryable({key})") }
+                }
+                DeclareBody::DeclareToken(dt) => {
+                    let key = crate::resolve_wire_expr(&dt.wire_expr);
+                    if key.is_empty() { "DeclareToken".to_string() } else { format!("DeclareToken({key})") }
+                }
+                _ => "Declare".to_string(),
+            }
+        }
     }
 }
 
