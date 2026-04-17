@@ -336,7 +336,8 @@ fn generate_bindings() -> Result<()> {
                     "-I{}",
                     WIRESHARK_SOURCE_DIR.join("include").to_string_lossy()
                 ))
-                .clang_arg(format!("-I{}", WIRESHARK_SOURCE_DIR.to_string_lossy()));
+                .clang_arg(format!("-I{}", WIRESHARK_SOURCE_DIR.to_string_lossy()))
+                .clang_arg(format!("-I{}", WIRESHARK_BUILD_DIR.to_string_lossy()));
 
             #[cfg(target_os = "windows")]
             {
