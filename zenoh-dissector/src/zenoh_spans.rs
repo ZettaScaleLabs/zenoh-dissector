@@ -394,7 +394,7 @@ impl RecordSpansWithHeader for Frame {
         let payload_prefix = format!("{prefix}.payload");
         for nmsg in &self.payload {
             if let Err(e) = record_network_message_spans(nmsg, cursor, &payload_prefix, map) {
-                log::debug!("network message span error at {payload_prefix}: {e}");
+                eprintln!("zenoh-dissector: network message span error at {payload_prefix}: {e}");
                 break;
             }
         }

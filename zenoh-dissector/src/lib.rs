@@ -35,6 +35,11 @@ mod zenoh_spans;
 use span::SpanMap;
 use zenoh_spans::record_transport_message_spans;
 
+use zenoh_buffers::reader::{HasReader, Reader};
+use zenoh_codec::{RCodec, Zenoh080};
+use zenoh_protocol::common::imsg;
+use zenoh_protocol::scouting::{id as scouting_id, ScoutingMessage};
+
 /// Max number of message summaries in one batch.
 const MAX_BATCH_SUMMARY: usize = 5;
 /// Max length of a single message summary string.
@@ -225,6 +230,8 @@ unsafe extern "C" fn register_handoff() {
         let handle = epan_sys::create_dissector_handle(Some(dissect_zenoh), proto_id);
         epan_sys::dissector_add_uint_with_preference(c"tcp.port".as_ptr(), TCP_PORT as _, handle);
         epan_sys::dissector_add_uint_with_preference(c"udp.port".as_ptr(), UDP_PORT as _, handle);
+        // UDP 7446: scouting (SCOUT / HELLO)
+        epan_sys::dissector_add_uint(c"udp.port".as_ptr(), 7446, handle);
         data.borrow_mut().handle = Some(handle);
 
         // See https://www.wireshark.org/docs/wsar_html/group__packet.html#gac1f89fb22ed3dd53cb3aecbc7b87a528
@@ -524,6 +531,52 @@ unsafe extern "C" fn dissect_zenoh_udp(
 
     let tvb_ptr = epan_sys::tvb_get_ptr(tvb, 0, tvb_len as _);
     let tvb_slice = slice::from_raw_parts(tvb_ptr, tvb_len);
+
+    // Scouting messages (SCOUT/HELLO) have mid=1 or mid=2 in the first byte.
+    // Transport messages have mid >= 4. Dispatch accordingly.
+    let is_scouting = tvb_slice
+        .first()
+        .map(|&b| {
+            let mid = imsg::mid(b);
+            mid == scouting_id::SCOUT || mid == scouting_id::HELLO
+        })
+        .unwrap_or(false);
+
+    if is_scouting {
+        let tvb_vec = tvb_slice.to_vec();
+        let summary = PROTOCOL_DATA.with(|data| {
+            let borrowed_data = data.borrow();
+            let ti = epan_sys::proto_tree_add_item(tree, borrowed_data.id, tvb, 0, -1, epan_sys::ENC_NA);
+            let st = *borrowed_data.st_map.get("zenoh").expect("zenoh subtree not registered");
+            let zenoh_tree = epan_sys::proto_item_add_subtree(ti, st);
+            let mut tree_args = TreeArgs {
+                tree: zenoh_tree, tvb,
+                hf_map: &borrowed_data.hf_map,
+                st_map: &borrowed_data.st_map,
+                start: 0, length: tvb_len, spans: None, local_spans: None,
+            };
+            let mut scout_reader = tvb_vec.reader();
+            let mut summary = SizedSummary::new(MAX_BATCH_SUMMARY);
+            while scout_reader.remaining() > 0 {
+                let before = scout_reader.remaining();
+                let msg: ScoutingMessage = match Zenoh080::new().read(&mut scout_reader) {
+                    Ok(m) => m,
+                    Err(_) => break,
+                };
+                let msg_len = before - scout_reader.remaining();
+                tree_args.length = msg_len;
+                let _ = msg.add_to_tree("zenoh", &tree_args);
+                tree_args.start += msg_len;
+                summary.append(|| format!("{msg:?}").split('(').next().unwrap_or("Scout").to_string());
+            }
+            anyhow::Ok(summary)
+        });
+        let s = summary.map(|s| format!("{s}")).unwrap_or_default();
+        let summary_c_str = CString::new(s).unwrap();
+        epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as _);
+        epan_sys::col_add_str((*pinfo).cinfo, epan_sys::COL_INFO as _, summary_c_str.as_ptr());
+        return tvb_len as std::ffi::c_int;
+    }
 
     let msgs = {
         let mut rbatch = match new_rbatch(tvb_slice, IS_COMPRESSION) {

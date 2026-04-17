@@ -22,7 +22,7 @@ pub struct ZenohProtocol;
 mod impl_for_zenoh_protocol {
     use super::ZenohProtocol;
     use crate::header_field::{FieldKind, HeaderFieldMap, Registration};
-    use zenoh_protocol::transport::TransportMessage;
+    use zenoh_protocol::{scouting::ScoutingMessage, transport::TransportMessage};
 
     impl Registration for ZenohProtocol {
         fn generate_hf_map(prefix: &str) -> HeaderFieldMap {
@@ -30,12 +30,14 @@ mod impl_for_zenoh_protocol {
                 .add(prefix.to_string(), "Zenoh Protocol", FieldKind::Branch)
                 .add(format!("{prefix}.batch"), "Batch", FieldKind::Branch);
             hf_map.extend(TransportMessage::generate_hf_map(prefix));
+            hf_map.extend(ScoutingMessage::generate_hf_map(prefix));
             hf_map
         }
 
         fn generate_subtree_names(prefix: &str) -> Vec<String> {
             let mut names = vec![prefix.to_string(), format!("{prefix}.batch")];
             names.extend(TransportMessage::generate_subtree_names(prefix));
+            names.extend(ScoutingMessage::generate_subtree_names(prefix));
             names
         }
     }
@@ -480,6 +482,43 @@ mod impl_for_network {
         struct NetworkMessage {
             #[dissect(expand)]
             body: NetworkBody,
+        }
+    }
+}
+
+mod impl_for_scouting {
+    use zenoh_protocol::scouting::{hello::HelloProto, scout::Scout, ScoutingBody, ScoutingMessage};
+
+    use crate::zenoh_impl::*;
+
+    impl_for_struct! {
+        struct Scout {
+            version: u8,
+            what: WhatAmIMatcher,
+            zid: Option<ZenohIdProto>,
+        }
+    }
+
+    impl_for_struct! {
+        struct HelloProto {
+            version: u8,
+            whatami: WhatAmI,
+            zid: ZenohIdProto,
+            locators: Vec<Locator>,
+        }
+    }
+
+    impl_for_enum! {
+        enum ScoutingBody {
+            Scout(Scout),
+            Hello(HelloProto),
+        }
+    }
+
+    impl_for_struct! {
+        struct ScoutingMessage {
+            #[dissect(expand)]
+            body: ScoutingBody,
         }
     }
 }
