@@ -245,6 +245,70 @@ fn tshark_available() -> bool {
     Command::new("tshark").arg("--version").output().is_ok()
 }
 
+/// Returns field names (with their showname) that have `size=0` in the PDML
+/// but carry a non-absent value — i.e., appear in the tree with real data but
+/// claim no bytes in the hex panel.  Branch nodes and known flag-only fields
+/// are excluded because they legitimately have no byte range of their own.
+fn unclaimed_fields(pdml: &str) -> Vec<String> {
+    // `show` values that mean "field absent / not encoded"
+    const ABSENT_SHOW: &[&str] = &["None", "[]"];
+
+    // Field-name suffixes that are encoded as flag bits in a header byte.
+    // All header-flag fields now record the header byte span — no exclusions needed.
+    const FLAG_SUFFIXES: &[&str] = &[];
+
+    // FT_NONE branch container shownames — subtree nodes, not leaf fields.
+    const BRANCH_WORDS: &[&str] = &[
+        "TransportBody", "NetworkBody", "DeclareBody",
+        "PushBody", "RequestBody", "ResponseBody",
+        "Zenoh Protocol",
+    ];
+
+    // Substrings in `show` that indicate a field uses its default value and
+    // is therefore NOT encoded on the wire (codec elides it when == default).
+    // These are the canonical default representations from the Rust Debug impls:
+    //   • Frame / network-message QoS default = Priority::Data (inner: 5)
+    //   • Network-message QoS default = { priority: Data, congestion: Drop, express: false }
+    //   • NodeId default = node_id: 0
+    //   • resolution / batch_size only encoded when the S flag is set; the Rust
+    //     struct always has a value so they show up with size=0 when S=0.
+    const DEFAULT_SHOW_SUBSTRINGS: &[&str] = &[
+        "QoSType { inner: 5 }",
+        "priority: Data, congestion: Drop, express: false",
+        "NodeIdType { node_id: 0 }",
+    ];
+    // Field-name suffixes that are conditionally encoded (S flag); absent when
+    // the flag is clear even though the struct field has a value.
+    const CONDITIONAL_SUFFIXES: &[&str] = &[".resolution", ".batch_size"];
+
+    let mut suspicious = Vec::new();
+    for line in pdml.lines() {
+        if !line.contains("name=\"zenoh") { continue; }
+        let size = match attr(line, "size") { Some(s) => s, None => continue };
+        if size > 0 { continue; }
+
+        let extract = |attr_name: &str| -> Option<String> {
+            let needle = format!("{attr_name}=\"");
+            let start = line.find(&needle)? + needle.len();
+            let end = line[start..].find('"')? + start;
+            Some(line[start..end].to_string())
+        };
+
+        let name     = match extract("name")     { Some(n) => n, None => continue };
+        let show     = match extract("show")     { Some(s) => s, None => continue };
+        let showname = match extract("showname") { Some(s) => s, None => continue };
+
+        if FLAG_SUFFIXES.iter().any(|s| name.ends_with(s)) { continue; }
+        if CONDITIONAL_SUFFIXES.iter().any(|s| name.ends_with(s)) { continue; }
+        if BRANCH_WORDS.iter().any(|w| showname.contains(w)) { continue; }
+        if ABSENT_SHOW.iter().any(|a| show == *a) { continue; }
+        if DEFAULT_SHOW_SUBSTRINGS.iter().any(|d| show.contains(d)) { continue; }
+
+        suspicious.push(format!("{name}: {showname}"));
+    }
+    suspicious
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -445,4 +509,111 @@ fn first_declare_in_multi_message_frame_highlights_correct_bytes() {
         // size=0 is acceptable — only the first message gets recorded spans in the
         // current design; subsequent messages intentionally fall back to size=0.
     }
+}
+
+/// Golden span-coverage test against assets/sample-data.pcap.
+///
+/// For every zenoh field in the PDML that carries a non-absent value
+/// (not `None`, not `[]`, not a flag-only field, not a branch container),
+/// assert `size > 0` — i.e., it highlights at least one byte.
+///
+/// This test also asserts the exact sizes of all known-encoded fields so that
+/// any regression in span recording (a field silently dropping to size=0, or
+/// growing to the full-message size) fails immediately.
+///
+/// When adding new span recordings to `zenoh_spans.rs`, update the lists below.
+#[test]
+fn sample_pcap_all_encoded_fields_highlighted() {
+    if !tshark_available() {
+        eprintln!("skipping: tshark not found");
+        return;
+    }
+    install_dissector();
+
+    let pcap = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../assets/sample-data.pcap");
+    let pdml = run_tshark(&pcap);
+
+    // -----------------------------------------------------------------------
+    // 1. Structural check: no encoded field should claim zero bytes.
+    //    `unclaimed_fields` returns fields that appear in the tree with a
+    //    non-absent value but size=0 — those are missing highlights.
+    // -----------------------------------------------------------------------
+    let unclaimed = unclaimed_fields(&pdml);
+    assert!(
+        unclaimed.is_empty(),
+        "The following zenoh fields have non-absent values but size=0 \
+         (clicking them highlights nothing in Wireshark):\n{}",
+        unclaimed.join("\n")
+    );
+
+    // -----------------------------------------------------------------------
+    // 2. Exact-size golden assertions for each known-encoded field.
+    //    Any change in span recording that shifts a field's byte range will
+    //    be caught here even if the new size is still > 0.
+    // -----------------------------------------------------------------------
+    let tp = TRANSPORT_PREFIX; // "zenoh.body" (update post-zids-and-trees merge)
+
+    macro_rules! assert_size {
+        ($field:expr, $expected:expr) => {{
+            let spans = field_spans(&pdml, $field);
+            let sizes: Vec<usize> = spans.iter().map(|&(_, s)| s).filter(|&s| s > 0).collect();
+            assert!(
+                !sizes.is_empty(),
+                "field '{}' not found with size>0 in PDML", $field
+            );
+            for &sz in &sizes {
+                assert_eq!(
+                    sz, $expected,
+                    "field '{}' expected size={} got {}", $field, $expected, sz
+                );
+            }
+        }};
+    }
+
+    // InitSyn
+    assert_size!(&format!("{tp}.init_syn.version"),  1);
+    assert_size!(&format!("{tp}.init_syn.whatami"),  1);
+    assert_size!(&format!("{tp}.init_syn.zid"),     16);
+    assert_size!(&format!("{tp}.init_syn.ext_qos"),  1);
+
+    // InitAck
+    assert_size!(&format!("{tp}.init_ack.version"),  1);
+    assert_size!(&format!("{tp}.init_ack.whatami"),  1);
+    assert_size!(&format!("{tp}.init_ack.zid"),     16);
+    assert_size!(&format!("{tp}.init_ack.cookie"),  50);
+    assert_size!(&format!("{tp}.init_ack.ext_qos"),  1);
+
+    // OpenSyn
+    assert_size!(&format!("{tp}.open_syn.lease"),       1);
+    assert_size!(&format!("{tp}.open_syn.initial_sn"),  4);
+    assert_size!(&format!("{tp}.open_syn.cookie"),     50);
+
+    // OpenAck
+    assert_size!(&format!("{tp}.open_ack.lease"),       1);
+    assert_size!(&format!("{tp}.open_ack.initial_sn"),  4);
+
+    // Frame
+    assert_size!(&format!("{tp}.frame.reliability"), 1);
+    assert_size!(&format!("{tp}.frame.sn"), 4);
+
+    // DeclareKeyExpr (inside Frame payload)
+    let kex = &format!("{tp}.frame.payload.body.declare.body.declare_key_expr");
+    assert_size!(&format!("{kex}.id"),        1);
+    assert_size!(&format!("{kex}.wire_expr"), 14);
+
+    // DeclareSubscriber (inside Frame payload)
+    let sub = &format!("{tp}.frame.payload.body.declare.body.declare_subscriber");
+    assert_size!(&format!("{sub}.id"),        1);
+    assert_size!(&format!("{sub}.wire_expr"), 5);
+
+    // Push / Put (inside Frame payload)
+    let push = &format!("{tp}.frame.payload.body.push");
+    assert_size!(&format!("{push}.wire_expr"),               27);
+    assert_size!(&format!("{push}.payload.put.encoding"),     2);
+    assert_size!(&format!("{push}.payload.put.payload"),     15);
+
+    // Close
+    assert_size!(&format!("{tp}.close.session"), 1);
+    assert_size!(&format!("{tp}.close.reason"),  1);
 }

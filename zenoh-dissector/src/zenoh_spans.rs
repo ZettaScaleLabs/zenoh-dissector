@@ -132,7 +132,9 @@ impl RecordSpans for TransportMessage {
         prefix: &str,
         map: &mut SpanMap,
     ) -> Result<()> {
+        let header_start = cursor.checkpoint();
         let header: u8 = cursor.decode()?;
+        let header_span = cursor.span_since(header_start);
         let body_prefix = format!("{prefix}.body");
         match &self.body {
             TransportBody::InitSyn(m) => {
@@ -148,9 +150,13 @@ impl RecordSpans for TransportMessage {
                 m.record_spans_with_header(header, cursor, &format!("{body_prefix}.open_ack"), map)
             }
             TransportBody::Frame(m) => {
+                // R flag (bit 5) in header byte encodes reliability
+                map.insert(format!("{body_prefix}.frame.reliability"), header_span);
                 m.record_spans_with_header(header, cursor, &format!("{body_prefix}.frame"), map)
             }
             TransportBody::Fragment(m) => {
+                // M flag (bit 6) in header byte encodes more-fragments
+                map.insert(format!("{body_prefix}.fragment.more"), header_span);
                 m.record_spans_with_header(
                     header,
                     cursor,
@@ -171,10 +177,11 @@ impl RecordSpans for TransportMessage {
                 m.record_spans_with_header(header, cursor, &format!("{body_prefix}.join"), map)
             }
             TransportBody::Close(m) => {
+                // S flag in header byte encodes session
+                map.insert(format!("{body_prefix}.close.session"), header_span);
                 let b = cursor.checkpoint();
                 let _: u8 = cursor.decode()?; // reason byte
                 map.insert(format!("{body_prefix}.close.reason"), cursor.span_since(b));
-                // session is encoded as flag S in the header — no separate byte
                 let _ = m;
                 Ok(())
             }
