@@ -14,6 +14,12 @@ use zenoh_protocol::{
         request::flag as req_flag,
         response::flag as resp_flag,
     },
+    scouting::{
+        hello::flag as hello_flag,
+        id as scouting_id,
+        scout::flag as scout_flag,
+        ScoutingBody, ScoutingMessage,
+    },
     transport::{
         init::flag as init_flag,
         join::flag as join_flag,
@@ -751,5 +757,103 @@ fn record_declare_spans(
         _ => {} // U_* and D_FINAL: skip, fall back to parent span
     }
 
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Scouting-level public entry point
+// ---------------------------------------------------------------------------
+pub fn record_scouting_message_spans(
+    msg: &ScoutingMessage,
+    cursor: &mut SpanCursor,
+    prefix: &str,
+    map: &mut SpanMap,
+) -> Result<()> {
+    let header: u8 = cursor.decode()?;
+    let body_prefix = format!("{prefix}.body");
+    match &msg.body {
+        ScoutingBody::Scout(m) => {
+            record_scout_spans(header, m, cursor, &format!("{body_prefix}.scout"), map)
+        }
+        ScoutingBody::Hello(m) => {
+            record_hello_spans(header, m, cursor, &format!("{body_prefix}.hello"), map)
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Scout: header byte already consumed
+//   u8 version
+//   u8 flags (bits 0-2 = whatami, bit 3 = I (zid present), bits 7:4 = zid_size-1)
+//   if I: [u8; zid_size] zid
+//   if Z (header bit 7): extensions
+// ---------------------------------------------------------------------------
+fn record_scout_spans(
+    header: u8,
+    msg: &zenoh_protocol::scouting::scout::Scout,
+    cursor: &mut SpanCursor,
+    prefix: &str,
+    map: &mut SpanMap,
+) -> Result<()> {
+    let b = cursor.checkpoint();
+    let _: u8 = cursor.decode()?;
+    map.insert(format!("{prefix}.version"), cursor.span_since(b));
+
+    let b = cursor.checkpoint();
+    let flags: u8 = cursor.decode()?;
+    map.insert(format!("{prefix}.what"), cursor.span_since(b));
+
+    if imsg::has_flag(flags, scout_flag::I) {
+        let zid_size = ((flags >> 4) as usize) + 1;
+        let b = cursor.checkpoint();
+        cursor.skip(zid_size)?;
+        map.insert(format!("{prefix}.zid"), cursor.span_since(b));
+    }
+
+    skip_extensions(cursor, imsg::has_flag(header, scout_flag::Z))?;
+    let _ = msg; // fields already read via cursor
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Hello: header byte already consumed
+//   u8 version
+//   u8 flags (bits 0-1 = whatami, bits 7:4 = zid_size-1)
+//   [u8; zid_size] zid
+//   if L (header bit 5): VLE locator_count, then for each: VLE len + string bytes
+//   if Z (header bit 7): extensions
+// ---------------------------------------------------------------------------
+fn record_hello_spans(
+    header: u8,
+    msg: &zenoh_protocol::scouting::hello::HelloProto,
+    cursor: &mut SpanCursor,
+    prefix: &str,
+    map: &mut SpanMap,
+) -> Result<()> {
+    let b = cursor.checkpoint();
+    let _: u8 = cursor.decode()?;
+    map.insert(format!("{prefix}.version"), cursor.span_since(b));
+
+    let b = cursor.checkpoint();
+    let flags: u8 = cursor.decode()?;
+    map.insert(format!("{prefix}.whatami"), cursor.span_since(b));
+    let zid_size = ((flags >> 4) as usize) + 1;
+
+    let b = cursor.checkpoint();
+    cursor.skip(zid_size)?;
+    map.insert(format!("{prefix}.zid"), cursor.span_since(b));
+
+    if imsg::has_flag(header, hello_flag::L) {
+        let b = cursor.checkpoint();
+        let loc_count: u64 = cursor.decode()?;
+        for _ in 0..loc_count {
+            let loc_len: u64 = cursor.decode()?;
+            cursor.skip(loc_len as usize)?;
+        }
+        map.insert(format!("{prefix}.locators"), cursor.span_since(b));
+    }
+
+    skip_extensions(cursor, imsg::has_flag(header, hello_flag::Z))?;
+    let _ = (msg, scouting_id::HELLO); // suppress unused warnings
     Ok(())
 }

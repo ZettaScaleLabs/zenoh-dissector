@@ -33,7 +33,7 @@ mod zenoh_impl;
 mod zenoh_spans;
 
 use span::SpanMap;
-use zenoh_spans::record_transport_message_spans;
+use zenoh_spans::{record_transport_message_spans, record_scouting_message_spans};
 
 use zenoh_buffers::reader::{HasReader, Reader};
 use zenoh_codec::{RCodec, Zenoh080};
@@ -564,8 +564,26 @@ unsafe extern "C" fn dissect_zenoh_udp(
                     Err(_) => break,
                 };
                 let msg_len = before - scout_reader.remaining();
-                tree_args.length = msg_len;
-                let _ = msg.add_to_tree("zenoh", &tree_args);
+                let mut span_map = SpanMap::new();
+                if tree_args.start + msg_len <= tvb_vec.len() {
+                    let msg_bytes = &tvb_vec[tree_args.start..tree_args.start + msg_len];
+                    let mut cursor = span::SpanCursor::new(msg_bytes);
+                    if let Err(e) = record_scouting_message_spans(&msg, &mut cursor, "zenoh", &mut span_map) {
+                        ws_log::message!("scouting span error: {e}");
+                        span_map.clear();
+                    }
+                    for s in span_map.values_mut() {
+                        s.start += tree_args.start;
+                        s.end += tree_args.start;
+                    }
+                }
+                let msg_args = TreeArgs {
+                    length: msg_len,
+                    spans: if span_map.is_empty() { None } else { Some(&span_map) },
+                    local_spans: None,
+                    ..tree_args
+                };
+                let _ = msg.add_to_tree("zenoh", &msg_args);
                 tree_args.start += msg_len;
                 summary.append(|| format!("{msg:?}").split('(').next().unwrap_or("Scout").to_string());
             }
