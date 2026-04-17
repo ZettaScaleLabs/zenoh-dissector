@@ -92,6 +92,28 @@ jobs:
         if: matrix.platform == 'linux'
         run: cargo build -p epan-sys -F bindgen
 
+      - name: Set PKG_CONFIG_PATH for glib-2.0 (Windows)
+        if: matrix.platform == 'windows'
+        shell: powershell
+        run: |
+          $libsDir = Get-ChildItem C:\wsbuild -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "wireshark-x64-libs-*" } |
+            Select-Object -First 1
+          if (-not $libsDir) {
+            Write-Host "WARNING: no wireshark-x64-libs-* directory found in C:\wsbuild"
+            Get-ChildItem C:\wsbuild -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $_" }
+            exit 1
+          }
+          $vcpkgDir = Get-ChildItem (Join-Path $libsDir.FullName "vcpkg-export") -Directory -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+          $pkgPath = Join-Path $vcpkgDir.FullName "installed\x64-windows\lib\pkgconfig"
+          if (-not (Test-Path $pkgPath)) {
+            Write-Host "WARNING: pkgconfig directory not found at $pkgPath"
+            exit 1
+          }
+          Write-Host "PKG_CONFIG_PATH=$pkgPath"
+          echo "PKG_CONFIG_PATH=$pkgPath" >> $env:GITHUB_ENV
+
       - name: Regenerate bindings (Windows)
         if: matrix.platform == 'windows'
         run: cargo build -p epan-sys -F bindgen
