@@ -52,10 +52,17 @@ if (-not (Test-Path (Join-Path $SrcDir "CMakeLists.txt"))) {
     Invoke-WebRequest -Uri $PatchUrl -OutFile $PatchFile -UseBasicParsing
     Push-Location $SrcDir
 
-    # Apply the patch if not already included in this Wireshark version
+    # Apply the patch if not already included in this Wireshark version.
+    # Use SilentlyContinue locally so non-zero exit from git apply --check
+    # doesn't trigger the global Stop preference before we inspect $LASTEXITCODE.
     if (Get-Command git -ErrorAction SilentlyContinue) {
+        $prev = $ErrorActionPreference
+        $ErrorActionPreference = 'SilentlyContinue'
         git apply --check "$PatchFile" 2>$null
-        if ($LASTEXITCODE -eq 0) {
+        $checkExit = $LASTEXITCODE
+        $ErrorActionPreference = $prev
+
+        if ($checkExit -eq 0) {
             git apply "$PatchFile"
             if ($LASTEXITCODE -ne 0) {
                 Write-Error "Applying the DocBook URL patch failed."
@@ -63,8 +70,13 @@ if (-not (Test-Path (Join-Path $SrcDir "CMakeLists.txt"))) {
             }
         } else {
             # Check if already applied (patch already included in this version)
+            $prev = $ErrorActionPreference
+            $ErrorActionPreference = 'SilentlyContinue'
             git apply --check -R "$PatchFile" 2>$null
-            if ($LASTEXITCODE -eq 0) {
+            $reverseExit = $LASTEXITCODE
+            $ErrorActionPreference = $prev
+
+            if ($reverseExit -eq 0) {
                 Write-Host "DocBook URL patch already included in Wireshark $WiresharkVersion, skipping."
             } else {
                 Write-Error "Applying the DocBook URL patch failed (patch does not apply forward or reverse)."
