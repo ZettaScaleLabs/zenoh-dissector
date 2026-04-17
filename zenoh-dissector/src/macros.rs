@@ -194,11 +194,32 @@ macro_rules! impl_for_struct {
                 let args = $crate::tree::TreeArgs { length: 0, local_spans: None, ..*args };
 
                 $(
-                    for item in &self.$expand_vec_as_field {
-                        item.add_to_tree(
-                            &format!("{prefix}.{}", $expand_vec_as),
-                            &args,
-                        )?;
+                    {
+                        let vec_key = format!("{prefix}.{}", $expand_vec_as);
+                        for (i, item) in self.$expand_vec_as_field.iter().enumerate() {
+                            let item_pfx = format!("{vec_key}[{i}].");
+                            let item_local: crate::span::SpanMap = args.spans
+                                .map(|m| {
+                                    m.iter()
+                                        .filter_map(|(k, v)| {
+                                            k.strip_prefix(&item_pfx)
+                                                .map(|suffix| (format!("{vec_key}.{suffix}"), *v))
+                                        })
+                                        .collect()
+                                })
+                                .unwrap_or_default();
+                            let item_args = crate::tree::TreeArgs {
+                                local_spans: if item_local.is_empty() { None } else { Some(item_local) },
+                                tree: args.tree,
+                                tvb: args.tvb,
+                                hf_map: args.hf_map,
+                                st_map: args.st_map,
+                                start: args.start,
+                                length: args.length,
+                                spans: args.spans,
+                            };
+                            item.add_to_tree(&vec_key, &item_args)?;
+                        }
                     }
                 )*
 
