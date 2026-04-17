@@ -52,17 +52,31 @@ if (-not (Test-Path (Join-Path $SrcDir "CMakeLists.txt"))) {
     Invoke-WebRequest -Uri $PatchUrl -OutFile $PatchFile -UseBasicParsing
     Push-Location $SrcDir
 
-    # Use git to patch the file if available, otherwise use patch command
+    # Apply the patch if not already included in this Wireshark version
     if (Get-Command git -ErrorAction SilentlyContinue) {
-        git apply "$PatchFile"
+        git apply --check "$PatchFile" 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            git apply "$PatchFile"
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "Applying the DocBook URL patch failed."
+                exit 1
+            }
+        } else {
+            # Check if already applied (patch already included in this version)
+            git apply --check -R "$PatchFile" 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "DocBook URL patch already included in Wireshark $WiresharkVersion, skipping."
+            } else {
+                Write-Error "Applying the DocBook URL patch failed (patch does not apply forward or reverse)."
+                exit 1
+            }
+        }
     } else {
-        # Fall‑back to the BSD‑style `patch` command (available via GnuWin32 or Git Bash)
-        & patch -p1 -i "$PatchFile"
-    }
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "Applying the DocBook URL patch failed."
-        exit 1
+        & patch -p1 --forward -i "$PatchFile"
+        if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1) {
+            Write-Error "Applying the DocBook URL patch failed."
+            exit 1
+        }
     }
     Pop-Location
 }
