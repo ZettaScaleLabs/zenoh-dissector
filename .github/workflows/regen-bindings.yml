@@ -121,10 +121,12 @@ jobs:
             }
           }
 
-          # Fallback: search recursively for pkgconfig containing glib-2.0.pc
+          # Fallback: search recursively for pkgconfig containing glib-2.0.pc, excluding debug paths
           if (-not $pkgPath) {
             Write-Host "vcpkg-export path not found, searching recursively for glib-2.0.pc..."
-            $glibPc = Get-ChildItem $libsDir.FullName -Recurse -Filter "glib-2.0.pc" -ErrorAction SilentlyContinue | Select-Object -First 1
+            $glibPc = Get-ChildItem $libsDir.FullName -Recurse -Filter "glib-2.0.pc" -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -notlike "*\debug\*" } |
+              Select-Object -First 1
             if ($glibPc) {
               $pkgPath = $glibPc.DirectoryName
             }
