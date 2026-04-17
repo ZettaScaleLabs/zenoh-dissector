@@ -9,7 +9,7 @@
 use anyhow::Result;
 
 use zenoh_protocol::{
-    common::imsg,
+    common::{iext, imsg},
     transport::{
         init::flag as init_flag,
         join::flag as join_flag,
@@ -22,17 +22,30 @@ use zenoh_protocol::{
 use crate::span::{RecordSpans, SpanCursor, SpanMap};
 
 // ---------------------------------------------------------------------------
-// Helper: consume and skip the extension chain from the current cursor position.
-// Each extension has a 1-byte header; the MSB (0x80) indicates more extensions follow.
-// We skip without recording per-extension spans.
+// Helper: skip one extension body (cursor is positioned just after the header byte).
+// Extension encoding is encoded in the low 2 bits of the header byte (iext::ENC_MASK):
+//   ENC_UNIT (0b00): no body bytes
+//   ENC_Z64  (0b01): VLE u64 body
+//   ENC_ZBUF (0b10): u32-bounded ZBuf (VLE length + data)
+// The MSB of the header byte (iext::FLAG_Z = 0x80) means more extensions follow.
 // ---------------------------------------------------------------------------
 fn skip_extensions(cursor: &mut SpanCursor, has_ext: bool) -> Result<()> {
     let mut remaining = has_ext;
     while remaining {
         let ext_byte: u8 = cursor.decode()?;
-        let ext_len: u64 = cursor.decode()?; // VLE body length
-        cursor.skip(ext_len as usize)?;
-        remaining = (ext_byte & 0x80) != 0;
+        match ext_byte & iext::ENC_MASK {
+            iext::ENC_UNIT => {} // no body
+            iext::ENC_Z64 => {
+                let _: u64 = cursor.decode()?; // VLE u64
+            }
+            iext::ENC_ZBUF => {
+                // u32-bounded ZBuf: a VLE length prefix then that many bytes
+                let body_len: u64 = cursor.decode()?;
+                cursor.skip(body_len as usize)?;
+            }
+            _ => return Err(anyhow::anyhow!("unknown extension encoding")),
+        }
+        remaining = (ext_byte & iext::FLAG_Z) != 0;
     }
     Ok(())
 }
