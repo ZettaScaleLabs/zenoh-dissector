@@ -191,7 +191,7 @@ macro_rules! impl_for_struct {
 
                 // HACK(fuzzypixelz): recursively created trees will have an incorrect length. Only
                 // the Transport layer has an accurate length.
-                let args = $crate::tree::TreeArgs { length: 0, local_spans: None, ..*args };
+                let args = $crate::tree::TreeArgs { length: 0, local_spans: args.local_spans.clone(), ..*args };
 
                 $(
                     {
