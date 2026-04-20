@@ -85,6 +85,9 @@ jobs:
         run: |
           & .\epan-sys\scripts\build.ps1 -WiresharkVersion "${{ steps.wireshark-version.outputs.version }}" -BuildConfig "Release"
 
+      - name: Add rustfmt component
+        run: rustup component add rustfmt
+
       - name: Install bindgen-cli
         run: cargo install bindgen-cli --locked
 
