@@ -3657,6 +3657,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "zenoh-codec-ffi"
+version = "1.9.0"
+dependencies = [
+ "anyhow",
+ "convert_case",
+ "zenoh-buffers",
+ "zenoh-codec",
+ "zenoh-protocol",
+ "zenoh-transport",
+]
+
+[[package]]
 name = "zenoh-collections"
 version = "1.9.0"
 source = "git+https://github.com/eclipse-zenoh/zenoh.git?branch=main#fe7a78ebcfcb0e2c57c5d00a89082a1a9c730869"
