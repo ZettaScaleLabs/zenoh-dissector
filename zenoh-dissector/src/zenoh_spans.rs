@@ -135,53 +135,54 @@ impl RecordSpans for TransportMessage {
         let header_start = cursor.checkpoint();
         let header: u8 = cursor.decode()?;
         let header_span = cursor.span_since(header_start);
-        let body_prefix = format!("{prefix}.body");
+        let tp = format!("{prefix}.transport");
         match &self.body {
             TransportBody::InitSyn(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{body_prefix}.init_syn"), map)
+                m.record_spans_with_header(header, cursor, &format!("{tp}.init_syn"), map)
             }
             TransportBody::InitAck(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{body_prefix}.init_ack"), map)
+                m.record_spans_with_header(header, cursor, &format!("{tp}.init_ack"), map)
             }
             TransportBody::OpenSyn(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{body_prefix}.open_syn"), map)
+                m.record_spans_with_header(header, cursor, &format!("{tp}.open_syn"), map)
             }
             TransportBody::OpenAck(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{body_prefix}.open_ack"), map)
+                m.record_spans_with_header(header, cursor, &format!("{tp}.open_ack"), map)
             }
             TransportBody::Frame(m) => {
                 // R flag (bit 5) in header byte encodes reliability
-                map.insert(format!("{body_prefix}.frame.reliability"), header_span);
-                m.record_spans_with_header(header, cursor, &format!("{body_prefix}.frame"), map)
+                map.insert(format!("{tp}.frame.reliability"), header_span);
+                m.record_spans_with_header(header, cursor, &format!("{tp}.frame"), map)
             }
             TransportBody::Fragment(m) => {
-                // M flag (bit 6) in header byte encodes more-fragments
-                map.insert(format!("{body_prefix}.fragment.more"), header_span);
+                // R flag (bit 5) = reliability, M flag (bit 6) = more-fragments, both in header byte
+                map.insert(format!("{tp}.fragment.reliability"), header_span);
+                map.insert(format!("{tp}.fragment.more"), header_span);
                 m.record_spans_with_header(
                     header,
                     cursor,
-                    &format!("{body_prefix}.fragment"),
+                    &format!("{tp}.fragment"),
                     map,
                 )
             }
             TransportBody::KeepAlive(m) => m.record_spans_with_header(
                 header,
                 cursor,
-                &format!("{body_prefix}.keep_alive"),
+                &format!("{tp}.keep_alive"),
                 map,
             ),
             TransportBody::OAM(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{body_prefix}.o_a_m"), map)
+                m.record_spans_with_header(header, cursor, &format!("{tp}.o_a_m"), map)
             }
             TransportBody::Join(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{body_prefix}.join"), map)
+                m.record_spans_with_header(header, cursor, &format!("{tp}.join"), map)
             }
             TransportBody::Close(m) => {
                 // S flag in header byte encodes session
-                map.insert(format!("{body_prefix}.close.session"), header_span);
+                map.insert(format!("{tp}.close.session"), header_span);
                 let b = cursor.checkpoint();
                 let _: u8 = cursor.decode()?; // reason byte
-                map.insert(format!("{body_prefix}.close.reason"), cursor.span_since(b));
+                map.insert(format!("{tp}.close.reason"), cursor.span_since(b));
                 let _ = m;
                 Ok(())
             }
@@ -416,7 +417,7 @@ impl RecordSpansWithHeader for Frame {
         // Record spans for each NetworkMessage using indexed keys: "{payload_prefix}[{i}].…"
         // The #[dissect(vec)] renderer in macros.rs remaps these to "{payload_prefix}.…"
         // for the i-th item, so each message gets correct per-field highlighting.
-        let payload_prefix = format!("{prefix}.payload");
+        let payload_prefix = format!("{prefix}.network");
         for (i, nmsg) in self.payload.iter().enumerate() {
             let item_prefix = format!("{payload_prefix}[{i}]");
             if let Err(e) = record_network_message_spans(nmsg, cursor, &item_prefix, map) {
@@ -565,23 +566,22 @@ fn record_network_message_spans(
 
     match &msg.body {
         NetworkBody::Push(_) if mid == net_id::PUSH => {
-            record_push_spans(header, cursor, &format!("{prefix}.body"), map)
+            record_push_spans(header, cursor, prefix, map)
         }
         NetworkBody::Request(_) if mid == net_id::REQUEST => {
-            record_request_spans(header, cursor, &format!("{prefix}.body"), map)
+            record_request_spans(header, cursor, prefix, map)
         }
         NetworkBody::Response(_) if mid == net_id::RESPONSE => {
-            record_response_spans(header, cursor, &format!("{prefix}.body"), map)
+            record_response_spans(header, cursor, prefix, map)
         }
         NetworkBody::ResponseFinal(_) if mid == net_id::RESPONSE_FINAL => {
-            record_response_final_spans(header, cursor, &format!("{prefix}.body"), map)
+            record_response_final_spans(header, cursor, prefix, map)
         }
         NetworkBody::Declare(_) if mid == net_id::DECLARE => {
-            record_declare_spans(header, cursor, &format!("{prefix}.body"), map)
+            record_declare_spans(header, cursor, prefix, map)
         }
         _ => {
-            // Unknown/OAM — skip this message's bytes; we can't know the length here
-            // without re-decoding, so we just stop span recording for this message.
+            // Unknown/OAM — skip this message's bytes.
             Ok(())
         }
     }
@@ -613,7 +613,7 @@ fn record_push_spans(
         NET_EXT,
         map,
     )?;
-    record_put_body_spans(cursor, &format!("{prefix}.push.payload"), map)
+    record_put_body_spans(cursor, &format!("{prefix}.push"), map)
 }
 
 // ---------------------------------------------------------------------------
@@ -654,12 +654,14 @@ fn record_put_body_spans(
     // Put extensions: ext_sinfo=ZBUF|0x1=0x41, ext_attachment=ZBUF|0x5=0x45
     skip_extensions(cursor, imsg::has_flag(put_header, put_flag::Z))?;
 
-    // Payload = all remaining bytes in the cursor
-    let b = cursor.checkpoint();
-    cursor.skip_remaining();
-    let span = cursor.span_since(b);
-    if span.len() > 0 {
-        map.insert(format!("{put_prefix}.payload"), span);
+    // Payload = VLE(len) + bytes; record only the bytes, not the length prefix
+    if let Ok(payload_len) = cursor.decode::<u64>() {
+        let b = cursor.checkpoint();
+        let _ = cursor.skip(payload_len as usize);
+        let span = cursor.span_since(b);
+        if span.len() > 0 {
+            map.insert(format!("{put_prefix}.payload"), span);
+        }
     }
 
     Ok(())
@@ -764,13 +766,13 @@ fn record_declare_spans(
             let b = cursor.checkpoint();
             let _: u64 = cursor.decode()?;
             map.insert(
-                format!("{prefix}.declare.body.declare_key_expr.id"),
+                format!("{prefix}.declare.declare_key_expr.id"),
                 cursor.span_since(b),
             );
             let has_suffix = imsg::has_flag(db_header, 0x20); // N flag
             record_wire_expr_spans(
                 cursor,
-                &format!("{prefix}.declare.body.declare_key_expr.wire_expr"),
+                &format!("{prefix}.declare.declare_key_expr.wire_expr"),
                 map,
                 has_suffix,
             )?;
@@ -780,13 +782,13 @@ fn record_declare_spans(
             let b = cursor.checkpoint();
             let _: u64 = cursor.decode()?; // subscriber id
             map.insert(
-                format!("{prefix}.declare.body.declare_subscriber.id"),
+                format!("{prefix}.declare.declare_subscriber.id"),
                 cursor.span_since(b),
             );
             let has_suffix = imsg::has_flag(db_header, 0x20);
             record_wire_expr_spans(
                 cursor,
-                &format!("{prefix}.declare.body.declare_subscriber.wire_expr"),
+                &format!("{prefix}.declare.declare_subscriber.wire_expr"),
                 map,
                 has_suffix,
             )?;
@@ -796,13 +798,13 @@ fn record_declare_spans(
             let b = cursor.checkpoint();
             let _: u64 = cursor.decode()?;
             map.insert(
-                format!("{prefix}.declare.body.declare_queryable.id"),
+                format!("{prefix}.declare.declare_queryable.id"),
                 cursor.span_since(b),
             );
             let has_suffix = imsg::has_flag(db_header, 0x20);
             record_wire_expr_spans(
                 cursor,
-                &format!("{prefix}.declare.body.declare_queryable.wire_expr"),
+                &format!("{prefix}.declare.declare_queryable.wire_expr"),
                 map,
                 has_suffix,
             )?;
@@ -812,19 +814,43 @@ fn record_declare_spans(
             let b = cursor.checkpoint();
             let _: u64 = cursor.decode()?;
             map.insert(
-                format!("{prefix}.declare.body.declare_token.id"),
+                format!("{prefix}.declare.declare_token.id"),
                 cursor.span_since(b),
             );
             let has_suffix = imsg::has_flag(db_header, 0x20);
             record_wire_expr_spans(
                 cursor,
-                &format!("{prefix}.declare.body.declare_token.wire_expr"),
+                &format!("{prefix}.declare.declare_token.wire_expr"),
                 map,
                 has_suffix,
             )?;
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
         }
-        _ => {} // U_* and D_FINAL: skip, fall back to parent span
+        U_KEYEXPR => {
+            let b = cursor.checkpoint();
+            let _: u64 = cursor.decode()?;
+            map.insert(format!("{prefix}.declare.undeclare_key_expr.id"), cursor.span_since(b));
+            skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+        }
+        U_SUBSCRIBER => {
+            let b = cursor.checkpoint();
+            let _: u64 = cursor.decode()?;
+            map.insert(format!("{prefix}.declare.undeclare_subscriber.id"), cursor.span_since(b));
+            skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+        }
+        U_QUERYABLE => {
+            let b = cursor.checkpoint();
+            let _: u64 = cursor.decode()?;
+            map.insert(format!("{prefix}.declare.undeclare_queryable.id"), cursor.span_since(b));
+            skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+        }
+        U_TOKEN => {
+            let b = cursor.checkpoint();
+            let _: u64 = cursor.decode()?;
+            map.insert(format!("{prefix}.declare.undeclare_token.id"), cursor.span_since(b));
+            skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+        }
+        _ => {} // D_FINAL and unknown: skip, fall back to parent span
     }
 
     Ok(())
@@ -840,13 +866,12 @@ pub fn record_scouting_message_spans(
     map: &mut SpanMap,
 ) -> Result<()> {
     let header: u8 = cursor.decode()?;
-    let body_prefix = format!("{prefix}.body");
     match &msg.body {
         ScoutingBody::Scout(m) => {
-            record_scout_spans(header, m, cursor, &format!("{body_prefix}.scout"), map)
+            record_scout_spans(header, m, cursor, &format!("{prefix}.scout"), map)
         }
         ScoutingBody::Hello(m) => {
-            record_hello_spans(header, m, cursor, &format!("{body_prefix}.hello"), map)
+            record_hello_spans(header, m, cursor, &format!("{prefix}.hello"), map)
         }
     }
 }
@@ -969,6 +994,7 @@ mod tests {
                 ext_lowlatency: None,
                 ext_compression: None,
                 ext_patch: zenoh_protocol::transport::init::ext::PatchType::NONE,
+                ext_region_name: None,
             }),
         }
     }
@@ -981,13 +1007,13 @@ mod tests {
         let mut map = SpanMap::new();
         record_transport_message_spans(&msg, &mut cursor, "zenoh", &mut map).unwrap();
 
-        let v = &map["zenoh.body.init_syn.version"];
+        let v = &map["zenoh.transport.init_syn.version"];
         assert_eq!(v.end - v.start, 1, "version must be 1 byte");
 
-        let w = &map["zenoh.body.init_syn.whatami"];
+        let w = &map["zenoh.transport.init_syn.whatami"];
         assert_eq!(w.end - w.start, 1, "whatami must be 1 byte");
 
-        let z = &map["zenoh.body.init_syn.zid"];
+        let z = &map["zenoh.transport.init_syn.zid"];
         assert!(z.end > z.start, "zid must span at least 1 byte");
     }
 
@@ -1021,7 +1047,7 @@ mod tests {
         let mut map = SpanMap::new();
         record_network_message_spans(&net_msg, &mut cursor, "zenoh", &mut map).unwrap();
 
-        let we = &map["zenoh.body.push.wire_expr"];
+        let we = &map["zenoh.push.wire_expr"];
         let span_len = we.end - we.start;
         // wire_expr with scope=0 encodes: VLE(0) + VLE(len) + bytes
         let expected = 1 + 1 + key.len();
@@ -1050,7 +1076,7 @@ mod tests {
         let mut map = SpanMap::new();
         record_network_message_spans(&net_msg, &mut cursor, "zenoh", &mut map).unwrap();
 
-        let id_span = &map["zenoh.body.declare.body.declare_key_expr.id"];
+        let id_span = &map["zenoh.declare.declare_key_expr.id"];
         assert_eq!(id_span.end - id_span.start, 1, "expr id must be 1 byte");
     }
 
@@ -1068,10 +1094,10 @@ mod tests {
         let mut map = SpanMap::new();
         record_scouting_message_spans(&msg, &mut cursor, "zenoh", &mut map).unwrap();
 
-        let v = &map["zenoh.body.scout.version"];
+        let v = &map["zenoh.scout.version"];
         assert_eq!(v.end - v.start, 1, "Scout.version must be 1 byte");
 
-        let w = &map["zenoh.body.scout.what"];
+        let w = &map["zenoh.scout.what"];
         assert_eq!(w.end - w.start, 1, "Scout.what must be 1 byte");
     }
 
@@ -1091,13 +1117,13 @@ mod tests {
         let mut map = SpanMap::new();
         record_scouting_message_spans(&msg, &mut cursor, "zenoh", &mut map).unwrap();
 
-        let v = &map["zenoh.body.hello.version"];
+        let v = &map["zenoh.hello.version"];
         assert_eq!(v.end - v.start, 1, "Hello.version must be 1 byte");
 
-        let w = &map["zenoh.body.hello.whatami"];
+        let w = &map["zenoh.hello.whatami"];
         assert_eq!(w.end - w.start, 1, "Hello.whatami must be 1 byte");
 
-        let z = &map["zenoh.body.hello.zid"];
+        let z = &map["zenoh.hello.zid"];
         assert!(z.end > z.start, "Hello.zid must span at least 1 byte");
     }
 }
