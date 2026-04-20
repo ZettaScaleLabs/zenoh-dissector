@@ -8,24 +8,17 @@ use anyhow::Result;
 use zenoh_protocol::{
     common::{iext, imsg},
     network::{
-        declare,
-        id as net_id,
-        push::flag as push_flag,
-        request::flag as req_flag,
+        declare, id as net_id, push::flag as push_flag, request::flag as req_flag,
         response::flag as resp_flag,
     },
     scouting::{
-        hello::flag as hello_flag,
-        id as scouting_id,
-        scout::flag as scout_flag,
-        ScoutingBody, ScoutingMessage,
+        hello::flag as hello_flag, id as scouting_id, scout::flag as scout_flag, ScoutingBody,
+        ScoutingMessage,
     },
     transport::{
-        init::flag as init_flag,
-        join::flag as join_flag,
-        open::flag as open_flag,
-Fragment, Frame, InitAck, InitSyn, Join, KeepAlive, Oam, OpenAck, OpenSyn, TransportBody,
-        TransportMessage, TransportSn,
+        init::flag as init_flag, join::flag as join_flag, open::flag as open_flag, Fragment, Frame,
+        InitAck, InitSyn, Join, KeepAlive, Oam, OpenAck, OpenSyn, TransportBody, TransportMessage,
+        TransportSn,
     },
 };
 
@@ -126,12 +119,7 @@ pub fn record_transport_message_spans(
 }
 
 impl RecordSpans for TransportMessage {
-    fn record_spans(
-        &self,
-        cursor: &mut SpanCursor,
-        prefix: &str,
-        map: &mut SpanMap,
-    ) -> Result<()> {
+    fn record_spans(&self, cursor: &mut SpanCursor, prefix: &str, map: &mut SpanMap) -> Result<()> {
         let header_start = cursor.checkpoint();
         let header: u8 = cursor.decode()?;
         let header_span = cursor.span_since(header_start);
@@ -158,19 +146,11 @@ impl RecordSpans for TransportMessage {
                 // R flag (bit 5) = reliability, M flag (bit 6) = more-fragments, both in header byte
                 map.insert(format!("{tp}.fragment.reliability"), header_span);
                 map.insert(format!("{tp}.fragment.more"), header_span);
-                m.record_spans_with_header(
-                    header,
-                    cursor,
-                    &format!("{tp}.fragment"),
-                    map,
-                )
+                m.record_spans_with_header(header, cursor, &format!("{tp}.fragment"), map)
             }
-            TransportBody::KeepAlive(m) => m.record_spans_with_header(
-                header,
-                cursor,
-                &format!("{tp}.keep_alive"),
-                map,
-            ),
+            TransportBody::KeepAlive(m) => {
+                m.record_spans_with_header(header, cursor, &format!("{tp}.keep_alive"), map)
+            }
             TransportBody::OAM(m) => {
                 m.record_spans_with_header(header, cursor, &format!("{tp}.o_a_m"), map)
             }
@@ -275,12 +255,7 @@ impl RecordSpansWithHeader for InitSyn {
     }
 }
 impl RecordSpans for InitSyn {
-    fn record_spans(
-        &self,
-        _c: &mut SpanCursor,
-        _p: &str,
-        _m: &mut SpanMap,
-    ) -> Result<()> {
+    fn record_spans(&self, _c: &mut SpanCursor, _p: &str, _m: &mut SpanMap) -> Result<()> {
         Ok(())
     }
 }
@@ -297,12 +272,7 @@ impl RecordSpansWithHeader for InitAck {
     }
 }
 impl RecordSpans for InitAck {
-    fn record_spans(
-        &self,
-        _c: &mut SpanCursor,
-        _p: &str,
-        _m: &mut SpanMap,
-    ) -> Result<()> {
+    fn record_spans(&self, _c: &mut SpanCursor, _p: &str, _m: &mut SpanMap) -> Result<()> {
         Ok(())
     }
 }
@@ -681,7 +651,12 @@ fn record_request_spans(
     map.insert(format!("{prefix}.request.id"), cursor.span_since(b));
 
     let has_suffix = imsg::has_flag(header, req_flag::N);
-    record_wire_expr_spans(cursor, &format!("{prefix}.request.wire_expr"), map, has_suffix)?;
+    record_wire_expr_spans(
+        cursor,
+        &format!("{prefix}.request.wire_expr"),
+        map,
+        has_suffix,
+    )?;
     record_extension_spans(
         cursor,
         imsg::has_flag(header, req_flag::Z),
@@ -705,13 +680,21 @@ fn record_response_spans(
     map.insert(format!("{prefix}.response.rid"), cursor.span_since(b));
 
     let has_suffix = imsg::has_flag(header, resp_flag::N);
-    record_wire_expr_spans(cursor, &format!("{prefix}.response.wire_expr"), map, has_suffix)?;
+    record_wire_expr_spans(
+        cursor,
+        &format!("{prefix}.response.wire_expr"),
+        map,
+        has_suffix,
+    )?;
     // Response extensions: QoS=Z64|0x1, Timestamp=ZBUF|0x2 — no NodeId
     record_extension_spans(
         cursor,
         imsg::has_flag(header, resp_flag::Z),
         &format!("{prefix}.response"),
-        &[(iext::ENC_Z64 | 0x1, "ext_qos"), (iext::ENC_ZBUF | 0x2, "ext_tstamp")],
+        &[
+            (iext::ENC_Z64 | 0x1, "ext_qos"),
+            (iext::ENC_ZBUF | 0x2, "ext_tstamp"),
+        ],
         map,
     )
 }
@@ -744,7 +727,10 @@ fn record_declare_spans(
     if imsg::has_flag(header, declare::flag::I) {
         let b = cursor.checkpoint();
         let _: u64 = cursor.decode()?; // interest_id (VLE)
-        map.insert(format!("{prefix}.declare.interest_id"), cursor.span_since(b));
+        map.insert(
+            format!("{prefix}.declare.interest_id"),
+            cursor.span_since(b),
+        );
     }
 
     record_extension_spans(
@@ -829,25 +815,37 @@ fn record_declare_spans(
         U_KEYEXPR => {
             let b = cursor.checkpoint();
             let _: u64 = cursor.decode()?;
-            map.insert(format!("{prefix}.declare.undeclare_key_expr.id"), cursor.span_since(b));
+            map.insert(
+                format!("{prefix}.declare.undeclare_key_expr.id"),
+                cursor.span_since(b),
+            );
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
         }
         U_SUBSCRIBER => {
             let b = cursor.checkpoint();
             let _: u64 = cursor.decode()?;
-            map.insert(format!("{prefix}.declare.undeclare_subscriber.id"), cursor.span_since(b));
+            map.insert(
+                format!("{prefix}.declare.undeclare_subscriber.id"),
+                cursor.span_since(b),
+            );
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
         }
         U_QUERYABLE => {
             let b = cursor.checkpoint();
             let _: u64 = cursor.decode()?;
-            map.insert(format!("{prefix}.declare.undeclare_queryable.id"), cursor.span_since(b));
+            map.insert(
+                format!("{prefix}.declare.undeclare_queryable.id"),
+                cursor.span_since(b),
+            );
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
         }
         U_TOKEN => {
             let b = cursor.checkpoint();
             let _: u64 = cursor.decode()?;
-            map.insert(format!("{prefix}.declare.undeclare_token.id"), cursor.span_since(b));
+            map.insert(
+                format!("{prefix}.declare.undeclare_token.id"),
+                cursor.span_since(b),
+            );
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
         }
         _ => {} // D_FINAL and unknown: skip, fall back to parent span
@@ -960,8 +958,7 @@ mod tests {
     use zenoh_protocol::{
         core::{Reliability, WhatAmI, WireExpr},
         network::{
-            declare::ext as dec_ext, DeclareBody, DeclareKeyExpr, NetworkBody, NetworkMessage,
-            Push,
+            declare::ext as dec_ext, DeclareBody, DeclareKeyExpr, NetworkBody, NetworkMessage, Push,
         },
         scouting::{hello::HelloProto, scout::Scout, ScoutingBody, ScoutingMessage},
         transport::{BatchSize, InitSyn, TransportBody, TransportMessage},

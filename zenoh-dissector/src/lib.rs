@@ -33,7 +33,7 @@ mod zenoh_impl;
 mod zenoh_spans;
 
 use span::SpanMap;
-use zenoh_spans::{record_transport_message_spans, record_scouting_message_spans};
+use zenoh_spans::{record_scouting_message_spans, record_transport_message_spans};
 
 use zenoh_buffers::reader::{HasReader, Reader};
 use zenoh_codec::{RCodec, Zenoh080};
@@ -71,7 +71,9 @@ fn update_zid_table(msg: &TransportMessage, srcport: u32) {
         _ => None,
     };
     if let Some(zid) = zid_str {
-        ZID_TABLE.with(|t| { t.borrow_mut().insert(srcport, zid); });
+        ZID_TABLE.with(|t| {
+            t.borrow_mut().insert(srcport, zid);
+        });
     }
 }
 
@@ -341,7 +343,8 @@ unsafe extern "C" fn register_handoff() {
     });
 }
 
-unsafe extern "C" fn dissect_zenoh_heur(    tvb: *mut epan_sys::tvbuff,
+unsafe extern "C" fn dissect_zenoh_heur(
+    tvb: *mut epan_sys::tvbuff,
     pinfo: *mut epan_sys::_packet_info,
     tree: *mut epan_sys::_proto_node,
     data: *mut std::ffi::c_void,
@@ -536,23 +539,28 @@ unsafe extern "C" fn dissect_pdu_zenoh_tcp(
         }
 
         // Build per-field span maps for each message (payload-relative, then shifted).
-        let span_maps: Vec<SpanMap> = msgs.iter().map(|m| {
-            let mut span_map = SpanMap::new();
-            #[allow(static_mut_refs)]
-            if !IS_COMPRESSION && m.offset + m.len <= payload_slice.len() {
-                let msg_bytes = &payload_slice[m.offset..m.offset + m.len];
-                let mut cursor = span::SpanCursor::new(msg_bytes);
-                if let Err(e) = record_transport_message_spans(&m.msg, &mut cursor, "zenoh", &mut span_map) {
-                    ws_log::message!("span recording error: {e}");
-                    span_map.clear();
+        let span_maps: Vec<SpanMap> = msgs
+            .iter()
+            .map(|m| {
+                let mut span_map = SpanMap::new();
+                #[allow(static_mut_refs)]
+                if !IS_COMPRESSION && m.offset + m.len <= payload_slice.len() {
+                    let msg_bytes = &payload_slice[m.offset..m.offset + m.len];
+                    let mut cursor = span::SpanCursor::new(msg_bytes);
+                    if let Err(e) =
+                        record_transport_message_spans(&m.msg, &mut cursor, "zenoh", &mut span_map)
+                    {
+                        ws_log::message!("span recording error: {e}");
+                        span_map.clear();
+                    }
+                    for s in span_map.values_mut() {
+                        s.start += BATCH_HEADER_LEN + m.offset;
+                        s.end += BATCH_HEADER_LEN + m.offset;
+                    }
                 }
-                for s in span_map.values_mut() {
-                    s.start += BATCH_HEADER_LEN + m.offset;
-                    s.end += BATCH_HEADER_LEN + m.offset;
-                }
-            }
-            span_map
-        }).collect();
+                span_map
+            })
+            .collect();
 
         for (m, span_map) in msgs.iter().zip(span_maps.iter()) {
             // Message offsets are relative to the batch payload; shift by BATCH_HEADER_LEN
@@ -560,7 +568,11 @@ unsafe extern "C" fn dissect_pdu_zenoh_tcp(
             let msg_tree = TreeArgs {
                 start: BATCH_HEADER_LEN + m.offset,
                 length: m.len,
-                spans: if span_map.is_empty() { None } else { Some(span_map) },
+                spans: if span_map.is_empty() {
+                    None
+                } else {
+                    Some(span_map)
+                },
                 local_spans: None,
                 ..batch_tree
             };
@@ -584,7 +596,8 @@ unsafe extern "C" fn dissect_pdu_zenoh_tcp(
     let zid_annotation = lookup_zid((*pinfo).srcport)
         .map(|z| format!(" [ZID:{z}]"))
         .unwrap_or_default();
-    let summary_c_str = CString::new(format!("{}{} {summary}", (*pinfo).srcport, zid_annotation)).unwrap();
+    let summary_c_str =
+        CString::new(format!("{}{} {summary}", (*pinfo).srcport, zid_annotation)).unwrap();
     epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as _);
     epan_sys::col_add_str(
         (*pinfo).cinfo,
@@ -630,14 +643,22 @@ unsafe extern "C" fn dissect_zenoh_udp(
         let tvb_vec = tvb_slice.to_vec();
         let summary = PROTOCOL_DATA.with(|data| {
             let borrowed_data = data.borrow();
-            let ti = epan_sys::proto_tree_add_item(tree, borrowed_data.id, tvb, 0, -1, epan_sys::ENC_NA);
-            let st = *borrowed_data.st_map.get("zenoh").expect("zenoh subtree not registered");
+            let ti =
+                epan_sys::proto_tree_add_item(tree, borrowed_data.id, tvb, 0, -1, epan_sys::ENC_NA);
+            let st = *borrowed_data
+                .st_map
+                .get("zenoh")
+                .expect("zenoh subtree not registered");
             let zenoh_tree = epan_sys::proto_item_add_subtree(ti, st);
             let mut tree_args = TreeArgs {
-                tree: zenoh_tree, tvb,
+                tree: zenoh_tree,
+                tvb,
                 hf_map: &borrowed_data.hf_map,
                 st_map: &borrowed_data.st_map,
-                start: 0, length: tvb_len, spans: None, local_spans: None,
+                start: 0,
+                length: tvb_len,
+                spans: None,
+                local_spans: None,
             };
             let mut scout_reader = tvb_vec.reader();
             let mut summary = SizedSummary::new(MAX_BATCH_SUMMARY);
@@ -652,7 +673,9 @@ unsafe extern "C" fn dissect_zenoh_udp(
                 if tree_args.start + msg_len <= tvb_vec.len() {
                     let msg_bytes = &tvb_vec[tree_args.start..tree_args.start + msg_len];
                     let mut cursor = span::SpanCursor::new(msg_bytes);
-                    if let Err(e) = record_scouting_message_spans(&msg, &mut cursor, "zenoh", &mut span_map) {
+                    if let Err(e) =
+                        record_scouting_message_spans(&msg, &mut cursor, "zenoh", &mut span_map)
+                    {
                         ws_log::message!("scouting span error: {e}");
                         span_map.clear();
                     }
@@ -663,20 +686,34 @@ unsafe extern "C" fn dissect_zenoh_udp(
                 }
                 let msg_args = TreeArgs {
                     length: msg_len,
-                    spans: if span_map.is_empty() { None } else { Some(&span_map) },
+                    spans: if span_map.is_empty() {
+                        None
+                    } else {
+                        Some(&span_map)
+                    },
                     local_spans: None,
                     ..tree_args
                 };
                 let _ = msg.add_to_tree("zenoh", &msg_args);
                 tree_args.start += msg_len;
-                summary.append(|| format!("{msg:?}").split('(').next().unwrap_or("Scout").to_string());
+                summary.append(|| {
+                    format!("{msg:?}")
+                        .split('(')
+                        .next()
+                        .unwrap_or("Scout")
+                        .to_string()
+                });
             }
             anyhow::Ok(summary)
         });
         let s = summary.map(|s| format!("{s}")).unwrap_or_default();
         let summary_c_str = CString::new(s).unwrap();
         epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as _);
-        epan_sys::col_add_str((*pinfo).cinfo, epan_sys::COL_INFO as _, summary_c_str.as_ptr());
+        epan_sys::col_add_str(
+            (*pinfo).cinfo,
+            epan_sys::COL_INFO as _,
+            summary_c_str.as_ptr(),
+        );
         return tvb_len as std::ffi::c_int;
     }
 
@@ -740,29 +777,38 @@ unsafe extern "C" fn dissect_zenoh_udp(
         }
         conversation::update_tree(tvb, pinfo, zenoh_tree, ti);
 
-        let span_maps: Vec<SpanMap> = msgs.iter().map(|m| {
-            let mut span_map = SpanMap::new();
-            #[allow(static_mut_refs)]
-            if !IS_COMPRESSION && m.offset + m.len <= tvb_slice.len() {
-                let msg_bytes = &tvb_slice[m.offset..m.offset + m.len];
-                let mut cursor = span::SpanCursor::new(msg_bytes);
-                if let Err(e) = record_transport_message_spans(&m.msg, &mut cursor, "zenoh", &mut span_map) {
-                    ws_log::message!("span recording error: {e}");
-                    span_map.clear();
+        let span_maps: Vec<SpanMap> = msgs
+            .iter()
+            .map(|m| {
+                let mut span_map = SpanMap::new();
+                #[allow(static_mut_refs)]
+                if !IS_COMPRESSION && m.offset + m.len <= tvb_slice.len() {
+                    let msg_bytes = &tvb_slice[m.offset..m.offset + m.len];
+                    let mut cursor = span::SpanCursor::new(msg_bytes);
+                    if let Err(e) =
+                        record_transport_message_spans(&m.msg, &mut cursor, "zenoh", &mut span_map)
+                    {
+                        ws_log::message!("span recording error: {e}");
+                        span_map.clear();
+                    }
+                    for s in span_map.values_mut() {
+                        s.start += m.offset;
+                        s.end += m.offset;
+                    }
                 }
-                for s in span_map.values_mut() {
-                    s.start += m.offset;
-                    s.end += m.offset;
-                }
-            }
-            span_map
-        }).collect();
+                span_map
+            })
+            .collect();
 
         for (m, span_map) in msgs.iter().zip(span_maps.iter()) {
             let msg_tree = TreeArgs {
                 start: m.offset,
                 length: m.len,
-                spans: if span_map.is_empty() { None } else { Some(span_map) },
+                spans: if span_map.is_empty() {
+                    None
+                } else {
+                    Some(span_map)
+                },
                 local_spans: None,
                 ..tree_args
             };

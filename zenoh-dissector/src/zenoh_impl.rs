@@ -17,7 +17,6 @@ use crate::tree::*;
 use anyhow::Result;
 use convert_case::{Case, Casing};
 
-
 pub struct ZenohProtocol;
 
 mod impl_for_zenoh_protocol {
@@ -488,7 +487,9 @@ mod impl_for_network {
 }
 
 mod impl_for_scouting {
-    use zenoh_protocol::scouting::{hello::HelloProto, scout::Scout, ScoutingBody, ScoutingMessage};
+    use zenoh_protocol::scouting::{
+        hello::HelloProto, scout::Scout, ScoutingBody, ScoutingMessage,
+    };
 
     use crate::zenoh_impl::*;
 
@@ -528,11 +529,7 @@ mod impl_for_scouting {
 mod registration_tests {
     use super::*;
     use crate::header_field::{FieldKind, Registration};
-    use zenoh_protocol::{
-        network::NetworkBody,
-        scouting::ScoutingBody,
-        transport::TransportBody,
-    };
+    use zenoh_protocol::{network::NetworkBody, scouting::ScoutingBody, transport::TransportBody};
 
     // -------------------------------------------------------------------------
     // Helper: assert a prefix appears in both hf_map AND subtree_names.
@@ -540,7 +537,11 @@ mod registration_tests {
     //   get_hf(prefix) → must be in hf_map
     //   get_st(prefix) → must be in subtree_names (becomes st_map at registration time)
     // -------------------------------------------------------------------------
-    fn assert_subtree_consistent(prefix: &str, hf_map: &crate::header_field::HeaderFieldMap, subtree_names: &[String]) {
+    fn assert_subtree_consistent(
+        prefix: &str,
+        hf_map: &crate::header_field::HeaderFieldMap,
+        subtree_names: &[String],
+    ) {
         assert!(
             hf_map.contains_key(prefix),
             "prefix '{prefix}' missing from hf_map — make_subtree will bail at runtime"
@@ -561,8 +562,16 @@ mod registration_tests {
     fn transport_body_variants_registered_as_branches() {
         let hf = TransportBody::generate_hf_map("zenoh.body");
         let variants = [
-            "init_syn", "init_ack", "open_syn", "open_ack",
-            "close", "keep_alive", "frame", "fragment", "oam", "join",
+            "init_syn",
+            "init_ack",
+            "open_syn",
+            "open_ack",
+            "close",
+            "keep_alive",
+            "frame",
+            "fragment",
+            "oam",
+            "join",
         ];
         for v in variants {
             let key = format!("zenoh.body.{v}");
@@ -581,8 +590,16 @@ mod registration_tests {
     fn transport_body_variants_registered_as_subtrees() {
         let names = TransportBody::generate_subtree_names("zenoh.body");
         let variants = [
-            "init_syn", "init_ack", "open_syn", "open_ack",
-            "close", "keep_alive", "frame", "fragment", "oam", "join",
+            "init_syn",
+            "init_ack",
+            "open_syn",
+            "open_ack",
+            "close",
+            "keep_alive",
+            "frame",
+            "fragment",
+            "oam",
+            "join",
         ];
         for v in variants {
             let key = format!("zenoh.body.{v}");
@@ -612,7 +629,15 @@ mod registration_tests {
     fn network_body_variants_registered() {
         let hf = NetworkBody::generate_hf_map("zenoh.body.frame.body");
         let names = NetworkBody::generate_subtree_names("zenoh.body.frame.body");
-        for v in ["push", "request", "response", "response_final", "interest", "declare", "oam"] {
+        for v in [
+            "push",
+            "request",
+            "response",
+            "response_final",
+            "interest",
+            "declare",
+            "oam",
+        ] {
             let key = format!("zenoh.body.frame.body.{v}");
             assert_subtree_consistent(&key, &hf, &names);
         }
@@ -640,7 +665,9 @@ mod registration_tests {
     fn all_hf_branches_have_subtree_entries() {
         let hf = ZenohProtocol::generate_hf_map("zenoh");
         let names: std::collections::HashSet<String> =
-            ZenohProtocol::generate_subtree_names("zenoh").into_iter().collect();
+            ZenohProtocol::generate_subtree_names("zenoh")
+                .into_iter()
+                .collect();
 
         let mut missing = vec![];
         for (key, field) in hf.iter() {
