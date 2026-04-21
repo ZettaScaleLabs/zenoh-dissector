@@ -55,7 +55,7 @@ if(WIN32)
         REQUIRED)
 else()
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GLIB2 REQUIRED glib-2.0)
+    pkg_check_modules(GLIB2 REQUIRED IMPORTED_TARGET glib-2.0)
 endif()
 
 # ---------------------------------------------------------------------------
@@ -93,11 +93,19 @@ target_compile_options(packet-zenoh PRIVATE
     $<$<C_COMPILER_ID:MSVC>:/W3>
 )
 
-target_link_libraries(packet-zenoh PRIVATE
-    ${Wireshark_LIBRARIES}
-    ${GLIB2_LIBRARIES}
-    ${ZENOH_CODEC_FFI_LIB}
-)
+if(WIN32)
+    target_link_libraries(packet-zenoh PRIVATE
+        ${Wireshark_LIBRARIES}
+        ${GLIB2_LIBRARIES}
+        ${ZENOH_CODEC_FFI_LIB}
+    )
+else()
+    target_link_libraries(packet-zenoh PRIVATE
+        ${Wireshark_LIBRARIES}
+        PkgConfig::GLIB2
+        ${ZENOH_CODEC_FFI_LIB}
+    )
+endif()
 
 # ---------------------------------------------------------------------------
 # Install to user plugin directory
