@@ -82,6 +82,17 @@ add_library(packet-zenoh MODULE packet-zenoh.c)
 # Wireshark plugins must not have a "lib" prefix
 set_target_properties(packet-zenoh PROPERTIES PREFIX "")
 
+# On macOS the Rust cdylib has install name @rpath/libzenoh_codec_ffi.dylib.
+# Embed rpaths so the plugin finds it both in the cmake build dir and after
+# being copied to the Wireshark plugin directory alongside the dylib.
+if(APPLE)
+    get_filename_component(_FFI_DIR "${ZENOH_CODEC_FFI_LIB}" DIRECTORY)
+    set_target_properties(packet-zenoh PROPERTIES
+        INSTALL_RPATH "@loader_path;${_FFI_DIR}"
+        BUILD_WITH_INSTALL_RPATH TRUE
+    )
+endif()
+
 target_include_directories(packet-zenoh PRIVATE
     ${Wireshark_INCLUDE_DIRS}
     ${GLIB2_INCLUDE_DIRS}
