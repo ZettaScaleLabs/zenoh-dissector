@@ -50,6 +50,12 @@ if(WIN32)
         "#include <ws2tcpip.h>\n"
         "#define HAVE_WINSOCK2_H 1\n"
         "#define HAVE_WS2TCPIP_H 1\n"
+        "/* MSYS2 GLib headers use GCC __attribute__; suppress for MSVC */\n"
+        "#ifdef _MSC_VER\n"
+        "# ifndef __attribute__\n"
+        "#   define __attribute__(x)\n"
+        "# endif\n"
+        "#endif\n"
     )
     # wireshark.h and ws_symbol_export.h are cmake-generated in Wireshark 4.6+ and
     # absent from the source tarball; stub them for the plugin-only build.
@@ -59,6 +65,10 @@ if(WIN32)
         "#include <stdint.h>\n"
         "#include <stdlib.h>\n"
         "#include \"ws_version.h\"\n"
+    )
+    file(WRITE "${CMAKE_BINARY_DIR}/ws_posix_compat.h"
+        "#pragma once\n"
+        "/* Stub: ws_posix_compat.h provides POSIX-on-Windows shims; not needed for plugin build */\n"
     )
     file(WRITE "${CMAKE_BINARY_DIR}/ws_attributes.h"
         "#pragma once\n"
