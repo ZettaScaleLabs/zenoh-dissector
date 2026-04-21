@@ -115,7 +115,7 @@ jobs:
         shell: bash
         run: |
           case "${{ matrix.platform }}" in
-            windows) FFI_LIB="$(pwd)/target/debug/zenoh_codec_ffi.dll" ;;
+            windows) FFI_LIB="$(pwd)/target/debug/zenoh_codec_ffi.dll.lib" ;;
             macos)   FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.dylib" ;;
             *)       FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.so" ;;
           esac
