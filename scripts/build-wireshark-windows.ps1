@@ -92,3 +92,39 @@ if (-not (Test-Path (Join-Path $SrcDir "epan\proto.h"))) {
     exit 1
 }
 Write-Host "Wireshark headers available at $SrcDir"
+
+# ---------------------------------------------------------------------------
+# Step 3: generate import libraries (.lib) from installed DLLs using MSVC tools.
+# The choco Wireshark package is a runtime install with no .lib files.
+# ---------------------------------------------------------------------------
+Write-Host "Generating import libraries from installed DLLs..."
+
+$vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$vsInstall = & $vsWhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>&1 | Select-Object -First 1
+$vcVer = (Get-Content (Join-Path $vsInstall "VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt")).Trim()
+$vcBin = Join-Path $vsInstall "VC\Tools\MSVC\$vcVer\bin\Hostx64\x64"
+$dumpbinExe = Join-Path $vcBin "dumpbin.exe"
+$libExe     = Join-Path $vcBin "lib.exe"
+
+foreach ($dllName in @("wireshark", "wsutil")) {
+    $dllPath = Join-Path $WsInstallDir "$dllName.dll"
+    if (-not (Test-Path $dllPath)) {
+        Write-Host "  $dllName.dll not found, skipping"
+        continue
+    }
+    $defPath = Join-Path $WsInstallDir "$dllName.def"
+    $libPath = Join-Path $WsInstallDir "$dllName.lib"
+
+    $exports = (& $dumpbinExe /EXPORTS $dllPath) -match '^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(\S+)' | ForEach-Object {
+        if ($_ -match '^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(\S+)') { $Matches[1] }
+    }
+    "LIBRARY $dllName`r`nEXPORTS" | Out-File $defPath -Encoding ASCII
+    $exports | Out-File $defPath -Encoding ASCII -Append
+
+    & $libExe /DEF:$defPath /OUT:$libPath /MACHINE:X64 /NOLOGO
+    if (Test-Path $libPath) {
+        Write-Host "  Generated $libPath ($($exports.Count) exports)"
+    } else {
+        Write-Error "Failed to generate $libPath"
+    }
+}
