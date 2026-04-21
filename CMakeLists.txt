@@ -63,28 +63,10 @@ endif()
 message(STATUS "Wireshark: include=${Wireshark_INCLUDE_DIRS} lib=${Wireshark_LIBRARIES}")
 
 # GLib is a Wireshark dependency not always transitively exposed.
-# On Windows glib ships inside Wireshark's win64-libs bundle; on Linux/macOS
-# pkg-config finds it from the system package.
-if(WIN32)
-    # GLib headers live inside the Wireshark source tree (glib.h is re-exported
-    # from epan/glib-compat.h and the source tree ships glib headers for plugins).
-    # The import library is bundled with the installed Wireshark application.
-    set(_WS_INSTALL "C:/Program Files/Wireshark")
-    find_path(GLIB2_INCLUDE_DIRS glib.h
-        HINTS
-            "${Wireshark_INCLUDE_DIRS}/include"
-            "${_WS_INSTALL}/include"
-        PATH_SUFFIXES glib-2.0
-        # Not REQUIRED — Wireshark headers may already pull glib.h in transitively
-    )
-    find_library(GLIB2_LIBRARIES glib-2.0
-        HINTS "${_WS_INSTALL}"
-        # Not REQUIRED — glib symbols may be resolved transitively via wireshark.lib
-    )
-else()
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GLIB2 REQUIRED IMPORTED_TARGET glib-2.0)
-endif()
+# On Windows: vcpkg provides glib and pkgconf; use pkg_check_modules like other platforms.
+# On Linux/macOS: system pkg-config finds it from the system package.
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GLIB2 REQUIRED IMPORTED_TARGET glib-2.0)
 
 # ---------------------------------------------------------------------------
 # Rust cdylib path (built separately with: cargo build -p zenoh-codec-ffi)
@@ -126,32 +108,18 @@ target_include_directories(packet-zenoh PRIVATE
     ${CMAKE_SOURCE_DIR}
     $<$<BOOL:${WIN32}>:${CMAKE_BINARY_DIR}>
 )
-# Guard: find_path returns NOTFOUND when glib headers are absent (Windows with
-# glib bundled inside Wireshark headers); adding NOTFOUND as an include dir
-# causes a cmake generate-time error.
-if(GLIB2_INCLUDE_DIRS)
-    target_include_directories(packet-zenoh PRIVATE ${GLIB2_INCLUDE_DIRS})
-endif()
 
 target_compile_options(packet-zenoh PRIVATE
     $<$<C_COMPILER_ID:GNU,Clang>:-Wall -Wextra -std=c11>
     $<$<C_COMPILER_ID:MSVC>:/W3>
 )
 
-if(WIN32)
-    target_link_libraries(packet-zenoh PRIVATE
-        ${Wireshark_LIBRARIES}
-        $<$<BOOL:${GLIB2_LIBRARIES}>:${GLIB2_LIBRARIES}>
-        ${ZENOH_CODEC_FFI_LIB}
-    )
-else()
-    target_link_libraries(packet-zenoh PRIVATE
-        ${Wireshark_LIBRARIES}
-        $<$<BOOL:${Wireshark_WSUTIL_LIB}>:${Wireshark_WSUTIL_LIB}>
-        PkgConfig::GLIB2
-        ${ZENOH_CODEC_FFI_LIB}
-    )
-endif()
+target_link_libraries(packet-zenoh PRIVATE
+    ${Wireshark_LIBRARIES}
+    $<$<BOOL:${Wireshark_WSUTIL_LIB}>:${Wireshark_WSUTIL_LIB}>
+    PkgConfig::GLIB2
+    ${ZENOH_CODEC_FFI_LIB}
+)
 
 # ---------------------------------------------------------------------------
 # Install to user plugin directory
