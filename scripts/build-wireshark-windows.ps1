@@ -162,7 +162,8 @@ if (Test-Path $glibDll) {
     $glibExports = (& $dumpbinExe /EXPORTS $glibDll) -match '^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(\S+)' | ForEach-Object {
         if ($_ -match '^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(\S+)') { $Matches[1] }
     }
-    "LIBRARY libglib-2.0-0`r`nEXPORTS" | Out-File $glibDef -Encoding ASCII
+    # Wireshark ships glib-2.0-0.dll (no lib prefix); match exactly so LoadLibrary resolves it.
+    "LIBRARY glib-2.0-0`r`nEXPORTS" | Out-File $glibDef -Encoding ASCII
     $glibExports | Out-File $glibDef -Encoding ASCII -Append
     & $libExe /DEF:$glibDef /OUT:$glibLib /MACHINE:X64 /NOLOGO
     if (Test-Path $glibLib) {
