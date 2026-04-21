@@ -440,7 +440,13 @@ impl RecordSpansWithHeader for KeepAlive {
         m: &mut SpanMap,
     ) -> Result<()> {
         let pos = c.checkpoint();
-        m.insert(p.to_string(), ByteSpan { start: pos - 1, end: pos });
+        m.insert(
+            p.to_string(),
+            ByteSpan {
+                start: pos - 1,
+                end: pos,
+            },
+        );
         Ok(())
     }
 }

@@ -506,19 +506,50 @@ mod registration_tests {
     #[test]
     fn transport_body_variants_registered_as_branches() {
         let hf = TransportBody::generate_hf_map("zenoh.body");
-        for v in ["init_syn", "init_ack", "open_syn", "open_ack", "close", "keep_alive", "frame", "fragment", "oam", "join"] {
+        for v in [
+            "init_syn",
+            "init_ack",
+            "open_syn",
+            "open_ack",
+            "close",
+            "keep_alive",
+            "frame",
+            "fragment",
+            "oam",
+            "join",
+        ] {
             let key = format!("zenoh.body.{v}");
-            assert!(hf.contains_key(&key), "variant branch '{key}' missing from hf_map");
-            assert!(matches!(hf[&key].kind, FieldKind::Branch), "variant '{key}' must be FieldKind::Branch");
+            assert!(
+                hf.contains_key(&key),
+                "variant branch '{key}' missing from hf_map"
+            );
+            assert!(
+                matches!(hf[&key].kind, FieldKind::Branch),
+                "variant '{key}' must be FieldKind::Branch"
+            );
         }
     }
 
     #[test]
     fn transport_body_variants_registered_as_subtrees() {
         let names = TransportBody::generate_subtree_names("zenoh.body");
-        for v in ["init_syn", "init_ack", "open_syn", "open_ack", "close", "keep_alive", "frame", "fragment", "oam", "join"] {
+        for v in [
+            "init_syn",
+            "init_ack",
+            "open_syn",
+            "open_ack",
+            "close",
+            "keep_alive",
+            "frame",
+            "fragment",
+            "oam",
+            "join",
+        ] {
             let key = format!("zenoh.body.{v}");
-            assert!(names.contains(&key), "variant subtree '{key}' missing from generate_subtree_names");
+            assert!(
+                names.contains(&key),
+                "variant subtree '{key}' missing from generate_subtree_names"
+            );
         }
     }
 
@@ -533,7 +564,15 @@ mod registration_tests {
     fn network_body_variants_registered() {
         let hf = NetworkBody::generate_hf_map("zenoh.body.frame.body");
         let names = NetworkBody::generate_subtree_names("zenoh.body.frame.body");
-        for v in ["push", "request", "response", "response_final", "interest", "declare", "oam"] {
+        for v in [
+            "push",
+            "request",
+            "response",
+            "response_final",
+            "interest",
+            "declare",
+            "oam",
+        ] {
             let key = format!("zenoh.body.frame.body.{v}");
             assert_subtree_consistent(&key, &hf, &names);
         }
@@ -553,7 +592,9 @@ mod registration_tests {
     fn all_hf_branches_have_subtree_entries() {
         let hf = ZenohProtocol::generate_hf_map("zenoh");
         let names: std::collections::HashSet<String> =
-            ZenohProtocol::generate_subtree_names("zenoh").into_iter().collect();
+            ZenohProtocol::generate_subtree_names("zenoh")
+                .into_iter()
+                .collect();
 
         let mut missing = vec![];
         for (key, field) in hf.iter() {
@@ -562,6 +603,9 @@ mod registration_tests {
             }
         }
         missing.sort();
-        assert!(missing.is_empty(), "Branch nodes in hf_map have no subtree entry: {missing:?}");
+        assert!(
+            missing.is_empty(),
+            "Branch nodes in hf_map have no subtree entry: {missing:?}"
+        );
     }
 }

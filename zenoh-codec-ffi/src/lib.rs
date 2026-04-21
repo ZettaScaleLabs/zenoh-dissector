@@ -140,7 +140,10 @@ pub extern "C" fn zenoh_codec_ffi_get_subtrees(out_count: *mut u32) -> *const *c
             .map(|s| std::ffi::CString::new(s).unwrap())
             .collect();
         let ptrs: Vec<*const c_char> = strings.iter().map(|s| s.as_ptr()).collect();
-        StaticSubtrees { _strings: strings, ptrs }
+        StaticSubtrees {
+            _strings: strings,
+            ptrs,
+        }
     });
     if !out_count.is_null() {
         unsafe { *out_count = state.ptrs.len() as u32 };
@@ -165,7 +168,9 @@ fn strip_indices(key: &str) -> std::borrow::Cow<'_, str> {
         if c == '[' {
             while let Some(&nc) = chars.peek() {
                 chars.next();
-                if nc == ']' { break; }
+                if nc == ']' {
+                    break;
+                }
             }
         } else {
             out.push(c);
