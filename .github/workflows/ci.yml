@@ -127,6 +127,10 @@ jobs:
             cmake -B _tmp/cmake-build -S . \
               -DZENOH_CODEC_FFI_LIB="$FFI_LIB" \
               -DCMAKE_PREFIX_PATH="${WS_PREFIX}"
+          elif [ "${{ matrix.platform }}" = "windows" ]; then
+            cmake -B _tmp/cmake-build -S . \
+              -DZENOH_CODEC_FFI_LIB="$FFI_LIB" \
+              -DWIRESHARK_VERSION="${{ steps.wireshark-version.outputs.version }}"
           else
             cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
           fi
