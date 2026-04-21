@@ -151,6 +151,12 @@ if (Test-Path $pacman) {
 # MSVC linker cannot use MinGW .dll.a files; generate a .lib from the DLL exports.
 $glibDll = "C:\msys64\mingw64\bin\libglib-2.0-0.dll"
 $glibLib = Join-Path $WsInstallDir "glib-2.0.lib"
+# Persist Wireshark install dir to GitHub Actions PATH so tshark is available in bash steps.
+if ($env:GITHUB_PATH) {
+    "C:\Program Files\Wireshark" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    Write-Host "Added Wireshark to GITHUB_PATH for subsequent steps."
+}
+
 if (Test-Path $glibDll) {
     $glibDef = Join-Path $WsInstallDir "glib-2.0.def"
     $glibExports = (& $dumpbinExe /EXPORTS $glibDll) -match '^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(\S+)' | ForEach-Object {
