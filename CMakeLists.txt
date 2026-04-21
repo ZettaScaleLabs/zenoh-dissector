@@ -65,6 +65,12 @@ if(WIN32)
         "#include <stdint.h>\n"
         "#include <stdlib.h>\n"
         "#include \"ws_version.h\"\n"
+        "#include \"ws_symbol_export.h\"\n"
+        "#include \"ws_attributes.h\"\n"
+    )
+    file(WRITE "${CMAKE_BINARY_DIR}/ws_codepoints.h"
+        "#pragma once\n"
+        "/* Stub: ws_codepoints.h defines Unicode codepoint constants; not needed for plugin build */\n"
     )
     file(WRITE "${CMAKE_BINARY_DIR}/ws_posix_compat.h"
         "#pragma once\n"
