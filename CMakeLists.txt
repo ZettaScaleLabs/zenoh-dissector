@@ -123,10 +123,15 @@ endif()
 
 target_include_directories(packet-zenoh PRIVATE
     ${Wireshark_INCLUDE_DIRS}
-    ${GLIB2_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}
     $<$<BOOL:${WIN32}>:${CMAKE_BINARY_DIR}>
 )
+# Guard: find_path returns NOTFOUND when glib headers are absent (Windows with
+# glib bundled inside Wireshark headers); adding NOTFOUND as an include dir
+# causes a cmake generate-time error.
+if(GLIB2_INCLUDE_DIRS)
+    target_include_directories(packet-zenoh PRIVATE ${GLIB2_INCLUDE_DIRS})
+endif()
 
 target_compile_options(packet-zenoh PRIVATE
     $<$<C_COMPILER_ID:GNU,Clang>:-Wall -Wextra -std=c11>
