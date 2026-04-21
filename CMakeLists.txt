@@ -30,6 +30,7 @@ else()
         PATH_SUFFIXES wireshark
         REQUIRED)
     find_library(Wireshark_LIBRARIES wireshark REQUIRED)
+    find_library(Wireshark_WSUTIL_LIB wsutil)  # pulled transitively on Linux; needed explicitly on macOS
 endif()
 message(STATUS "Wireshark: include=${Wireshark_INCLUDE_DIRS} lib=${Wireshark_LIBRARIES}")
 
@@ -101,6 +102,7 @@ if(WIN32)
 else()
     target_link_libraries(packet-zenoh PRIVATE
         ${Wireshark_LIBRARIES}
+        $<$<BOOL:${Wireshark_WSUTIL_LIB}>:${Wireshark_WSUTIL_LIB}>
         PkgConfig::GLIB2
         ${ZENOH_CODEC_FFI_LIB}
     )
