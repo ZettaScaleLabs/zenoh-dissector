@@ -147,15 +147,16 @@ jobs:
           let full_version = "${{ steps.wireshark-version.outputs.version }}"
           let maj_min = ($full_version | split row '.' | first 2 | str join '.')
 
-          # Use the actual personal plugin directory reported by tshark -G folders
+          # Use the actual personal plugin directory reported by tshark -G folders.
+          # "Personal Plugins:" already includes the version (may use hyphen on macOS: 4-6).
           let folders_out = (tshark -G folders | complete).stdout
-          let personal_plugins_line = ($folders_out | lines | where {|l| $l =~ "Personal plugins"} | first)
-          let plugin_base = if ($personal_plugins_line | is-empty) {
-            $"($env.HOME)/.local/lib/wireshark/plugins"
+          let personal_plugins_line = ($folders_out | lines | where {|l| $l =~ "Personal Plugins"} | first)
+          let plugin_dir = if ($personal_plugins_line | is-empty) {
+            $"($env.HOME)/.local/lib/wireshark/plugins/($maj_min)/epan"
           } else {
-            $personal_plugins_line | str replace ".*:\t" "" | str trim
+            let plugin_base = $personal_plugins_line | split row "\t" | last | str trim
+            $"($plugin_base)/epan"
           }
-          let plugin_dir = $"($plugin_base)/($maj_min)/epan"
           print $"Installing to plugin_dir: ($plugin_dir)"
           mkdir $plugin_dir
 

@@ -77,31 +77,22 @@ fn install_dissector_impl() {
         .expect("cmake build failed");
     assert!(status.success(), "cmake --build failed");
 
-    // Determine wireshark version for plugin directory
-    let ws_version = {
+    // Determine the personal plugin directory by querying tshark -G folders.
+    // On macOS, Wireshark uses a hyphenated version suffix (4-6), not dotted (4.6).
+    let plugin_dir = {
         let out = Command::new("tshark")
-            .arg("--version")
+            .args(["-G", "folders"])
             .output()
             .expect("tshark not found");
         let s = String::from_utf8_lossy(&out.stdout);
-        let line = s.lines().next().unwrap_or("");
-        let ver = line
-            .split_whitespace()
-            .find(|t| {
-                t.contains('.')
-                    && t.chars()
-                        .next()
-                        .map(|c| c.is_ascii_digit())
-                        .unwrap_or(false)
-            })
-            .unwrap_or("4.6");
-        ver.splitn(3, '.').take(2).collect::<Vec<_>>().join(".")
+        if let Some(line) = s.lines().find(|l| l.contains("Personal Plugins")) {
+            let base = line.split('\t').next_back().unwrap_or("").trim();
+            format!("{base}/epan")
+        } else {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!("{home}/.local/lib/wireshark/plugins/4.6/epan")
+        }
     };
-
-    let plugin_dir = format!(
-        "{}/.local/lib/wireshark/plugins/{ws_version}/epan",
-        std::env::var("HOME").unwrap_or_default()
-    );
     std::fs::create_dir_all(&plugin_dir).unwrap();
 
     // Install the C plugin and Rust cdylib as symlinks so the test always
