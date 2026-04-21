@@ -135,7 +135,7 @@ jobs:
           else
             cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
           fi
-          cmake --build _tmp/cmake-build --config Debug -j4
+          cmake --build _tmp/cmake-build --config Release -j4
 
       - name: Diagnose plugin directories
         shell: bash
@@ -175,7 +175,7 @@ jobs:
               cp target/debug/libzenoh_codec_ffi.dylib $"($plugin_dir)/libzenoh_codec_ffi.dylib"
             }
             "windows" => {
-              cp _tmp/cmake-build/Debug/packet-zenoh.dll $"($plugin_dir)/packet-zenoh.dll"
+              cp _tmp/cmake-build/Release/packet-zenoh.dll $"($plugin_dir)/packet-zenoh.dll"
               cp target/debug/zenoh_codec_ffi.dll $"($plugin_dir)/zenoh_codec_ffi.dll"
             }
           }
