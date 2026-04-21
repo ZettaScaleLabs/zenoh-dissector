@@ -233,9 +233,9 @@ if(APPLE)
 endif()
 
 target_include_directories(packet-zenoh PRIVATE
+    $<$<BOOL:${WIN32}>:${CMAKE_BINARY_DIR}>
     ${Wireshark_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}
-    $<$<BOOL:${WIN32}>:${CMAKE_BINARY_DIR}>
 )
 
 target_compile_options(packet-zenoh PRIVATE
