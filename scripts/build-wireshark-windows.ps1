@@ -136,12 +136,18 @@ foreach ($entry in @(@("wireshark", "libwireshark"), @("wsutil", "libwsutil"))) 
 # Step 4: install GLib headers via vcpkg (needed by Wireshark source headers)
 # The windows-2022 runner has vcpkg pre-installed at C:\vcpkg.
 # ---------------------------------------------------------------------------
-Write-Host "Installing GLib and pkgconf via vcpkg..."
-$vcpkgExe = "C:\vcpkg\vcpkg.exe"
-if (Test-Path $vcpkgExe) {
-    & $vcpkgExe install "glib:x64-windows" "pkgconf:x64-windows" --no-print-usage 2>&1 | Where-Object { $_ -match "^(Installing|Building|error)" } | ForEach-Object { Write-Host "  $_" }
-    Write-Host "GLib and pkgconf installed via vcpkg."
+# ---------------------------------------------------------------------------
+# Step 4: install GLib headers via MSYS2 (pre-installed on windows-2022 runners).
+# Binary package install is fast (seconds); no source compilation needed.
+# We only need headers for compiling packet-zenoh.c; GLib symbols are resolved
+# transitively through libwireshark.dll at runtime.
+# ---------------------------------------------------------------------------
+Write-Host "Installing GLib dev headers via MSYS2 pacman..."
+$pacman = "C:\msys64\usr\bin\pacman.exe"
+if (Test-Path $pacman) {
+    & $pacman -S --noconfirm --needed mingw-w64-x86_64-glib2 2>&1 | ForEach-Object { Write-Host "  $_" }
+    Write-Host "GLib installed via MSYS2."
 } else {
-    Write-Error "vcpkg not found at $vcpkgExe - cannot install GLib headers"
+    Write-Error "MSYS2 not found at C:\msys64 - cannot install GLib headers"
     exit 1
 }
