@@ -44,10 +44,12 @@ fn install_dissector_impl() {
     let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
     let workspace = manifest.parent().expect("workspace root");
 
-    // Step 1: build the Rust cdylib
-    let status = Command::new("cargo")
-        .args(["build", "-p", "zenoh-codec-ffi", "-j4"])
-        .env("RUSTFLAGS", "-C linker=gcc")
+    // Step 1: build the Rust cdylib (no linker override on Windows)
+    let mut cargo = Command::new("cargo");
+    cargo.args(["build", "-p", "zenoh-codec-ffi", "-j4"]);
+    #[cfg(not(target_os = "windows"))]
+    cargo.env("RUSTFLAGS", "-C linker=gcc");
+    let status = cargo
         .current_dir(workspace)
         .status()
         .expect("cargo build failed");
@@ -69,9 +71,12 @@ fn install_dissector_impl() {
         .expect("cmake configure failed");
     assert!(status.success(), "cmake configure failed");
 
-    // Step 3: cmake build
-    let status = Command::new("cmake")
-        .args(["--build", build_dir.to_str().unwrap(), "-j4"])
+    // Step 3: cmake build (use Release config on Windows to avoid debug CRT dep)
+    let mut cmake_build = Command::new("cmake");
+    cmake_build.args(["--build", build_dir.to_str().unwrap(), "-j4"]);
+    #[cfg(target_os = "windows")]
+    cmake_build.args(["--config", "Release"]);
+    let status = cmake_build
         .current_dir(workspace)
         .status()
         .expect("cmake build failed");
@@ -95,19 +100,58 @@ fn install_dissector_impl() {
     };
     std::fs::create_dir_all(&plugin_dir).unwrap();
 
-    // Install the C plugin and Rust cdylib as symlinks so the test always
-    // runs against the freshly-built binaries without an extra copy step.
-    let so = build_dir.join("packet-zenoh.so");
-    let so_link = format!("{plugin_dir}/packet-zenoh.so");
-    let _ = std::fs::remove_file(&so_link);
-    std::os::unix::fs::symlink(&so, &so_link)
-        .unwrap_or_else(|e| panic!("failed to symlink packet-zenoh.so: {e}"));
+    // Platform-specific file names and install method.
+    // Windows: copy files (symlinks require elevated permissions).
+    // Unix: symlink so the test always runs against fresh binaries.
+    #[cfg(target_os = "windows")]
+    {
+        let plugin_src = build_dir.join("Release/packet-zenoh.dll");
+        let plugin_dst = format!("{plugin_dir}/packet-zenoh.dll");
+        let _ = std::fs::remove_file(&plugin_dst);
+        std::fs::copy(&plugin_src, &plugin_dst)
+            .unwrap_or_else(|e| panic!("failed to copy packet-zenoh.dll: {e}"));
 
-    let cdylib = workspace.join("target/debug/libzenoh_codec_ffi.so");
-    let cdylib_link = format!("{plugin_dir}/libzenoh_codec_ffi.so");
-    let _ = std::fs::remove_file(&cdylib_link);
-    std::os::unix::fs::symlink(&cdylib, &cdylib_link)
-        .unwrap_or_else(|e| panic!("failed to symlink libzenoh_codec_ffi.so: {e}"));
+        let cdylib_src = workspace.join("target/debug/zenoh_codec_ffi.dll");
+        let cdylib_dst = format!("{plugin_dir}/zenoh_codec_ffi.dll");
+        let _ = std::fs::remove_file(&cdylib_dst);
+        std::fs::copy(&cdylib_src, &cdylib_dst)
+            .unwrap_or_else(|e| panic!("failed to copy zenoh_codec_ffi.dll: {e}"));
+
+        // LoadLibrary doesn't search the plugin dir for dependencies;
+        // also copy the FFI DLL next to tshark.exe.
+        let wireshark_dir = std::path::Path::new("C:/Program Files/Wireshark");
+        if wireshark_dir.exists() {
+            let _ = std::fs::copy(&cdylib_src, wireshark_dir.join("zenoh_codec_ffi.dll"));
+        }
+    }
+    #[cfg(target_os = "macos")]
+    {
+        let so = build_dir.join("packet-zenoh.so");
+        let so_link = format!("{plugin_dir}/packet-zenoh.so");
+        let _ = std::fs::remove_file(&so_link);
+        std::os::unix::fs::symlink(&so, &so_link)
+            .unwrap_or_else(|e| panic!("failed to symlink packet-zenoh.so: {e}"));
+
+        let cdylib = workspace.join("target/debug/libzenoh_codec_ffi.dylib");
+        let cdylib_link = format!("{plugin_dir}/libzenoh_codec_ffi.dylib");
+        let _ = std::fs::remove_file(&cdylib_link);
+        std::os::unix::fs::symlink(&cdylib, &cdylib_link)
+            .unwrap_or_else(|e| panic!("failed to symlink libzenoh_codec_ffi.dylib: {e}"));
+    }
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    {
+        let so = build_dir.join("packet-zenoh.so");
+        let so_link = format!("{plugin_dir}/packet-zenoh.so");
+        let _ = std::fs::remove_file(&so_link);
+        std::os::unix::fs::symlink(&so, &so_link)
+            .unwrap_or_else(|e| panic!("failed to symlink packet-zenoh.so: {e}"));
+
+        let cdylib = workspace.join("target/debug/libzenoh_codec_ffi.so");
+        let cdylib_link = format!("{plugin_dir}/libzenoh_codec_ffi.so");
+        let _ = std::fs::remove_file(&cdylib_link);
+        std::os::unix::fs::symlink(&cdylib, &cdylib_link)
+            .unwrap_or_else(|e| panic!("failed to symlink libzenoh_codec_ffi.so: {e}"));
+    }
 }
 
 // ---------------------------------------------------------------------------
