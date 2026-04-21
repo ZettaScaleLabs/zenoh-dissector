@@ -130,7 +130,9 @@ jobs:
           elif [ "${{ matrix.platform }}" = "windows" ]; then
             cmake -B _tmp/cmake-build -S . \
               -DZENOH_CODEC_FFI_LIB="$FFI_LIB" \
-              -DWIRESHARK_VERSION="${{ steps.wireshark-version.outputs.version }}"
+              -DWIRESHARK_VERSION="${{ steps.wireshark-version.outputs.version }}" \
+              -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+              -DVCPKG_TARGET_TRIPLET=x64-windows
           else
             cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
           fi
