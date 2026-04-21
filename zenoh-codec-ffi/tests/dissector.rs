@@ -104,15 +104,19 @@ fn install_dissector_impl() {
     );
     std::fs::create_dir_all(&plugin_dir).unwrap();
 
-    // Install the C plugin
+    // Install the C plugin and Rust cdylib as symlinks so the test always
+    // runs against the freshly-built binaries without an extra copy step.
     let so = build_dir.join("packet-zenoh.so");
-    std::fs::copy(&so, format!("{plugin_dir}/packet-zenoh.so"))
-        .unwrap_or_else(|e| panic!("failed to copy packet-zenoh.so: {e}"));
+    let so_link = format!("{plugin_dir}/packet-zenoh.so");
+    let _ = std::fs::remove_file(&so_link);
+    std::os::unix::fs::symlink(&so, &so_link)
+        .unwrap_or_else(|e| panic!("failed to symlink packet-zenoh.so: {e}"));
 
-    // Install the Rust cdylib alongside (needed at runtime by the C plugin)
     let cdylib = workspace.join("target/debug/libzenoh_codec_ffi.so");
-    std::fs::copy(&cdylib, format!("{plugin_dir}/libzenoh_codec_ffi.so"))
-        .unwrap_or_else(|e| panic!("failed to copy libzenoh_codec_ffi.so: {e}"));
+    let cdylib_link = format!("{plugin_dir}/libzenoh_codec_ffi.so");
+    let _ = std::fs::remove_file(&cdylib_link);
+    std::os::unix::fs::symlink(&cdylib, &cdylib_link)
+        .unwrap_or_else(|e| panic!("failed to symlink libzenoh_codec_ffi.so: {e}"));
 }
 
 // ---------------------------------------------------------------------------
@@ -132,6 +136,10 @@ fn pcap_global_header() -> Vec<u8> {
 }
 
 fn ethernet_ipv4_tcp_packet(tcp_payload: &[u8], seq: u32) -> Vec<u8> {
+    ethernet_ipv4_tcp_packet_port(tcp_payload, seq, 7447)
+}
+
+fn ethernet_ipv4_tcp_packet_port(tcp_payload: &[u8], seq: u32, dst_port: u16) -> Vec<u8> {
     let tcp_len = 20 + tcp_payload.len();
     let ip_len = 20 + tcp_len;
     let mut pkt = Vec::with_capacity(14 + ip_len);
@@ -149,7 +157,7 @@ fn ethernet_ipv4_tcp_packet(tcp_payload: &[u8], seq: u32) -> Vec<u8> {
     pkt.extend_from_slice(&[127, 0, 0, 1]);
     pkt.extend_from_slice(&[127, 0, 0, 1]);
     pkt.extend_from_slice(&60000u16.to_be_bytes());
-    pkt.extend_from_slice(&7447u16.to_be_bytes());
+    pkt.extend_from_slice(&dst_port.to_be_bytes());
     pkt.extend_from_slice(&seq.to_be_bytes());
     pkt.extend_from_slice(&0u32.to_be_bytes());
     pkt.push(0x50);
@@ -205,10 +213,26 @@ fn zenoh_batch_frame(payload: &[u8]) -> Vec<u8> {
 }
 
 fn write_single_tcp_pcap(path: &Path, payload: &[u8]) {
+    write_single_tcp_pcap_port(path, payload, 7447);
+}
+
+fn write_single_tcp_pcap_port(path: &Path, payload: &[u8], dst_port: u16) {
     let mut f = std::fs::File::create(path).unwrap();
     f.write_all(&pcap_global_header()).unwrap();
-    let pkt = ethernet_ipv4_tcp_packet(&zenoh_batch_frame(payload), 1);
+    let pkt = ethernet_ipv4_tcp_packet_port(&zenoh_batch_frame(payload), 1, dst_port);
     f.write_all(&pcap_record(&pkt)).unwrap();
+}
+
+fn write_multi_tcp_pcap(path: &Path, batches: &[&[u8]]) {
+    let mut f = std::fs::File::create(path).unwrap();
+    f.write_all(&pcap_global_header()).unwrap();
+    let mut seq: u32 = 1;
+    for batch in batches {
+        let frame = zenoh_batch_frame(batch);
+        let pkt = ethernet_ipv4_tcp_packet(&frame, seq);
+        f.write_all(&pcap_record(&pkt)).unwrap();
+        seq += frame.len() as u32;
+    }
 }
 
 fn write_single_udp_pcap(path: &Path, payload: &[u8], dstport: u16) {
@@ -957,4 +981,106 @@ fn scouting_hello_fields_highlighted() {
     assert!(pdml.contains("zenoh.hello"), "Hello not decoded:\n{pdml}");
     assert_size!(&pdml, "zenoh.hello.version", 1);
     assert_size!(&pdml, "zenoh.hello.zid", 16);
+}
+
+#[test]
+fn heuristic_tcp_dissector_fires_on_nonstandard_port() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let payload = encode_transport(&make_init_syn());
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("heuristic.pcap");
+    // Use port 12345 — not in Zenoh's default port list
+    write_single_tcp_pcap_port(&pcap, &payload, 12345);
+
+    let out = Command::new("tshark")
+        .args([
+            "-r",
+            pcap.to_str().unwrap(),
+            "-T",
+            "pdml",
+            "-o",
+            "tcp.desegment_tcp_streams:TRUE",
+            "--enable-heuristic",
+            "zenoh_tcp_heur",
+        ])
+        .output()
+        .expect("tshark not found");
+    let pdml = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        pdml.contains("zenoh.transport.init_syn"),
+        "heuristic dissector did not recognize Zenoh traffic on port 12345:\n{pdml}"
+    );
+}
+
+#[test]
+fn session_zid_annotated_on_init_syn() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let payload = encode_transport(&make_init_syn());
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("session_zid.pcap");
+    write_single_tcp_pcap(&pcap, &payload);
+    let pdml = run_tshark(&pcap);
+    assert!(
+        pdml.contains("zenoh.session.src_zid"),
+        "Session Source ZID not annotated on InitSyn:\n{pdml}"
+    );
+}
+
+#[test]
+fn declare_key_expr_resolves_in_subsequent_push() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    // Packet 1: DeclareKeyExpr id=1 → "demo/key"
+    let decl = make_declare_msg(declare::DeclareBody::DeclareKeyExpr(DeclareKeyExpr {
+        id: 1 as ExprId,
+        wire_expr: WireExpr::from("demo/key"),
+    }));
+    let payload1 = encode_transport(&make_frame_with(vec![decl]));
+
+    // Packet 2: Push with wire_expr scope=1 (integer reference, no suffix)
+    let push = NetworkMessage {
+        body: NetworkBody::Push(Push {
+            wire_expr: WireExpr {
+                scope: 1 as ExprId,
+                suffix: std::borrow::Cow::Borrowed(""),
+                mapping: zenoh_protocol::network::Mapping::Sender,
+            },
+            ext_qos: dec_ext::QoSType::DEFAULT,
+            ext_tstamp: None,
+            ext_nodeid: dec_ext::NodeIdType::DEFAULT,
+            payload: zenoh_protocol::zenoh::PushBody::Put(Put {
+                timestamp: None,
+                encoding: zenoh_protocol::core::Encoding::default(),
+                ext_sinfo: None,
+                ext_shm: None,
+                ext_attachment: None,
+                ext_unknown: vec![],
+                payload: zenoh_buffers::ZBuf::from(b"hello".to_vec()),
+            }),
+        }),
+        reliability: Reliability::BestEffort,
+    };
+    let payload2 = encode_transport(&make_frame_with(vec![push]));
+
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("wire_expr_resolve.pcap");
+    write_multi_tcp_pcap(&pcap, &[&payload1, &payload2]);
+
+    let pdml = run_tshark(&pcap);
+    assert!(
+        pdml.contains("zenoh.key_expr_resolved"),
+        "Resolved key-expr not shown in Push after DeclareKeyExpr:\n{pdml}"
+    );
+    assert!(
+        pdml.contains("demo/key"),
+        "Resolved key-expr value 'demo/key' not found in PDML:\n{pdml}"
+    );
 }
