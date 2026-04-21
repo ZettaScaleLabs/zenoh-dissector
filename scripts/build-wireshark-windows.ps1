@@ -106,7 +106,7 @@ $vcBin = Join-Path $vsInstall "VC\Tools\MSVC\$vcVer\bin\Hostx64\x64"
 $dumpbinExe = Join-Path $vcBin "dumpbin.exe"
 $libExe     = Join-Path $vcBin "lib.exe"
 
-foreach ($entry in @(@("wireshark", "libwireshark"), @("wsutil", "libwsutil"))) {
+foreach ($entry in @(@("wireshark", "libwireshark"), @("wsutil", "libwsutil"), @("glib-2.0", "libglib-2.0-0"))) {
     $libName = $entry[0]   # canonical name cmake searches for (wireshark, wsutil)
     $dllBase = $entry[1]   # actual DLL basename on Windows (libwireshark, libwsutil)
 
