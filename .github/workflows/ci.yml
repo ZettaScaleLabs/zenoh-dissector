@@ -131,7 +131,7 @@ jobs:
             cmake -B _tmp/cmake-build -S . \
               -DZENOH_CODEC_FFI_LIB="$FFI_LIB" \
               -DWIRESHARK_VERSION="${{ steps.wireshark-version.outputs.version }}" \
-              -DPKG_CONFIG_EXECUTABLE="C:/msys64/mingw64/bin/pkgconf.exe"
+              -DPKG_CONFIG_EXECUTABLE="C:/msys64/mingw64/bin/pkg-config.exe"
           else
             cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
           fi

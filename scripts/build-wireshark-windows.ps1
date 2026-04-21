@@ -145,7 +145,7 @@ foreach ($entry in @(@("wireshark", "libwireshark"), @("wsutil", "libwsutil"))) 
 Write-Host "Installing GLib dev headers via MSYS2 pacman..."
 $pacman = "C:\msys64\usr\bin\pacman.exe"
 if (Test-Path $pacman) {
-    & $pacman -S --noconfirm --needed mingw-w64-x86_64-glib2 2>&1 | ForEach-Object { Write-Host "  $_" }
+    & $pacman -S --noconfirm --needed mingw-w64-x86_64-glib2 mingw-w64-x86_64-pkgconf 2>&1 | ForEach-Object { Write-Host "  $_" }
     Write-Host "GLib installed via MSYS2."
 } else {
     Write-Error "MSYS2 not found at C:\msys64 - cannot install GLib headers"
