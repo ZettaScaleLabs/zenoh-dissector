@@ -142,6 +142,6 @@ if (Test-Path $vcpkgExe) {
     & $vcpkgExe install glib:x64-windows --no-print-usage 2>&1 | Where-Object { $_ -match "^(Installing|Building|error)" } | ForEach-Object { Write-Host "  $_" }
     Write-Host "GLib installed via vcpkg."
 } else {
-    Write-Error "vcpkg not found at $vcpkgExe — cannot install GLib headers"
+    Write-Error "vcpkg not found at $vcpkgExe - cannot install GLib headers"
     exit 1
 }
