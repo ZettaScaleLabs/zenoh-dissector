@@ -43,11 +43,21 @@ if(WIN32)
         "#pragma once\n"
         "/* Minimal config.h stub for Windows plugin build */\n"
         "#define HAVE_CONFIG_H 1\n"
+        "#ifndef WIN32_LEAN_AND_MEAN\n"
+        "#define WIN32_LEAN_AND_MEAN\n"
+        "#endif\n"
+        "#include <winsock2.h>\n"
+        "#include <ws2tcpip.h>\n"
+        "#define HAVE_WINSOCK2_H 1\n"
+        "#define HAVE_WS2TCPIP_H 1\n"
     )
     # wireshark.h and ws_symbol_export.h are cmake-generated in Wireshark 4.6+ and
     # absent from the source tarball; stub them for the plugin-only build.
     file(WRITE "${CMAKE_BINARY_DIR}/wireshark.h"
         "#pragma once\n"
+        "#include <stdbool.h>\n"
+        "#include <stdint.h>\n"
+        "#include <stdlib.h>\n"
         "#include \"ws_version.h\"\n"
     )
     file(WRITE "${CMAKE_BINARY_DIR}/ws_symbol_export.h"
