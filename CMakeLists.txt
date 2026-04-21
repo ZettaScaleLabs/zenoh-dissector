@@ -63,16 +63,11 @@ endif()
 message(STATUS "Wireshark: include=${Wireshark_INCLUDE_DIRS} lib=${Wireshark_LIBRARIES}")
 
 # GLib is a Wireshark dependency not always transitively exposed.
-# On Windows: vcpkg provides glib; use its cmake config target (no pkg-config needed).
+# On Windows: vcpkg provides glib + pkgconf; PKG_CONFIG_EXECUTABLE is set by CI.
 # On Linux/macOS: system pkg-config finds it from the system package.
-if(WIN32)
-    find_package(unofficial-glib CONFIG REQUIRED)
-    set(_GLIB2_TARGET unofficial::glib::glib)
-else()
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GLIB2 REQUIRED IMPORTED_TARGET glib-2.0)
-    set(_GLIB2_TARGET PkgConfig::GLIB2)
-endif()
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GLIB2 REQUIRED IMPORTED_TARGET glib-2.0)
+set(_GLIB2_TARGET PkgConfig::GLIB2)
 
 # ---------------------------------------------------------------------------
 # Rust cdylib path (built separately with: cargo build -p zenoh-codec-ffi)
