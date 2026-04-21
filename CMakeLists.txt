@@ -204,7 +204,9 @@ set(_GLIB2_TARGET PkgConfig::GLIB2)
 
 if(NOT DEFINED ZENOH_CODEC_FFI_LIB)
     if(WIN32)
-        set(ZENOH_CODEC_FFI_LIB "${CMAKE_SOURCE_DIR}/target/debug/zenoh_codec_ffi.dll")
+        # MSVC linker needs the import lib (.dll.lib), not the DLL itself.
+        # Cargo produces zenoh_codec_ffi.dll.lib alongside zenoh_codec_ffi.dll.
+        set(ZENOH_CODEC_FFI_LIB "${CMAKE_SOURCE_DIR}/target/debug/zenoh_codec_ffi.dll.lib")
     elseif(APPLE)
         set(ZENOH_CODEC_FFI_LIB "${CMAKE_SOURCE_DIR}/target/debug/libzenoh_codec_ffi.dylib")
     else()
