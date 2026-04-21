@@ -119,11 +119,17 @@ jobs:
             macos)   FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.dylib" ;;
             *)       FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.so" ;;
           esac
-          # On macOS (Homebrew) pkg-config files live under $(brew --prefix)/lib/pkgconfig
           if [ "${{ matrix.platform }}" = "macos" ]; then
-            export PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig:${PKG_CONFIG_PATH}"
+            # Pin cmake to the brew-installed arm64 Wireshark to avoid picking up
+            # stale x86_64 cask frameworks; also expose pkg-config for glib
+            WS_PREFIX="$(brew --prefix wireshark)"
+            export PKG_CONFIG_PATH="${WS_PREFIX}/lib/pkgconfig:$(brew --prefix)/lib/pkgconfig:${PKG_CONFIG_PATH}"
+            cmake -B _tmp/cmake-build -S . \
+              -DZENOH_CODEC_FFI_LIB="$FFI_LIB" \
+              -DCMAKE_PREFIX_PATH="${WS_PREFIX}"
+          else
+            cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
           fi
-          cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
           cmake --build _tmp/cmake-build --config Debug -j4
 
       - name: Install plugin

@@ -13,13 +13,17 @@ project(packet-zenoh C)
 # On Windows, Wireshark headers live in the source tree built by
 # scripts/build-wireshark-windows.ps1; libs are in the build run/ dir.
 if(WIN32)
+    # Headers from the downloaded source tarball (build-wireshark-windows.ps1 step 2)
     file(GLOB _WS_SRC_DIRS "C:/wsbuild/wireshark-*")
     list(FILTER _WS_SRC_DIRS EXCLUDE REGEX "libs")
     find_path(Wireshark_INCLUDE_DIRS wireshark.h
-        HINTS ${_WS_SRC_DIRS} "C:/wsbuild/build"
+        HINTS ${_WS_SRC_DIRS}
         REQUIRED)
+    # Import libraries from the choco-installed Wireshark application
     find_library(Wireshark_LIBRARIES wireshark
-        HINTS "C:/wsbuild/build/run/Release" "C:/wsbuild/build/run/Debug"
+        HINTS
+            "C:/Program Files/Wireshark"
+            "C:/Program Files (x86)/Wireshark"
         REQUIRED)
 else()
     find_path(Wireshark_INCLUDE_DIRS wireshark.h
@@ -33,26 +37,21 @@ message(STATUS "Wireshark: include=${Wireshark_INCLUDE_DIRS} lib=${Wireshark_LIB
 # On Windows glib ships inside Wireshark's win64-libs bundle; on Linux/macOS
 # pkg-config finds it from the system package.
 if(WIN32)
-    # Wireshark's cmake build downloads win64-libs into C:\wsbuild\wireshark-win64-libs-*
-    file(GLOB _WS_LIBS_DIRS "C:/wsbuild/wireshark-win64-libs-*")
+    # GLib headers live inside the Wireshark source tree (glib.h is re-exported
+    # from epan/glib-compat.h and the source tree ships glib headers for plugins).
+    # The import library is bundled with the installed Wireshark application.
+    set(_WS_INSTALL "C:/Program Files/Wireshark")
     find_path(GLIB2_INCLUDE_DIRS glib.h
-        HINTS ${_WS_LIBS_DIRS}
-        PATH_SUFFIXES
-            vcpkg-export/x64-windows/include/glib-2.0
-            include/glib-2.0
-        REQUIRED)
-    # glib has a generated glibconfig.h in a sibling lib dir
-    find_path(_GLIB_CONFIG_DIR glibconfig.h
-        HINTS ${_WS_LIBS_DIRS}
-        PATH_SUFFIXES
-            vcpkg-export/x64-windows/lib/glib-2.0/include
-            lib/glib-2.0/include
-        REQUIRED)
-    list(APPEND GLIB2_INCLUDE_DIRS ${_GLIB_CONFIG_DIR})
+        HINTS
+            "${Wireshark_INCLUDE_DIRS}/include"
+            "${_WS_INSTALL}/include"
+        PATH_SUFFIXES glib-2.0
+        # Not REQUIRED — Wireshark headers may already pull glib.h in transitively
+    )
     find_library(GLIB2_LIBRARIES glib-2.0
-        HINTS ${_WS_LIBS_DIRS}
-        PATH_SUFFIXES vcpkg-export/x64-windows/lib lib
-        REQUIRED)
+        HINTS "${_WS_INSTALL}"
+        # Not REQUIRED — glib symbols may be resolved transitively via wireshark.lib
+    )
 else()
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GLIB2 REQUIRED IMPORTED_TARGET glib-2.0)
@@ -96,7 +95,7 @@ target_compile_options(packet-zenoh PRIVATE
 if(WIN32)
     target_link_libraries(packet-zenoh PRIVATE
         ${Wireshark_LIBRARIES}
-        ${GLIB2_LIBRARIES}
+        $<$<BOOL:${GLIB2_LIBRARIES}>:${GLIB2_LIBRARIES}>
         ${ZENOH_CODEC_FFI_LIB}
     )
 else()
