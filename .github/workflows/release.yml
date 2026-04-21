@@ -76,8 +76,9 @@ jobs:
       fail-fast: false
       matrix:
         build:
-          - { target: x86_64-unknown-linux-gnu, os: ubuntu-24.04, platform: linux }
-          - { target: aarch64-apple-darwin,     os: macos-14,      platform: macos }
+          - { target: x86_64-unknown-linux-gnu,  os: ubuntu-24.04,  platform: linux   }
+          - { target: aarch64-apple-darwin,      os: macos-14,      platform: macos   }
+          - { target: x86_64-pc-windows-msvc,    os: windows-2022,  platform: windows }
 
     steps:
       - name: Checkout
@@ -124,14 +125,23 @@ jobs:
           ln -sf "$(find $WS_FW -name 'libwsutil.*.dylib'    | sort | tail -1)" libwsutil.dylib
           echo "WIRESHARK_LIB_DIR=${{ github.workspace }}" >> "$GITHUB_ENV"
 
+      - name: Install dependencies (Windows)
+        if: matrix.build.platform == 'windows'
+        run: choco install -y --no-progress wireshark cmake 7zip
+
       - name: Build Rust cdylib
         run: cargo build -p zenoh-codec-ffi --release -j4
 
       - name: Build C plugin (cmake)
+        shell: bash
         run: |
-          cmake -B _tmp/cmake-build -S . \
-            -DZENOH_CODEC_FFI_LIB="$(pwd)/target/release/libzenoh_codec_ffi${{ matrix.build.platform == 'macos' && '.dylib' || '.so' }}"
-          cmake --build _tmp/cmake-build -j4
+          case "${{ matrix.build.platform }}" in
+            linux)   FFI_LIB="$(pwd)/target/release/libzenoh_codec_ffi.so" ;;
+            macos)   FFI_LIB="$(pwd)/target/release/libzenoh_codec_ffi.dylib" ;;
+            windows) FFI_LIB="$(pwd)/target/release/zenoh_codec_ffi.dll" ;;
+          esac
+          cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
+          cmake --build _tmp/cmake-build --config Release -j4
 
       - name: Package
         id: package
@@ -139,15 +149,23 @@ jobs:
         run: |
           PKG_NAME="zenoh-dissector-${{ needs.tag.outputs.version }}-${{ matrix.build.target }}.zip"
           PKG_PATH="${GITHUB_WORKSPACE}/${PKG_NAME}"
-          if [[ "${{ matrix.build.platform }}" == "linux" ]]; then
-            zip -j "${PKG_PATH}" \
-              _tmp/cmake-build/packet-zenoh.so \
-              target/release/libzenoh_codec_ffi.so
-          else
-            zip -j "${PKG_PATH}" \
-              _tmp/cmake-build/packet-zenoh.so \
-              target/release/libzenoh_codec_ffi.dylib
-          fi
+          case "${{ matrix.build.platform }}" in
+            linux)
+              zip -j "${PKG_PATH}" \
+                _tmp/cmake-build/packet-zenoh.so \
+                target/release/libzenoh_codec_ffi.so
+              ;;
+            macos)
+              zip -j "${PKG_PATH}" \
+                _tmp/cmake-build/packet-zenoh.so \
+                target/release/libzenoh_codec_ffi.dylib
+              ;;
+            windows)
+              7z a "${PKG_PATH}" \
+                _tmp/cmake-build/Release/packet-zenoh.dll \
+                target/release/zenoh_codec_ffi.dll
+              ;;
+          esac
           echo "name=${PKG_NAME}" >> "$GITHUB_OUTPUT"
           echo "path=${PKG_PATH}" >> "$GITHUB_OUTPUT"
 
