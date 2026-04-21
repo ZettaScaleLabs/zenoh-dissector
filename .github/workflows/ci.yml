@@ -100,6 +100,13 @@ jobs:
           # brew formula (not cask) installs headers + tshark under /opt/homebrew
           brew install wireshark cmake
 
+      - name: Cache vcpkg packages (Windows)
+        if: matrix.platform == 'windows'
+        uses: actions/cache@v4
+        with:
+          path: C:\vcpkg\installed
+          key: vcpkg-x64-windows-glib-${{ steps.wireshark-version.outputs.version }}-v1
+
       - name: Build Wireshark from source (Windows)
         if: matrix.platform == 'windows'
         shell: powershell
@@ -132,7 +139,8 @@ jobs:
               -DZENOH_CODEC_FFI_LIB="$FFI_LIB" \
               -DWIRESHARK_VERSION="${{ steps.wireshark-version.outputs.version }}" \
               -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" \
-              -DVCPKG_TARGET_TRIPLET=x64-windows
+              -DVCPKG_TARGET_TRIPLET=x64-windows \
+              -DPKG_CONFIG_EXECUTABLE="C:/vcpkg/installed/x64-windows/tools/pkgconf/pkgconf.exe"
           else
             cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
           fi
