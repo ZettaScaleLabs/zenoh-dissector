@@ -11,116 +11,95 @@
 # Contributors:
 #   ZettaScale Zenoh Team, <zenoh@zettascale.tech>
 #
-# Build Wireshark from source on Windows to obtain the headers and import
-# libraries needed to compile packet-zenoh.dll.
+# Obtain Wireshark headers and import libraries on Windows for compiling
+# packet-zenoh.dll.
 #
-# Outputs (for use by CMake via -DWIRESHARK_LIB_DIR / find_path/find_library):
-#   C:\wsbuild\build\run\<Config>\  — wireshark.lib, wiretap.lib, wsutil.lib
-#   C:\wsbuild\wireshark-<Ver>\     — header tree (epan/, wsutil/, ws_version.h …)
+# Strategy:
+#   1. Install Wireshark via choco — provides tshark + wireshark.lib et al.
+#      under C:\Program Files\Wireshark\.
+#   2. Download the matching source tarball — provides the header tree
+#      (epan/, wsutil/, ws_version.h, …) without a full cmake build.
+#
+# CMakeLists.txt finds:
+#   Headers  : C:\wsbuild\wireshark-<Ver>\   (source tree)
+#   Libraries: C:\Program Files\Wireshark\  (installed)
 #
 param(
     [string]$WiresharkVersion = "4.6.0",
-    [string]$BuildConfig = "Release"
+    [string]$BuildConfig = "Release"   # kept for API compat; unused
 )
 
 $ErrorActionPreference = "Stop"
 
+# ---------------------------------------------------------------------------
+# Step 1: install Wireshark application (includes wireshark.lib, wiretap.lib,
+# wsutil.lib under C:\Program Files\Wireshark\)
+# ---------------------------------------------------------------------------
+Write-Host "Installing Wireshark $WiresharkVersion via choco..."
+choco install wireshark --version $WiresharkVersion -y --no-progress 2>&1
+if ($LASTEXITCODE -ne 0) {
+    # Fall back to latest available version
+    Write-Host "Pinned version not in choco cache — installing latest..."
+    choco install wireshark -y --no-progress
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "choco install wireshark failed (exit $LASTEXITCODE)"
+        exit 1
+    }
+}
+
+# Refresh PATH so tshark is discoverable in later steps
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+            [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+Write-Host "Verifying Wireshark installation..."
+& where.exe tshark 2>$null | ForEach-Object { Write-Host "  tshark: $_" }
+
+$WsInstallDir = "C:\Program Files\Wireshark"
+if (-not (Test-Path $WsInstallDir)) {
+    Write-Error "Wireshark install directory not found at $WsInstallDir"
+    exit 1
+}
+Write-Host "Wireshark installed at $WsInstallDir"
+Get-ChildItem $WsInstallDir -Filter "*.lib" | ForEach-Object { Write-Host "  $($_.Name)" }
+
+# ---------------------------------------------------------------------------
+# Step 2: download source tarball for headers only (no cmake build needed)
+# ---------------------------------------------------------------------------
 $BaseDir = "C:\wsbuild"
 $SrcDir  = Join-Path $BaseDir "wireshark-$WiresharkVersion"
-$BuildDir = Join-Path $BaseDir "build"
 
 if (-not (Test-Path $BaseDir)) {
     New-Item -ItemType Directory -Path $BaseDir -Force | Out-Null
 }
 
-# Install build tools
-$tools = @("cmake", "nuget.commandline", "strawberryperl", "python3", "7zip")
-foreach ($tool in $tools) {
-    if (-not (choco list -l | Select-String "^$tool")) {
-        choco install $tool -y --no-progress
-    }
-}
-
-# Refresh PATH so freshly installed tools (perl, cmake, python) are findable
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
-            [System.Environment]::GetEnvironmentVariable("Path", "User")
-
-Write-Host "Diagnostics after PATH refresh:"
-& where.exe perl   2>$null | ForEach-Object { Write-Host "  perl:   $_" }
-& where.exe cmake  2>$null | ForEach-Object { Write-Host "  cmake:  $_" }
-& where.exe python 2>$null | ForEach-Object { Write-Host "  python: $_" }
-& where.exe 7z     2>$null | ForEach-Object { Write-Host "  7z:     $_" }
-
-# Download and extract Wireshark source
 if (-not (Test-Path (Join-Path $SrcDir "CMakeLists.txt"))) {
-    Write-Host "Downloading Wireshark $WiresharkVersion source..."
-    $archivePath = Join-Path $BaseDir "wireshark-$WiresharkVersion.tar.xz"
+    Write-Host "Downloading Wireshark $WiresharkVersion source for headers..."
 
+    $tools = @("7zip")
+    foreach ($tool in $tools) {
+        if (-not (choco list -l | Select-String "^$tool")) {
+            choco install $tool -y --no-progress
+        }
+    }
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+                [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+    $archivePath = Join-Path $BaseDir "wireshark-$WiresharkVersion.tar.xz"
     if (-not (Test-Path $archivePath)) {
         Invoke-WebRequest `
             -Uri "https://1.eu.dl.wireshark.org/src/all-versions/wireshark-$WiresharkVersion.tar.xz" `
             -OutFile $archivePath
     }
 
-    Write-Host "Extracting..."
+    Write-Host "Extracting source..."
     $tarPath = Join-Path $BaseDir "wireshark-$WiresharkVersion.tar"
     & 7z.exe x $archivePath "-o$BaseDir" -y | Out-Null
     & 7z.exe x $tarPath     "-o$BaseDir" -y | Out-Null
     Remove-Item $tarPath -ErrorAction SilentlyContinue
-
-    # Apply DocBook URL patch (required for some WS versions to configure cleanly)
-    $PatchUrl  = "https://gitlab.com/wireshark/wireshark/-/commit/2be6899941c73a4406a459b6677d0aa0929477a0.patch"
-    $PatchFile = Join-Path $PWD "docbook-url-fix.patch"
-    Invoke-WebRequest -Uri $PatchUrl -OutFile $PatchFile -UseBasicParsing
-    Push-Location $SrcDir
-    $prev = $ErrorActionPreference
-    $ErrorActionPreference = 'SilentlyContinue'
-    git apply --check "$PatchFile" 2>$null
-    $checkExit = $LASTEXITCODE
-    $ErrorActionPreference = $prev
-    if ($checkExit -eq 0) {
-        git apply "$PatchFile"
-    }
-    Pop-Location
 }
 
-if (-not (Test-Path $BuildDir)) {
-    New-Item -ItemType Directory -Path $BuildDir | Out-Null
-}
-
-$env:WIRESHARK_BASE_DIR = $BaseDir
-
-# Configure: disable all executables, only build the libraries we link against
-Push-Location $BuildDir
-cmake $SrcDir `
-    -G "Visual Studio 17 2022" -A x64 `
-    -DBUILD_wireshark=OFF `
-    -DBUILD_tshark=OFF `
-    -DBUILD_wireshark_cli=OFF `
-    -DENABLE_KERBEROS=OFF `
-    -DENABLE_SPANDSP=OFF `
-    -DENABLE_BCG729=OFF `
-    -DENABLE_AMRNB=OFF `
-    -DENABLE_ILBC=OFF `
-    -DCMAKE_INSTALL_PREFIX="$BuildDir\install"
-if ($LASTEXITCODE -ne 0) {
-    Pop-Location
-    Write-Error "cmake configure failed (exit $LASTEXITCODE)"
+if (-not (Test-Path (Join-Path $SrcDir "epan\proto.h"))) {
+    Write-Error "Wireshark source headers not found at $SrcDir\epan\proto.h"
     exit 1
 }
-
-cmake --build . --config $BuildConfig --target epan wiretap wsutil
-if ($LASTEXITCODE -ne 0) {
-    Pop-Location
-    Write-Error "cmake build failed (exit $LASTEXITCODE)"
-    exit 1
-}
-Pop-Location
-
-$OutDir = Join-Path $BuildDir "run\$BuildConfig"
-if (-not (Test-Path $OutDir)) {
-    Write-Error "Build output not found at $OutDir - cmake succeeded but produced no output in expected location"
-    exit 1
-}
-Write-Host "Wireshark libraries built at $OutDir"
-Get-ChildItem $OutDir -Filter "*.lib" | ForEach-Object { Write-Host "  $($_.Name)" }
+Write-Host "Wireshark headers available at $SrcDir"
