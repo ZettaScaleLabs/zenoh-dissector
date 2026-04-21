@@ -185,6 +185,12 @@ if(WIN32)
         HINTS
             "C:/Program Files/Wireshark"
             "C:/Program Files (x86)/Wireshark")
+    # GLib DLL ships with Wireshark; build-wireshark-windows.ps1 generates glib-2.0.lib.
+    # MSVC linker needs this .lib (MSYS2's MinGW .dll.a format is incompatible).
+    find_library(GLib2_LIB NAMES "glib-2.0"
+        HINTS
+            "C:/Program Files/Wireshark"
+            "C:/Program Files (x86)/Wireshark")
 else()
     find_path(Wireshark_INCLUDE_DIRS wireshark.h
         PATH_SUFFIXES wireshark
@@ -195,11 +201,19 @@ endif()
 message(STATUS "Wireshark: include=${Wireshark_INCLUDE_DIRS} lib=${Wireshark_LIBRARIES}")
 
 # GLib is a Wireshark dependency not always transitively exposed.
-# On Windows: MSYS2 provides glib headers; PKG_CONFIG_EXECUTABLE points to MSYS2 pkgconf.
+# On Windows: MSYS2 provides GLib headers; the import lib comes from Wireshark's bundled DLL.
 # On Linux/macOS: system pkg-config finds it from the system package.
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GLIB2 REQUIRED IMPORTED_TARGET glib-2.0)
-set(_GLIB2_TARGET PkgConfig::GLIB2)
+if(WIN32)
+    # Use pkgconf only for include dirs; the link lib is GLib2_LIB (generated from the DLL).
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GLIB2 REQUIRED glib-2.0)
+    set(_GLIB2_INCLUDE_DIRS ${GLIB2_INCLUDE_DIRS})
+    set(_GLIB2_TARGET "")  # link via GLib2_LIB below
+else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GLIB2 REQUIRED IMPORTED_TARGET glib-2.0)
+    set(_GLIB2_TARGET PkgConfig::GLIB2)
+endif()
 
 # ---------------------------------------------------------------------------
 # Rust cdylib path (built separately with: cargo build -p zenoh-codec-ffi)
@@ -242,6 +256,7 @@ target_include_directories(packet-zenoh PRIVATE
     $<$<BOOL:${WIN32}>:${CMAKE_BINARY_DIR}>
     ${Wireshark_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}
+    $<$<BOOL:${WIN32}>:${_GLIB2_INCLUDE_DIRS}>
 )
 
 target_compile_options(packet-zenoh PRIVATE
@@ -256,7 +271,8 @@ target_compile_definitions(packet-zenoh PRIVATE
 target_link_libraries(packet-zenoh PRIVATE
     ${Wireshark_LIBRARIES}
     $<$<BOOL:${Wireshark_WSUTIL_LIB}>:${Wireshark_WSUTIL_LIB}>
-    ${_GLIB2_TARGET}
+    $<$<BOOL:${_GLIB2_TARGET}>:${_GLIB2_TARGET}>
+    $<$<BOOL:${GLib2_LIB}>:${GLib2_LIB}>
     ${ZENOH_CODEC_FFI_LIB}
 )
 
