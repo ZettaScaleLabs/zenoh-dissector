@@ -23,6 +23,12 @@ type Hfm = HashMap<String, HeaderField>;
 
 pub struct HeaderFieldMap(Hfm);
 
+impl Default for HeaderFieldMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl std::ops::Deref for HeaderFieldMap {
     type Target = Hfm;
     fn deref(&self) -> &Self::Target {

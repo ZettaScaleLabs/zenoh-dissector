@@ -637,7 +637,7 @@ fn record_put_body_spans(
         let b = cursor.checkpoint();
         let _ = cursor.skip(payload_len as usize);
         let span = cursor.span_since(b);
-        if span.len() > 0 {
+        if !span.is_empty() {
             map.insert(format!("{put_prefix}.payload"), span);
         }
     }
@@ -994,6 +994,7 @@ mod tests {
                 batch_size: BatchSize::default(),
                 ext_qos: None,
                 ext_qos_link: None,
+                ext_shm: None,
                 ext_auth: None,
                 ext_mlink: None,
                 ext_lowlatency: None,
@@ -1035,6 +1036,7 @@ mod tests {
                     timestamp: None,
                     encoding: zenoh_protocol::core::Encoding::default(),
                     ext_sinfo: None,
+                    ext_shm: None,
                     ext_attachment: None,
                     ext_unknown: vec![],
                     payload: zenoh_buffers::ZBuf::default(),

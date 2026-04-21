@@ -41,6 +41,16 @@ foreach ($tool in $tools) {
     }
 }
 
+# Refresh PATH so freshly installed tools (perl, cmake, python) are findable
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+            [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+Write-Host "Diagnostics after PATH refresh:"
+& where.exe perl   2>$null | ForEach-Object { Write-Host "  perl:   $_" }
+& where.exe cmake  2>$null | ForEach-Object { Write-Host "  cmake:  $_" }
+& where.exe python 2>$null | ForEach-Object { Write-Host "  python: $_" }
+& where.exe 7z     2>$null | ForEach-Object { Write-Host "  7z:     $_" }
+
 # Download and extract Wireshark source
 if (-not (Test-Path (Join-Path $SrcDir "CMakeLists.txt"))) {
     Write-Host "Downloading Wireshark $WiresharkVersion source..."

@@ -110,6 +110,7 @@ fn make_cspan(key: &str, start: usize, length: usize) -> CSpanEntry {
 /// Returns a pointer to a static array of `CFieldDef`, writing the count to `*out_count`.
 /// The returned pointer is valid for the lifetime of the process.
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn zenoh_codec_ffi_get_fields(out_count: *mut u32) -> *const CFieldDef {
     let state = FIELDS.get_or_init(|| {
         let hf_map = ZenohProtocol::generate_hf_map("zenoh");
@@ -132,6 +133,7 @@ pub extern "C" fn zenoh_codec_ffi_get_fields(out_count: *mut u32) -> *const CFie
 /// Returns a pointer to a static array of null-terminated subtree key strings.
 /// The returned pointer and all string pointers within are valid for the lifetime of the process.
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn zenoh_codec_ffi_get_subtrees(out_count: *mut u32) -> *const *const c_char {
     let state = SUBTREES.get_or_init(|| {
         let names = ZenohProtocol::generate_subtree_names("zenoh");
@@ -195,6 +197,7 @@ fn span_map_to_box(map: &SpanMap) -> Box<[CSpanEntry]> {
 /// `CSpanEntry[]`. The caller MUST call `zenoh_codec_ffi_free_spans(ptr, count)` when done.
 /// Returns NULL on decode error; `*out_count` is set to 0.
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn zenoh_codec_ffi_decode_transport(
     data: *const u8,
     len: u32,
@@ -242,6 +245,7 @@ pub extern "C" fn zenoh_codec_ffi_decode_transport(
 /// Decode a Zenoh scouting-level PDU from raw bytes (UDP, no length prefix).
 ///
 /// Same ownership rules as `zenoh_codec_ffi_decode_transport`.
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[no_mangle]
 pub extern "C" fn zenoh_codec_ffi_decode_scouting(
     data: *const u8,
@@ -290,11 +294,12 @@ pub extern "C" fn zenoh_codec_ffi_decode_scouting(
 /// Free a `CSpanEntry[]` returned by a decode function.
 /// `entries` must be the exact pointer returned by the decode call, and `count` must match.
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn zenoh_codec_ffi_free_spans(entries: *mut CSpanEntry, count: u32) {
     if entries.is_null() {
         return;
     }
     unsafe {
-        let _ = Box::from_raw(std::slice::from_raw_parts_mut(entries, count as usize));
+        let _ = Box::from_raw(std::ptr::slice_from_raw_parts_mut(entries, count as usize));
     }
 }
