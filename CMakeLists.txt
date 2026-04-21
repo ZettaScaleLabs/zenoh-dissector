@@ -76,6 +76,12 @@ if(WIN32)
         "#pragma once\n"
         "/* Stub: ws_posix_compat.h provides POSIX-on-Windows shims; not needed for plugin build */\n"
     )
+    file(WRITE "${CMAKE_BINARY_DIR}/ws_diag_control.h"
+        "#pragma once\n"
+        "/* Stub: diagnostic control macros; not needed for plugin build */\n"
+        "#define DIAG_OFF(x)\n"
+        "#define DIAG_ON(x)\n"
+    )
     file(WRITE "${CMAKE_BINARY_DIR}/ws_attributes.h"
         "#pragma once\n"
         "#ifndef WS_NORETURN\n"
