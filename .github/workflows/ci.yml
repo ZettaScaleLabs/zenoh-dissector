@@ -181,7 +181,7 @@ jobs:
         shell: nu {0}
         run: |
           print "=== tshark plugins ==="
-          tshark -G plugins 2>&1 | print
+          (tshark -G plugins | complete).stdout | print
           let output = (tshark -r ./assets/sample-data.pcap | complete).stdout
           let zenoh_count = ($output | lines | where {|line| $line =~ "Zenoh"} | length)
           if $zenoh_count != 7 {
