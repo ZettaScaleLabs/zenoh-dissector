@@ -90,6 +90,32 @@ if(WIN32)
         "#define DIAG_OFF_CAST_QUAL\n"
         "#define DIAG_ON_CAST_QUAL\n"
     )
+    # wsutil/wslog.h in the source tarball uses GCC attributes MSVC can't parse;
+    # stub the entire file so MSVC never touches the real one.
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/wsutil")
+    file(WRITE "${CMAKE_BINARY_DIR}/wsutil/wslog.h"
+        "#pragma once\n"
+        "/* Stub: wsutil/wslog.h — provides minimal declarations for plugin build */\n"
+        "#include <stdarg.h>\n"
+        "#include \"ws_log_defs.h\"\n"
+        "void ws_log(const char *log_domain, enum ws_log_level level,\n"
+        "            const char *format, ...);\n"
+        "void ws_logv(const char *log_domain, enum ws_log_level level,\n"
+        "             const char *format, va_list ap);\n"
+        "#define WS_LOG_DEFAULT_DOMAIN NULL\n"
+        "#define ws_debug(...)    ((void)0)\n"
+        "#define ws_info(...)     ((void)0)\n"
+        "#define ws_message(...)  ((void)0)\n"
+        "#define ws_warning(...)  ((void)0)\n"
+        "#define ws_critical(...) ((void)0)\n"
+        "#define ws_error(...)    ((void)0)\n"
+    )
+    file(WRITE "${CMAKE_BINARY_DIR}/wsutil/regex.h"
+        "#pragma once\n"
+        "/* Stub: wsutil/regex.h — PCRE2 wrapper; not needed for plugin build */\n"
+        "typedef void ws_regex_t;\n"
+        "typedef void ws_regmatch_t;\n"
+    )
     file(WRITE "${CMAKE_BINARY_DIR}/ws_log_defs.h"
         "#pragma once\n"
         "/* Stub: ws_log_defs.h log level/domain definitions; not needed for plugin build */\n"
