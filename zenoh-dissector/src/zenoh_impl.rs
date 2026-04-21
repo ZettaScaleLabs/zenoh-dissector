@@ -63,8 +63,13 @@ mod impl_for_transport {
             cookie: ZSlice,
             ext_qos: Option<QoS>,
             ext_qos_link: Option<QoSLink>,
+            ext_shm: Option<Shm>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLink>,
+            ext_lowlatency: Option<LowLatency>,
+            ext_compression: Option<Compression>,
+            ext_patch: ext::PatchType,
+            ext_region_name: Option<RegionName>,
         }
     }
 
@@ -78,8 +83,13 @@ mod impl_for_transport {
             batch_size: BatchSize,
             ext_qos: Option<QoS>,
             ext_qos_link: Option<QoSLink>,
+            ext_shm: Option<Shm>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLink>,
+            ext_lowlatency: Option<LowLatency>,
+            ext_compression: Option<Compression>,
+            ext_patch: ext::PatchType,
+            ext_region_name: Option<RegionName>,
         }
     }
 
@@ -90,8 +100,12 @@ mod impl_for_transport {
             initial_sn: TransportSn,
             cookie: ZSlice,
             ext_qos: Option<QoS>,
+            ext_shm: Option<Shm>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLinkSyn>,
+            ext_lowlatency: Option<LowLatency>,
+            ext_compression: Option<Compression>,
+            ext_remote_bound: Option<RemoteBound>,
         }
     }
 
@@ -101,8 +115,12 @@ mod impl_for_transport {
             lease: Duration,
             initial_sn: TransportSn,
             ext_qos: Option<QoS>,
+            ext_shm: Option<Shm>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLinkAck>,
+            ext_lowlatency: Option<LowLatency>,
+            ext_compression: Option<Compression>,
+            ext_remote_bound: Option<RemoteBound>,
         }
     }
 
@@ -138,6 +156,8 @@ mod impl_for_transport {
             sn: TransportSn,
             payload: ZSlice,
             ext_qos: QoSType,
+            ext_first: Option<First>,
+            ext_drop: Option<Drop>,
         }
     }
 
@@ -162,6 +182,7 @@ mod impl_for_transport {
             next_sn: PrioritySn,
             ext_qos: Option<QoSType>,
             ext_shm: Option<Shm>,
+            ext_patch: PatchType,
         }
     }
 
@@ -203,6 +224,8 @@ mod impl_for_zenoh {
             timestamp: Option<Timestamp>,
             encoding: Encoding,
             ext_sinfo: Option<SourceInfoType>,
+            ext_attachment: Option<AttachmentType>,
+            ext_shm: Option<ShmType>,
             ext_unknown: Vec<ZExtUnknown>,
             payload: ZBuf,
         }
@@ -213,6 +236,7 @@ mod impl_for_zenoh {
         struct Del {
             timestamp: Option<Timestamp>,
             ext_sinfo: Option<SourceInfoType>,
+            ext_attachment: Option<AttachmentType>,
             ext_unknown: Vec<ZExtUnknown>,
         }
     }
@@ -224,6 +248,7 @@ mod impl_for_zenoh {
             consolidation: Consolidation,
             ext_sinfo: Option<SourceInfoType>,
             ext_body: Option<QueryBodyType>,
+            ext_attachment: Option<AttachmentType>,
             ext_unknown: Vec<ZExtUnknown>,
         }
     }
@@ -240,8 +265,11 @@ mod impl_for_zenoh {
     // Err
     impl_for_struct! {
         struct Err {
+            encoding: Encoding,
             ext_sinfo: Option<SourceInfoType>,
+            ext_shm: Option<ShmType>,
             ext_unknown: Vec<ZExtUnknown>,
+            payload: ZBuf,
         }
     }
 
@@ -443,7 +471,7 @@ mod impl_for_network {
     // Declare
     impl_for_struct! {
         struct Declare {
-            interest_id: Option<super::interest::InterestId>,
+            interest_id: Option<InterestId>,
             ext_qos: QoSType,
             ext_tstamp: Option<TimestampType>,
             ext_nodeid: NodeIdType,
@@ -478,6 +506,7 @@ mod impl_for_network {
     // NetworkMessage
     impl_for_struct! {
         struct NetworkMessage {
+            reliability: Reliability,
             #[dissect(expand)]
             body: NetworkBody,
         }
