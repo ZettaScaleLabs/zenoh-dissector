@@ -106,7 +106,7 @@ $vcBin = Join-Path $vsInstall "VC\Tools\MSVC\$vcVer\bin\Hostx64\x64"
 $dumpbinExe = Join-Path $vcBin "dumpbin.exe"
 $libExe     = Join-Path $vcBin "lib.exe"
 
-foreach ($entry in @(@("wireshark", "libwireshark"), @("wsutil", "libwsutil"), @("glib-2.0", "libglib-2.0-0"))) {
+foreach ($entry in @(@("wireshark", "libwireshark"), @("wsutil", "libwsutil"))) {
     $libName = $entry[0]   # canonical name cmake searches for (wireshark, wsutil)
     $dllBase = $entry[1]   # actual DLL basename on Windows (libwireshark, libwsutil)
 
@@ -133,14 +133,9 @@ foreach ($entry in @(@("wireshark", "libwireshark"), @("wsutil", "libwsutil"), @
 }
 
 # ---------------------------------------------------------------------------
-# Step 4: install GLib headers via vcpkg (needed by Wireshark source headers)
-# The windows-2022 runner has vcpkg pre-installed at C:\vcpkg.
-# ---------------------------------------------------------------------------
-# ---------------------------------------------------------------------------
-# Step 4: install GLib headers via MSYS2 (pre-installed on windows-2022 runners).
-# Binary package install is fast (seconds); no source compilation needed.
-# We only need headers for compiling packet-zenoh.c; GLib symbols are resolved
-# transitively through libwireshark.dll at runtime.
+# Step 4: install GLib headers and generate glib-2.0.lib for MSVC linking.
+# MSYS2 (pre-installed on windows-2022) provides GLib binaries and headers.
+# We generate a MSVC-format import library from the MinGW GLib DLL.
 # ---------------------------------------------------------------------------
 Write-Host "Installing GLib dev headers via MSYS2 pacman..."
 $pacman = "C:\msys64\usr\bin\pacman.exe"
@@ -150,4 +145,25 @@ if (Test-Path $pacman) {
 } else {
     Write-Error "MSYS2 not found at C:\msys64 - cannot install GLib headers"
     exit 1
+}
+
+# Generate glib-2.0.lib (MSVC import lib) from MSYS2's GLib DLL.
+# MSVC linker cannot use MinGW .dll.a files; generate a .lib from the DLL exports.
+$glibDll = "C:\msys64\mingw64\bin\libglib-2.0-0.dll"
+$glibLib = Join-Path $WsInstallDir "glib-2.0.lib"
+if (Test-Path $glibDll) {
+    $glibDef = Join-Path $WsInstallDir "glib-2.0.def"
+    $glibExports = (& $dumpbinExe /EXPORTS $glibDll) -match '^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(\S+)' | ForEach-Object {
+        if ($_ -match '^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(\S+)') { $Matches[1] }
+    }
+    "LIBRARY libglib-2.0-0`r`nEXPORTS" | Out-File $glibDef -Encoding ASCII
+    $glibExports | Out-File $glibDef -Encoding ASCII -Append
+    & $libExe /DEF:$glibDef /OUT:$glibLib /MACHINE:X64 /NOLOGO
+    if (Test-Path $glibLib) {
+        Write-Host "  Generated $glibLib from MSYS2 GLib DLL ($($glibExports.Count) exports)"
+    } else {
+        Write-Warning "Failed to generate $glibLib — GLib symbols will be unresolved at link time"
+    }
+} else {
+    Write-Warning "MSYS2 GLib DLL not found at $glibDll — skipping glib-2.0.lib generation"
 }
