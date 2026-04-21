@@ -162,8 +162,8 @@ if (Test-Path $glibDll) {
     if (Test-Path $glibLib) {
         Write-Host "  Generated $glibLib from MSYS2 GLib DLL ($($glibExports.Count) exports)"
     } else {
-        Write-Warning "Failed to generate $glibLib — GLib symbols will be unresolved at link time"
+        Write-Warning "Failed to generate $glibLib -- GLib symbols will be unresolved at link time"
     }
 } else {
-    Write-Warning "MSYS2 GLib DLL not found at $glibDll — skipping glib-2.0.lib generation"
+    Write-Warning "MSYS2 GLib DLL not found at $glibDll -- skipping glib-2.0.lib generation"
 }
