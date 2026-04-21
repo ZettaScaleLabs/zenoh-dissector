@@ -93,19 +93,26 @@ if(WIN32)
     file(WRITE "${CMAKE_BINARY_DIR}/ws_log_defs.h"
         "#pragma once\n"
         "/* Stub: ws_log_defs.h log level/domain definitions; not needed for plugin build */\n"
-        "typedef int ws_log_level_t;\n"
-        "#define LOG_LEVEL_NONE    0\n"
-        "#define LOG_LEVEL_NOISY   1\n"
-        "#define LOG_LEVEL_DEBUG   2\n"
-        "#define LOG_LEVEL_INFO    3\n"
-        "#define LOG_LEVEL_MESSAGE 4\n"
-        "#define LOG_LEVEL_WARNING 5\n"
-        "#define LOG_LEVEL_CRITICAL 6\n"
-        "#define LOG_LEVEL_ERROR   7\n"
+        "typedef enum ws_log_level {\n"
+        "    LOG_LEVEL_NONE    = 0,\n"
+        "    LOG_LEVEL_NOISY   = 1,\n"
+        "    LOG_LEVEL_DEBUG   = 2,\n"
+        "    LOG_LEVEL_INFO    = 3,\n"
+        "    LOG_LEVEL_MESSAGE = 4,\n"
+        "    LOG_LEVEL_WARNING = 5,\n"
+        "    LOG_LEVEL_CRITICAL = 6,\n"
+        "    LOG_LEVEL_ERROR   = 7\n"
+        "} ws_log_level_t;\n"
         "#define WS_LOG_DOMAIN NULL\n"
     )
     file(WRITE "${CMAKE_BINARY_DIR}/ws_attributes.h"
         "#pragma once\n"
+        "/* Suppress GCC __attribute__ for MSVC (GLib/Wireshark headers use it) */\n"
+        "#ifdef _MSC_VER\n"
+        "# ifndef __attribute__\n"
+        "#   define __attribute__(x)\n"
+        "# endif\n"
+        "#endif\n"
         "#ifndef WS_NORETURN\n"
         "# ifdef _MSC_VER\n"
         "#   define WS_NORETURN __declspec(noreturn)\n"
@@ -121,6 +128,12 @@ if(WIN32)
         "#endif\n"
         "#ifndef WS_PRINTF_FORMAT\n"
         "# define WS_PRINTF_FORMAT(x,y)\n"
+        "#endif\n"
+        "#ifndef _U_\n"
+        "# define _U_\n"
+        "#endif\n"
+        "#ifndef G_GNUC_PRINTF\n"
+        "# define G_GNUC_PRINTF(fmt,arg)\n"
         "#endif\n"
     )
     file(WRITE "${CMAKE_BINARY_DIR}/ws_symbol_export.h"
@@ -201,7 +214,7 @@ target_include_directories(packet-zenoh PRIVATE
 
 target_compile_options(packet-zenoh PRIVATE
     $<$<C_COMPILER_ID:GNU,Clang>:-Wall -Wextra -std=c11>
-    $<$<C_COMPILER_ID:MSVC>:/W3 /FI config.h>
+    $<$<C_COMPILER_ID:MSVC>:/W3>
 )
 
 target_compile_definitions(packet-zenoh PRIVATE
