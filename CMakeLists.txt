@@ -174,13 +174,17 @@ if(WIN32)
     )
 
     # Import libraries from the choco-installed Wireshark application.
-    # The Windows Wireshark installer ships libwireshark.dll; we generate
-    # wireshark.lib from it via scripts/build-wireshark-windows.ps1.
+    # The Windows Wireshark installer ships libwireshark.dll and libwsutil.dll;
+    # build-wireshark-windows.ps1 generates .lib stubs from both.
     find_library(Wireshark_LIBRARIES NAMES wireshark libwireshark
         HINTS
             "C:/Program Files/Wireshark"
             "C:/Program Files (x86)/Wireshark"
         REQUIRED)
+    find_library(Wireshark_WSUTIL_LIB NAMES wsutil libwsutil
+        HINTS
+            "C:/Program Files/Wireshark"
+            "C:/Program Files (x86)/Wireshark")
 else()
     find_path(Wireshark_INCLUDE_DIRS wireshark.h
         PATH_SUFFIXES wireshark
