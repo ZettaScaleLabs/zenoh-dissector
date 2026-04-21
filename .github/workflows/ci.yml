@@ -50,7 +50,7 @@ jobs:
   # and runs the full integration test suite via tshark.
   # ---------------------------------------------------------------------------
   c_plugin:
-    name: C plugin + integration tests on ${{ matrix.os }}
+    name: C plugin + integration tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -75,9 +75,6 @@ jobs:
           let version = (open Cargo.toml | get workspace.metadata.wireshark_version)
           $"version=($version)" | save --append $env.GITHUB_OUTPUT
 
-      - name: Install Rust components
-        run: rustup component add rustfmt clippy
-
       - name: Install Wireshark (Ubuntu)
         if: matrix.platform == 'linux'
         env:
@@ -85,18 +82,27 @@ jobs:
         run: |
           sudo apt install -y software-properties-common
           sudo add-apt-repository -y ppa:wireshark-dev/stable-staging
-          sudo apt install -y libwireshark-dev wireshark tshark cmake
+          sudo apt-get update -y
+          EXPECTED="${{ steps.wireshark-version.outputs.version }}"
+          PKG_VER=$(apt-cache madison libwireshark-dev | awk '{print $3}' | grep "^${EXPECTED}" | head -1)
+          if [ -z "$PKG_VER" ]; then
+            echo "ERROR: libwireshark-dev ${EXPECTED} not found. Available:"
+            apt-cache madison libwireshark-dev | awk '{print $3}'
+            exit 1
+          fi
+          sudo apt install -y libwireshark-dev="$PKG_VER" wireshark tshark cmake
 
       - name: Install Wireshark (macOS)
         if: matrix.platform == 'macos'
         run: |
           brew install --cask wireshark
           brew install cmake
-          ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
-          ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwiretap.*.dylib" | tail -n 1) libwiretap.dylib
-          ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwsutil.*.dylib" | tail -n 1) libwsutil.dylib
-        env:
-          WIRESHARK_LIB_DIR: ${{ github.workspace }}
+          # Expose Wireshark frameworks as a flat lib dir for CMake find_library
+          WS_FW=/Applications/Wireshark.app/Contents/Frameworks
+          ln -sf "$(find $WS_FW -name 'libwireshark.*.dylib' | sort | tail -1)" libwireshark.dylib
+          ln -sf "$(find $WS_FW -name 'libwiretap.*.dylib'   | sort | tail -1)" libwiretap.dylib
+          ln -sf "$(find $WS_FW -name 'libwsutil.*.dylib'    | sort | tail -1)" libwsutil.dylib
+          echo "WIRESHARK_LIB_DIR=${{ github.workspace }}" >> "$GITHUB_ENV"
 
       - name: Build Rust cdylib
         run: cargo build -p zenoh-codec-ffi -j4
@@ -105,32 +111,35 @@ jobs:
         run: |
           cmake -B _tmp/cmake-build -S .
           cmake --build _tmp/cmake-build -j4
-        env:
-          WIRESHARK_LIB_DIR: ${{ matrix.platform == 'macos' && github.workspace || '' }}
 
       - name: Install plugin
         shell: nu {0}
         run: |
           let platform = "${{ matrix.platform }}"
           let full_version = "${{ steps.wireshark-version.outputs.version }}"
-          let base_version = ($full_version | split row '.' | first 2 | str join '.')
-          let version = if $platform == "macos" { $base_version | str replace '.' '-' } else { $base_version }
-          let plugin_dir = $"($env.HOME)/.local/lib/wireshark/plugins/($version)/epan"
-          mkdir -v $plugin_dir
-          cp -v _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
-          cp -v target/debug/libzenoh_codec_ffi.so $"($plugin_dir)/libzenoh_codec_ffi.so"
+          let maj_min = ($full_version | split row '.' | first 2 | str join '.')
+          let plugin_dir = $"($env.HOME)/.local/lib/wireshark/plugins/($maj_min)/epan"
+          mkdir $plugin_dir
+
+          if $platform == "linux" {
+            cp _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
+            cp target/debug/libzenoh_codec_ffi.so $"($plugin_dir)/libzenoh_codec_ffi.so"
+          } else {
+            cp _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
+            cp target/debug/libzenoh_codec_ffi.dylib $"($plugin_dir)/libzenoh_codec_ffi.dylib"
+          }
 
       - name: Test with sample data
         shell: nu {0}
         run: |
-          let output = tshark -r ./assets/sample-data.pcap
+          let output = (tshark -r ./assets/sample-data.pcap | complete).stdout
           let zenoh_count = ($output | lines | where {|line| $line =~ "Zenoh"} | length)
           if $zenoh_count != 7 {
             error make {msg: $"Expected 7 Zenoh packets, found ($zenoh_count)"}
           }
 
       - name: Integration tests (via tshark)
-        run: cargo test -p zenoh-codec-ffi --test dissector -j1
+        run: cargo test -p zenoh-codec-ffi --test dissector -- --test-threads=1
 
   ci:
     name: CI status checks
