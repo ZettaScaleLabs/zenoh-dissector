@@ -125,9 +125,14 @@ jobs:
           ln -sf "$(find $WS_FW -name 'libwsutil.*.dylib'    | sort | tail -1)" libwsutil.dylib
           echo "WIRESHARK_LIB_DIR=${{ github.workspace }}" >> "$GITHUB_ENV"
 
-      - name: Install dependencies (Windows)
+      - name: Build Wireshark from source (Windows)
         if: matrix.build.platform == 'windows'
-        run: choco install -y --no-progress wireshark cmake 7zip
+        shell: powershell
+        run: |
+          choco install -y --no-progress cmake 7zip
+          .\scripts\build-wireshark-windows.ps1 `
+            -WiresharkVersion "${{ steps.wireshark-version.outputs.version }}" `
+            -BuildConfig "Release"
 
       - name: Build Rust cdylib
         run: cargo build -p zenoh-codec-ffi --release -j4
