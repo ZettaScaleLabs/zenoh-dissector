@@ -157,6 +157,10 @@ jobs:
           & $dumpbinExe /DEPENDENTS "_tmp/cmake-build/Release/packet-zenoh.dll" 2>&1
           Write-Host "=== zenoh_codec_ffi.dll DEPENDENTS ==="
           & $dumpbinExe /DEPENDENTS "target/debug/zenoh_codec_ffi.dll" 2>&1
+          Write-Host "=== glib-2.0-0.dll DEPENDENTS ==="
+          & $dumpbinExe /DEPENDENTS "C:\Program Files\Wireshark\glib-2.0-0.dll" 2>&1
+          Write-Host "=== libwireshark.dll DEPENDENTS ==="
+          & $dumpbinExe /DEPENDENTS "C:\Program Files\Wireshark\libwireshark.dll" 2>&1
           Write-Host "=== DLLs in C:\Program Files\Wireshark\ ==="
           Get-ChildItem "C:\Program Files\Wireshark\" -Filter "*.dll" | Select-Object -ExpandProperty Name
 
@@ -195,8 +199,8 @@ jobs:
               # LoadLibrary does not search the plugin's own dir for dependencies.
               # Copy the FFI DLL next to tshark.exe so it is always found at load time.
               cp target/debug/zenoh_codec_ffi.dll "C:/Program Files/Wireshark/zenoh_codec_ffi.dll"
-              # Also add the plugin dir to PATH so any transitive deps are findable.
-              $"($plugin_dir)\n" | save --append $env.GITHUB_PATH
+              # Add plugin dir and MSYS2 bin to PATH so transitive deps are findable.
+              $"($plugin_dir)\nC:\\msys64\\mingw64\\bin\n" | save --append $env.GITHUB_PATH
             }
           }
           print "=== Installed files ==="
