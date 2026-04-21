@@ -201,7 +201,11 @@ target_include_directories(packet-zenoh PRIVATE
 
 target_compile_options(packet-zenoh PRIVATE
     $<$<C_COMPILER_ID:GNU,Clang>:-Wall -Wextra -std=c11>
-    $<$<C_COMPILER_ID:MSVC>:/W3>
+    $<$<C_COMPILER_ID:MSVC>:/W3 /FI config.h>
+)
+
+target_compile_definitions(packet-zenoh PRIVATE
+    $<$<BOOL:${WIN32}>:HAVE_CONFIG_H WS_BUILD_DLL>
 )
 
 target_link_libraries(packet-zenoh PRIVATE
