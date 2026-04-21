@@ -60,6 +60,8 @@ jobs:
             platform: linux
           - os: macos-latest
             platform: macos
+          - os: windows-2022
+            platform: windows
 
     steps:
       - uses: actions/checkout@v4
@@ -104,13 +106,23 @@ jobs:
           ln -sf "$(find $WS_FW -name 'libwsutil.*.dylib'    | sort | tail -1)" libwsutil.dylib
           echo "WIRESHARK_LIB_DIR=${{ github.workspace }}" >> "$GITHUB_ENV"
 
+      - name: Install Wireshark (Windows)
+        if: matrix.platform == 'windows'
+        run: choco install -y --no-progress wireshark cmake
+
       - name: Build Rust cdylib
         run: cargo build -p zenoh-codec-ffi -j4
 
       - name: Build C plugin (cmake)
+        shell: bash
         run: |
-          cmake -B _tmp/cmake-build -S .
-          cmake --build _tmp/cmake-build -j4
+          case "${{ matrix.platform }}" in
+            windows) FFI_LIB="$(pwd)/target/debug/zenoh_codec_ffi.dll" ;;
+            macos)   FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.dylib" ;;
+            *)       FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.so" ;;
+          esac
+          cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
+          cmake --build _tmp/cmake-build --config Debug -j4
 
       - name: Install plugin
         shell: nu {0}
@@ -121,12 +133,19 @@ jobs:
           let plugin_dir = $"($env.HOME)/.local/lib/wireshark/plugins/($maj_min)/epan"
           mkdir $plugin_dir
 
-          if $platform == "linux" {
-            cp _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
-            cp target/debug/libzenoh_codec_ffi.so $"($plugin_dir)/libzenoh_codec_ffi.so"
-          } else {
-            cp _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
-            cp target/debug/libzenoh_codec_ffi.dylib $"($plugin_dir)/libzenoh_codec_ffi.dylib"
+          match $platform {
+            "linux" => {
+              cp _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
+              cp target/debug/libzenoh_codec_ffi.so $"($plugin_dir)/libzenoh_codec_ffi.so"
+            }
+            "macos" => {
+              cp _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
+              cp target/debug/libzenoh_codec_ffi.dylib $"($plugin_dir)/libzenoh_codec_ffi.dylib"
+            }
+            "windows" => {
+              cp _tmp/cmake-build/Debug/packet-zenoh.dll $"($plugin_dir)/packet-zenoh.dll"
+              cp target/debug/zenoh_codec_ffi.dll $"($plugin_dir)/zenoh_codec_ffi.dll"
+            }
           }
 
       - name: Test with sample data
