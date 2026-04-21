@@ -99,6 +99,11 @@ Write-Host "Wireshark headers available at $SrcDir"
 # ---------------------------------------------------------------------------
 Write-Host "Generating import libraries from installed DLLs..."
 
+Write-Host "DLLs in $WsInstallDir matching wireshark|wsutil:"
+Get-ChildItem $WsInstallDir -Filter "*.dll" | Where-Object { $_.Name -match "wireshark|wsutil" } | ForEach-Object { Write-Host "  $($_.Name)" }
+Write-Host "All DLLs in $WsInstallDir (first 30):"
+Get-ChildItem $WsInstallDir -Filter "*.dll" | Select-Object -First 30 | ForEach-Object { Write-Host "  $($_.Name)" }
+
 $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $vsInstall = & $vsWhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>&1 | Select-Object -First 1
 $vcVer = (Get-Content (Join-Path $vsInstall "VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt")).Trim()
@@ -107,10 +112,18 @@ $dumpbinExe = Join-Path $vcBin "dumpbin.exe"
 $libExe     = Join-Path $vcBin "lib.exe"
 
 foreach ($dllName in @("wireshark", "wsutil")) {
+    # Try exact name first, then versioned variants (e.g. wireshark4.dll)
     $dllPath = Join-Path $WsInstallDir "$dllName.dll"
     if (-not (Test-Path $dllPath)) {
-        Write-Host "  $dllName.dll not found, skipping"
-        continue
+        # Look for any DLL whose name starts with $dllName (e.g. wireshark4.dll)
+        $candidates = Get-ChildItem $WsInstallDir -Filter "${dllName}*.dll" | Select-Object -First 1
+        if ($candidates) {
+            $dllPath = $candidates.FullName
+            Write-Host "  Using versioned DLL: $($candidates.Name)"
+        } else {
+            Write-Host "  $dllName.dll not found, skipping"
+            continue
+        }
     }
     $defPath = Join-Path $WsInstallDir "$dllName.def"
     $libPath = Join-Path $WsInstallDir "$dllName.lib"
