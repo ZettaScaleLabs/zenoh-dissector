@@ -1,3 +1,4 @@
+pub use crate::header_field::*;
 use crate::macros::{impl_for_enum, impl_for_struct};
 pub use convert_case::{Case, Casing};
 
