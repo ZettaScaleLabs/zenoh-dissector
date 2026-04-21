@@ -35,8 +35,9 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Refresh PATH so tshark is discoverable in later steps
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
-            [System.Environment]::GetEnvironmentVariable("Path", "User")
+$_machine = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+$_user    = [System.Environment]::GetEnvironmentVariable("Path", "User")
+$env:Path = "$_machine;$_user"
 
 Write-Host "Verifying Wireshark installation..."
 & where.exe tshark 2>$null | ForEach-Object { Write-Host "  tshark: $_" }
@@ -68,8 +69,9 @@ if (-not (Test-Path (Join-Path $SrcDir "CMakeLists.txt"))) {
             choco install $tool -y --no-progress
         }
     }
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
-                [System.Environment]::GetEnvironmentVariable("Path", "User")
+    $_machine = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+    $_user    = [System.Environment]::GetEnvironmentVariable("Path", "User")
+    $env:Path = "$_machine;$_user"
 
     $archivePath = Join-Path $BaseDir "wireshark-$WiresharkVersion.tar.xz"
     if (-not (Test-Path $archivePath)) {
