@@ -97,14 +97,8 @@ jobs:
       - name: Install Wireshark (macOS)
         if: matrix.platform == 'macos'
         run: |
-          brew install --cask wireshark
-          brew install cmake
-          # Expose Wireshark frameworks as a flat lib dir for CMake find_library
-          WS_FW=/Applications/Wireshark.app/Contents/Frameworks
-          ln -sf "$(find $WS_FW -name 'libwireshark.*.dylib' | sort | tail -1)" libwireshark.dylib
-          ln -sf "$(find $WS_FW -name 'libwiretap.*.dylib'   | sort | tail -1)" libwiretap.dylib
-          ln -sf "$(find $WS_FW -name 'libwsutil.*.dylib'    | sort | tail -1)" libwsutil.dylib
-          echo "WIRESHARK_LIB_DIR=${{ github.workspace }}" >> "$GITHUB_ENV"
+          # brew formula (not cask) installs headers + tshark under /opt/homebrew
+          brew install wireshark cmake
 
       - name: Build Wireshark from source (Windows)
         if: matrix.platform == 'windows'

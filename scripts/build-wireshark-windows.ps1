@@ -93,13 +93,23 @@ cmake $SrcDir `
     -DENABLE_AMRNB=OFF `
     -DENABLE_ILBC=OFF `
     -DCMAKE_INSTALL_PREFIX="$BuildDir\install"
+if ($LASTEXITCODE -ne 0) {
+    Pop-Location
+    Write-Error "cmake configure failed (exit $LASTEXITCODE)"
+    exit 1
+}
 
 cmake --build . --config $BuildConfig --target epan wiretap wsutil
+if ($LASTEXITCODE -ne 0) {
+    Pop-Location
+    Write-Error "cmake build failed (exit $LASTEXITCODE)"
+    exit 1
+}
 Pop-Location
 
 $OutDir = Join-Path $BuildDir "run\$BuildConfig"
 if (-not (Test-Path $OutDir)) {
-    Write-Error "Build output not found at $OutDir"
+    Write-Error "Build output not found at $OutDir — cmake succeeded but produced no output in expected location"
     exit 1
 }
 Write-Host "Wireshark libraries built at $OutDir"

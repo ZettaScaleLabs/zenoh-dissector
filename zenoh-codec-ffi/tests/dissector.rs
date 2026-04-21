@@ -35,7 +35,9 @@ const NP: &str = "zenoh.transport.frame.network";
 static INSTALL_ONCE: std::sync::OnceLock<()> = std::sync::OnceLock::new();
 
 fn install_dissector() {
-    INSTALL_ONCE.get_or_init(|| { install_dissector_impl(); });
+    INSTALL_ONCE.get_or_init(|| {
+        install_dissector_impl();
+    });
 }
 
 fn install_dissector_impl() {
@@ -397,7 +399,9 @@ macro_rules! assert_size {
 
 #[test]
 fn nested_fields_have_correct_byte_size() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let msg = make_init_syn();
@@ -424,7 +428,9 @@ fn nested_fields_have_correct_byte_size() {
 
 #[test]
 fn trailing_byte_batch_boundary_triggers_reassembly() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let batch1 = encode_transport(&make_init_syn());
@@ -440,7 +446,9 @@ fn trailing_byte_batch_boundary_triggers_reassembly() {
 
 #[test]
 fn first_declare_in_multi_message_frame_highlights_correct_bytes() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let decl1 = make_declare_msg(declare::DeclareBody::DeclareKeyExpr(DeclareKeyExpr {
@@ -472,7 +480,9 @@ fn first_declare_in_multi_message_frame_highlights_correct_bytes() {
 
 #[test]
 fn sample_pcap_all_encoded_fields_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let pcap = Path::new(env!("CARGO_MANIFEST_DIR")).join("../assets/sample-data.pcap");
@@ -501,7 +511,9 @@ fn sample_pcap_all_encoded_fields_highlighted() {
 
 #[test]
 fn keepalive_decodes() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let msg = TransportMessage { body: TransportBody::KeepAlive(KeepAlive {}) };
@@ -514,7 +526,9 @@ fn keepalive_decodes() {
 
 #[test]
 fn close_fields_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let msg = TransportMessage {
@@ -530,7 +544,9 @@ fn close_fields_highlighted() {
 
 #[test]
 fn fragment_fields_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let msg = TransportMessage {
@@ -553,7 +569,9 @@ fn fragment_fields_highlighted() {
 
 #[test]
 fn join_fields_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     use std::time::Duration;
@@ -582,7 +600,9 @@ fn join_fields_highlighted() {
 
 #[test]
 fn push_put_fields_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let nmsg = make_push_put("demo/test", b"hello world");
@@ -596,7 +616,9 @@ fn push_put_fields_highlighted() {
 
 #[test]
 fn declare_queryable_fields_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let decl = make_declare_msg(declare::DeclareBody::DeclareQueryable(DeclareQueryable {
@@ -613,7 +635,9 @@ fn declare_queryable_fields_highlighted() {
 
 #[test]
 fn declare_token_fields_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let decl = make_declare_msg(declare::DeclareBody::DeclareToken(DeclareToken {
@@ -629,7 +653,9 @@ fn declare_token_fields_highlighted() {
 
 #[test]
 fn undeclare_key_expr_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let decl = make_declare_msg(declare::DeclareBody::UndeclareKeyExpr(UndeclareKeyExpr {
@@ -644,7 +670,9 @@ fn undeclare_key_expr_highlighted() {
 
 #[test]
 fn undeclare_subscriber_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let decl = make_declare_msg(declare::DeclareBody::UndeclareSubscriber(UndeclareSubscriber {
@@ -660,7 +688,9 @@ fn undeclare_subscriber_highlighted() {
 
 #[test]
 fn declare_final_decodes() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let decl = make_declare_msg(declare::DeclareBody::DeclareFinal(DeclareFinal {}));
@@ -673,7 +703,9 @@ fn declare_final_decodes() {
 
 #[test]
 fn request_fields_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let req = NetworkMessage {
@@ -707,7 +739,9 @@ fn request_fields_highlighted() {
 
 #[test]
 fn response_fields_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let resp = NetworkMessage {
@@ -742,7 +776,9 @@ fn response_fields_highlighted() {
 
 #[test]
 fn response_final_highlighted() {
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let rf = NetworkMessage {
@@ -765,7 +801,9 @@ fn scouting_scout_fields_highlighted() {
     use zenoh_protocol::core::WhatAmIMatcher;
     use zenoh_protocol::scouting::{Scout, ScoutingBody, ScoutingMessage};
 
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let msg = ScoutingMessage {
@@ -788,7 +826,9 @@ fn scouting_scout_fields_highlighted() {
 fn scouting_hello_fields_highlighted() {
     use zenoh_protocol::scouting::{HelloProto, ScoutingBody, ScoutingMessage};
 
-    if !tshark_available() { return; }
+    if !tshark_available() {
+        return;
+    }
     install_dissector();
 
     let msg = ScoutingMessage {
