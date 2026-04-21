@@ -63,7 +63,7 @@ endif()
 message(STATUS "Wireshark: include=${Wireshark_INCLUDE_DIRS} lib=${Wireshark_LIBRARIES}")
 
 # GLib is a Wireshark dependency not always transitively exposed.
-# On Windows: vcpkg provides glib + pkgconf; PKG_CONFIG_EXECUTABLE is set by CI.
+# On Windows: MSYS2 provides glib headers; PKG_CONFIG_EXECUTABLE points to MSYS2 pkgconf.
 # On Linux/macOS: system pkg-config finds it from the system package.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GLIB2 REQUIRED IMPORTED_TARGET glib-2.0)
