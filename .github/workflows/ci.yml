@@ -187,7 +187,12 @@ jobs:
         run: |
           print "=== tshark plugins ==="
           (tshark -G plugins | complete).stdout | print
-          let output = (tshark -r ./assets/sample-data.pcap | complete).stdout
+          print "=== tshark run (stdout) ==="
+          let result = (tshark -r ./assets/sample-data.pcap | complete)
+          $result.stdout | print
+          print "=== tshark run (stderr) ==="
+          $result.stderr | print
+          let output = $result.stdout
           let zenoh_count = ($output | lines | where {|line| $line =~ "Zenoh"} | length)
           if $zenoh_count != 7 {
             error make {msg: $"Expected 7 Zenoh packets, found ($zenoh_count)"}
