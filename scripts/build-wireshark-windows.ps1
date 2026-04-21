@@ -2,10 +2,10 @@
 # packet-zenoh.dll.
 #
 # Strategy:
-#   1. Install Wireshark via choco — provides tshark + wireshark.lib et al.
+#   1. Install Wireshark via choco - provides tshark + wireshark.lib et al.
 #      under C:\Program Files\Wireshark\.
-#   2. Download the matching source tarball — provides the header tree
-#      (epan/, wsutil/, ws_version.h, …) without a full cmake build.
+#   2. Download the matching source tarball - provides the header tree
+#      (epan/, wsutil/, ws_version.h, ...) without a full cmake build.
 #
 # CMakeLists.txt finds:
 #   Headers  : C:\wsbuild\wireshark-<Ver>\   (source tree)
@@ -26,7 +26,7 @@ Write-Host "Installing Wireshark $WiresharkVersion via choco..."
 choco install wireshark --version $WiresharkVersion -y --no-progress 2>&1
 if ($LASTEXITCODE -ne 0) {
     # Fall back to latest available version
-    Write-Host "Pinned version not in choco cache — installing latest..."
+    Write-Host "Pinned version not in choco cache - installing latest..."
     choco install wireshark -y --no-progress
     if ($LASTEXITCODE -ne 0) {
         Write-Error "choco install wireshark failed (exit $LASTEXITCODE)"
