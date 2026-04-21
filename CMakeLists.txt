@@ -45,8 +45,10 @@ if(WIN32)
         "#define HAVE_CONFIG_H 1\n"
     )
 
-    # Import libraries from the choco-installed Wireshark application
-    find_library(Wireshark_LIBRARIES wireshark
+    # Import libraries from the choco-installed Wireshark application.
+    # The Windows Wireshark installer ships libwireshark.dll; we generate
+    # wireshark.lib from it via scripts/build-wireshark-windows.ps1.
+    find_library(Wireshark_LIBRARIES NAMES wireshark libwireshark
         HINTS
             "C:/Program Files/Wireshark"
             "C:/Program Files (x86)/Wireshark"

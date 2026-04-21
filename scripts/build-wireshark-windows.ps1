@@ -111,32 +111,27 @@ $vcBin = Join-Path $vsInstall "VC\Tools\MSVC\$vcVer\bin\Hostx64\x64"
 $dumpbinExe = Join-Path $vcBin "dumpbin.exe"
 $libExe     = Join-Path $vcBin "lib.exe"
 
-foreach ($dllName in @("wireshark", "wsutil")) {
-    # Try exact name first, then versioned variants (e.g. wireshark4.dll)
-    $dllPath = Join-Path $WsInstallDir "$dllName.dll"
+foreach ($entry in @(@("wireshark", "libwireshark"), @("wsutil", "libwsutil"))) {
+    $libName = $entry[0]   # canonical name cmake searches for (wireshark, wsutil)
+    $dllBase = $entry[1]   # actual DLL basename on Windows (libwireshark, libwsutil)
+
+    $dllPath = Join-Path $WsInstallDir "$dllBase.dll"
     if (-not (Test-Path $dllPath)) {
-        # Look for any DLL whose name starts with $dllName (e.g. wireshark4.dll)
-        $candidates = Get-ChildItem $WsInstallDir -Filter "${dllName}*.dll" | Select-Object -First 1
-        if ($candidates) {
-            $dllPath = $candidates.FullName
-            Write-Host "  Using versioned DLL: $($candidates.Name)"
-        } else {
-            Write-Host "  $dllName.dll not found, skipping"
-            continue
-        }
+        Write-Host "  $dllBase.dll not found, skipping"
+        continue
     }
-    $defPath = Join-Path $WsInstallDir "$dllName.def"
-    $libPath = Join-Path $WsInstallDir "$dllName.lib"
+    $defPath = Join-Path $WsInstallDir "$libName.def"
+    $libPath = Join-Path $WsInstallDir "$libName.lib"
 
     $exports = (& $dumpbinExe /EXPORTS $dllPath) -match '^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(\S+)' | ForEach-Object {
         if ($_ -match '^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(\S+)') { $Matches[1] }
     }
-    "LIBRARY $dllName`r`nEXPORTS" | Out-File $defPath -Encoding ASCII
+    "LIBRARY $dllBase`r`nEXPORTS" | Out-File $defPath -Encoding ASCII
     $exports | Out-File $defPath -Encoding ASCII -Append
 
     & $libExe /DEF:$defPath /OUT:$libPath /MACHINE:X64 /NOLOGO
     if (Test-Path $libPath) {
-        Write-Host "  Generated $libPath ($($exports.Count) exports)"
+        Write-Host "  Generated $libPath from $dllBase.dll ($($exports.Count) exports)"
     } else {
         Write-Error "Failed to generate $libPath"
     }
