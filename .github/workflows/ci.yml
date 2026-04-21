@@ -178,8 +178,10 @@ jobs:
               cp _tmp/cmake-build/Release/packet-zenoh.dll $"($plugin_dir)/packet-zenoh.dll"
               cp target/debug/zenoh_codec_ffi.dll $"($plugin_dir)/zenoh_codec_ffi.dll"
               # LoadLibrary does not search the plugin's own dir for dependencies.
-              # Copy the FFI DLL to the tshark.exe directory so it is found at load time.
+              # Copy the FFI DLL next to tshark.exe so it is always found at load time.
               cp target/debug/zenoh_codec_ffi.dll "C:/Program Files/Wireshark/zenoh_codec_ffi.dll"
+              # Also add the plugin dir to PATH so any transitive deps are findable.
+              $"($plugin_dir)\n" | save --append $env.GITHUB_PATH
             }
           }
           print "=== Installed files ==="
