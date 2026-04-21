@@ -99,11 +99,6 @@ Write-Host "Wireshark headers available at $SrcDir"
 # ---------------------------------------------------------------------------
 Write-Host "Generating import libraries from installed DLLs..."
 
-Write-Host "DLLs in $WsInstallDir matching wireshark|wsutil:"
-Get-ChildItem $WsInstallDir -Filter "*.dll" | Where-Object { $_.Name -match "wireshark|wsutil" } | ForEach-Object { Write-Host "  $($_.Name)" }
-Write-Host "All DLLs in $WsInstallDir (first 30):"
-Get-ChildItem $WsInstallDir -Filter "*.dll" | Select-Object -First 30 | ForEach-Object { Write-Host "  $($_.Name)" }
-
 $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $vsInstall = & $vsWhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>&1 | Select-Object -First 1
 $vcVer = (Get-Content (Join-Path $vsInstall "VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt")).Trim()
@@ -135,4 +130,18 @@ foreach ($entry in @(@("wireshark", "libwireshark"), @("wsutil", "libwsutil"))) 
     } else {
         Write-Error "Failed to generate $libPath"
     }
+}
+
+# ---------------------------------------------------------------------------
+# Step 4: install GLib headers via vcpkg (needed by Wireshark source headers)
+# The windows-2022 runner has vcpkg pre-installed at C:\vcpkg.
+# ---------------------------------------------------------------------------
+Write-Host "Installing GLib via vcpkg..."
+$vcpkgExe = "C:\vcpkg\vcpkg.exe"
+if (Test-Path $vcpkgExe) {
+    & $vcpkgExe install glib:x64-windows --no-print-usage 2>&1 | Where-Object { $_ -match "^(Installing|Building|error)" } | ForEach-Object { Write-Host "  $_" }
+    Write-Host "GLib installed via vcpkg."
+} else {
+    Write-Error "vcpkg not found at $vcpkgExe — cannot install GLib headers"
+    exit 1
 }
