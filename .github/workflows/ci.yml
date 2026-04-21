@@ -119,6 +119,10 @@ jobs:
             macos)   FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.dylib" ;;
             *)       FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.so" ;;
           esac
+          # On macOS (Homebrew) pkg-config files live under $(brew --prefix)/lib/pkgconfig
+          if [ "${{ matrix.platform }}" = "macos" ]; then
+            export PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          fi
           cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
           cmake --build _tmp/cmake-build --config Debug -j4
 

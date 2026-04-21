@@ -58,7 +58,12 @@ fn install_dissector_impl() {
     std::fs::create_dir_all(&build_dir).unwrap();
 
     let status = Command::new("cmake")
-        .args(["-B", build_dir.to_str().unwrap(), "-S", workspace.to_str().unwrap()])
+        .args([
+            "-B",
+            build_dir.to_str().unwrap(),
+            "-S",
+            workspace.to_str().unwrap(),
+        ])
         .current_dir(workspace)
         .status()
         .expect("cmake configure failed");
@@ -82,7 +87,13 @@ fn install_dissector_impl() {
         let line = s.lines().next().unwrap_or("");
         let ver = line
             .split_whitespace()
-            .find(|t| t.contains('.') && t.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false))
+            .find(|t| {
+                t.contains('.')
+                    && t.chars()
+                        .next()
+                        .map(|c| c.is_ascii_digit())
+                        .unwrap_or(false)
+            })
             .unwrap_or("4.6");
         ver.splitn(3, '.').take(2).collect::<Vec<_>>().join(".")
     };
@@ -216,8 +227,10 @@ fn write_bug4_pcap(path: &Path, payload1: &[u8], payload2: &[u8]) {
     let seq2 = 1 + seg1.len() as u32;
     let mut f = std::fs::File::create(path).unwrap();
     f.write_all(&pcap_global_header()).unwrap();
-    f.write_all(&pcap_record(&ethernet_ipv4_tcp_packet(&seg1, 1))).unwrap();
-    f.write_all(&pcap_record(&ethernet_ipv4_tcp_packet(seg2, seq2))).unwrap();
+    f.write_all(&pcap_record(&ethernet_ipv4_tcp_packet(&seg1, 1)))
+        .unwrap();
+    f.write_all(&pcap_record(&ethernet_ipv4_tcp_packet(seg2, seq2)))
+        .unwrap();
 }
 
 // ---------------------------------------------------------------------------
@@ -304,12 +317,18 @@ fn make_push_put(wire_expr: impl Into<String>, payload_data: &[u8]) -> NetworkMe
 fn run_tshark(pcap: &Path) -> String {
     let out = Command::new("tshark")
         .args([
-            "-r", pcap.to_str().unwrap(),
-            "-T", "pdml",
-            "-d", "tcp.port==7447,zenoh",
-            "-d", "udp.port==7446,zenoh",
-            "-d", "udp.port==7447,zenoh",
-            "-o", "tcp.desegment_tcp_streams:TRUE",
+            "-r",
+            pcap.to_str().unwrap(),
+            "-T",
+            "pdml",
+            "-d",
+            "tcp.port==7447,zenoh",
+            "-d",
+            "udp.port==7446,zenoh",
+            "-d",
+            "udp.port==7447,zenoh",
+            "-o",
+            "tcp.desegment_tcp_streams:TRUE",
         ])
         .output()
         .expect("tshark not found");
@@ -344,9 +363,23 @@ fn tshark_available() -> bool {
 fn unclaimed_fields(pdml: &str) -> Vec<String> {
     const ABSENT_SHOW: &[&str] = &["None", "[]"];
     const BRANCH_WORDS: &[&str] = &[
-        "TransportBody", "NetworkBody", "DeclareBody", "PushBody", "RequestBody", "ResponseBody",
-        "Zenoh Protocol", "Transport (", "Scouting (", "Network (", "Declare (", "Push (",
-        "Request (", "Response (", "Batch,", "Source ZID:", "Destination ZID:",
+        "TransportBody",
+        "NetworkBody",
+        "DeclareBody",
+        "PushBody",
+        "RequestBody",
+        "ResponseBody",
+        "Zenoh Protocol",
+        "Transport (",
+        "Scouting (",
+        "Network (",
+        "Declare (",
+        "Push (",
+        "Request (",
+        "Response (",
+        "Batch,",
+        "Source ZID:",
+        "Destination ZID:",
     ];
     const DEFAULT_SHOW_SUBSTRINGS: &[&str] = &[
         "QoSType { inner: 5 }",
@@ -357,9 +390,16 @@ fn unclaimed_fields(pdml: &str) -> Vec<String> {
 
     let mut suspicious = Vec::new();
     for line in pdml.lines() {
-        if !line.contains("name=\"zenoh") { continue; }
-        let size = match attr(line, "size") { Some(s) => s, None => continue };
-        if size > 0 { continue; }
+        if !line.contains("name=\"zenoh") {
+            continue;
+        }
+        let size = match attr(line, "size") {
+            Some(s) => s,
+            None => continue,
+        };
+        if size > 0 {
+            continue;
+        }
 
         let extract = |attr_name: &str| -> Option<String> {
             let needle = format!("{attr_name}=\"");
@@ -368,14 +408,31 @@ fn unclaimed_fields(pdml: &str) -> Vec<String> {
             Some(line[start..end].to_string())
         };
 
-        let name = match extract("name") { Some(n) => n, None => continue };
-        let show = match extract("show") { Some(s) => s, None => continue };
-        let showname = match extract("showname") { Some(s) => s, None => continue };
+        let name = match extract("name") {
+            Some(n) => n,
+            None => continue,
+        };
+        let show = match extract("show") {
+            Some(s) => s,
+            None => continue,
+        };
+        let showname = match extract("showname") {
+            Some(s) => s,
+            None => continue,
+        };
 
-        if CONDITIONAL_SUFFIXES.iter().any(|s| name.ends_with(s)) { continue; }
-        if BRANCH_WORDS.iter().any(|w| showname.contains(w)) { continue; }
-        if ABSENT_SHOW.iter().any(|a| show == *a) { continue; }
-        if DEFAULT_SHOW_SUBSTRINGS.iter().any(|d| show.contains(d)) { continue; }
+        if CONDITIONAL_SUFFIXES.iter().any(|s| name.ends_with(s)) {
+            continue;
+        }
+        if BRANCH_WORDS.iter().any(|w| showname.contains(w)) {
+            continue;
+        }
+        if ABSENT_SHOW.iter().any(|a| show == *a) {
+            continue;
+        }
+        if DEFAULT_SHOW_SUBSTRINGS.iter().any(|d| show.contains(d)) {
+            continue;
+        }
 
         suspicious.push(format!("{name}: {showname}"));
     }
@@ -386,9 +443,17 @@ macro_rules! assert_size {
     ($pdml:expr, $field:expr, $expected:expr) => {{
         let spans = field_spans($pdml, $field);
         let sizes: Vec<usize> = spans.iter().map(|&(_, s)| s).filter(|&s| s > 0).collect();
-        assert!(!sizes.is_empty(), "field '{}' not found with size>0 in PDML", $field);
+        assert!(
+            !sizes.is_empty(),
+            "field '{}' not found with size>0 in PDML",
+            $field
+        );
         for &sz in &sizes {
-            assert_eq!(sz, $expected, "field '{}' expected size={} got {}", $field, $expected, sz);
+            assert_eq!(
+                sz, $expected,
+                "field '{}' expected size={} got {}",
+                $field, $expected, sz
+            );
         }
     }};
 }
@@ -413,15 +478,31 @@ fn nested_fields_have_correct_byte_size() {
     let pdml = run_tshark(&pcap);
 
     let version_spans = field_spans(&pdml, &format!("{TP}.init_syn.version"));
-    assert!(!version_spans.is_empty(), "version field not found in PDML:\n{pdml}");
+    assert!(
+        !version_spans.is_empty(),
+        "version field not found in PDML:\n{pdml}"
+    );
     for (_, size) in &version_spans {
         assert_eq!(*size, 1, "version must be 1 byte, got {size}");
     }
 
-    for suffix in ["version", "whatami", "zid", "resolution", "batch_size", "ext_qos", "ext_qos_link", "ext_auth", "ext_mlink"] {
+    for suffix in [
+        "version",
+        "whatami",
+        "zid",
+        "resolution",
+        "batch_size",
+        "ext_qos",
+        "ext_qos_link",
+        "ext_auth",
+        "ext_mlink",
+    ] {
         let name = format!("{TP}.init_syn.{suffix}");
         for (_, size) in field_spans(&pdml, &name) {
-            assert_ne!(size, total_len, "'{name}' size={size} equals total message length (Bug 3)");
+            assert_ne!(
+                size, total_len,
+                "'{name}' size={size} equals total message length (Bug 3)"
+            );
         }
     }
 }
@@ -441,7 +522,10 @@ fn trailing_byte_batch_boundary_triggers_reassembly() {
     let pdml = run_tshark(&pcap);
 
     let count = field_spans(&pdml, &format!("{TP}.init_syn.version")).len();
-    assert_eq!(count, 2, "expected init_syn.version twice (one per batch), got {count}.\n{pdml}");
+    assert_eq!(
+        count, 2,
+        "expected init_syn.version twice (one per batch), got {count}.\n{pdml}"
+    );
 }
 
 #[test]
@@ -466,11 +550,19 @@ fn first_declare_in_multi_message_frame_highlights_correct_bytes() {
     let pdml = run_tshark(&pcap);
 
     let key_expr_spans = field_spans(&pdml, &format!("{NP}.declare.declare_key_expr.id"));
-    assert!(!key_expr_spans.is_empty(), "declare_key_expr.id not found:\n{pdml}");
+    assert!(
+        !key_expr_spans.is_empty(),
+        "declare_key_expr.id not found:\n{pdml}"
+    );
     let (key_expr_pos, key_expr_size) = key_expr_spans[0];
-    assert_eq!(key_expr_size, 1, "declare_key_expr.id must be 1 byte, got {key_expr_size}");
+    assert_eq!(
+        key_expr_size, 1,
+        "declare_key_expr.id must be 1 byte, got {key_expr_size}"
+    );
 
-    if let Some(&(sub_pos, sub_size)) = field_spans(&pdml, &format!("{NP}.declare.declare_subscriber.id")).first() {
+    if let Some(&(sub_pos, sub_size)) =
+        field_spans(&pdml, &format!("{NP}.declare.declare_subscriber.id")).first()
+    {
         if sub_size > 0 {
             assert!(key_expr_pos < sub_pos,
                 "declare_key_expr.id at pos={key_expr_pos} must precede declare_subscriber.id at pos={sub_pos}");
@@ -489,8 +581,11 @@ fn sample_pcap_all_encoded_fields_highlighted() {
     let pdml = run_tshark(&pcap);
 
     let unclaimed = unclaimed_fields(&pdml);
-    assert!(unclaimed.is_empty(),
-        "Fields with non-absent values but size=0:\n{}", unclaimed.join("\n"));
+    assert!(
+        unclaimed.is_empty(),
+        "Fields with non-absent values but size=0:\n{}",
+        unclaimed.join("\n")
+    );
 
     assert_size!(&pdml, &format!("{TP}.init_syn.version"), 1);
     assert_size!(&pdml, &format!("{TP}.init_syn.whatami"), 1);
@@ -516,12 +611,17 @@ fn keepalive_decodes() {
     }
     install_dissector();
 
-    let msg = TransportMessage { body: TransportBody::KeepAlive(KeepAlive {}) };
+    let msg = TransportMessage {
+        body: TransportBody::KeepAlive(KeepAlive {}),
+    };
     let payload = encode_transport(&msg);
     let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("keepalive.pcap");
     write_single_tcp_pcap(&pcap, &payload);
     let pdml = run_tshark(&pcap);
-    assert!(pdml.contains("zenoh.transport.keep_alive"), "KeepAlive not found:\n{pdml}");
+    assert!(
+        pdml.contains("zenoh.transport.keep_alive"),
+        "KeepAlive not found:\n{pdml}"
+    );
 }
 
 #[test]
@@ -532,7 +632,10 @@ fn close_fields_highlighted() {
     install_dissector();
 
     let msg = TransportMessage {
-        body: TransportBody::Close(Close { reason: 0x05, session: true }),
+        body: TransportBody::Close(Close {
+            reason: 0x05,
+            session: true,
+        }),
     };
     let payload = encode_transport(&msg);
     let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("close.pcap");
@@ -675,10 +778,12 @@ fn undeclare_subscriber_highlighted() {
     }
     install_dissector();
 
-    let decl = make_declare_msg(declare::DeclareBody::UndeclareSubscriber(UndeclareSubscriber {
-        id: 2,
-        ext_wire_expr: zenoh_protocol::network::declare::common::ext::WireExprType::null(),
-    }));
+    let decl = make_declare_msg(declare::DeclareBody::UndeclareSubscriber(
+        UndeclareSubscriber {
+            id: 2,
+            ext_wire_expr: zenoh_protocol::network::declare::common::ext::WireExprType::null(),
+        },
+    ));
     let payload = encode_transport(&make_frame_with(vec![decl]));
     let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("undeclare_subscriber.pcap");
     write_single_tcp_pcap(&pcap, &payload);
@@ -698,7 +803,10 @@ fn declare_final_decodes() {
     let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("declare_final.pcap");
     write_single_tcp_pcap(&pcap, &payload);
     let pdml = run_tshark(&pcap);
-    assert!(pdml.contains("declare_final"), "DeclareFinal not found:\n{pdml}");
+    assert!(
+        pdml.contains("declare_final"),
+        "DeclareFinal not found:\n{pdml}"
+    );
 }
 
 #[test]

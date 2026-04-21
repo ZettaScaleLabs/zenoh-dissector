@@ -109,7 +109,7 @@ Pop-Location
 
 $OutDir = Join-Path $BuildDir "run\$BuildConfig"
 if (-not (Test-Path $OutDir)) {
-    Write-Error "Build output not found at $OutDir — cmake succeeded but produced no output in expected location"
+    Write-Error "Build output not found at $OutDir - cmake succeeded but produced no output in expected location"
     exit 1
 }
 Write-Host "Wireshark libraries built at $OutDir"
