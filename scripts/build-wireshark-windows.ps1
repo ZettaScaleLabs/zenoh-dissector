@@ -40,7 +40,7 @@ $_user    = [System.Environment]::GetEnvironmentVariable("Path", "User")
 $env:Path = "$_machine;$_user"
 
 Write-Host "Verifying Wireshark installation..."
-& where.exe tshark 2>$null | ForEach-Object { Write-Host "  tshark: $_" }
+Get-Command tshark -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  tshark: $($_.Source)" }
 
 $WsInstallDir = "C:\Program Files\Wireshark"
 if (-not (Test-Path $WsInstallDir)) {
