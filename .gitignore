@@ -43,3 +43,5 @@ target
 _*
 core.*
 core
+.envrc
+.direnv
