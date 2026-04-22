@@ -55,22 +55,26 @@ Both files must be present in the Wireshark plugin directory.
 ## Build from source
 
 ```bash
-# Step 1: build the Rust cdylib
-cargo build -p zenoh-codec-ffi --release
+just build          # build everything (debug)
+just build-release  # build everything (release)
+```
 
-# Step 2: build the C plugin
-cmake -B build -S .
-cmake --build build --config Release -j4
+Or step by step:
+
+```bash
+cargo build -p zenoh-codec-ffi -j4   # Rust cdylib
+cmake -B _tmp/cmake-build -S .        # C plugin configure
+cmake --build _tmp/cmake-build -j4   # C plugin build
 ```
 
 **When to rebuild each component:**
 
 | Changed | Rebuild needed |
 |---|---|
-| Zenoh protocol decoding logic, field definitions, span recording | `cargo build -p zenoh-codec-ffi --release` only |
-| Wireshark API interactions (TCP reassembly, tree building, heuristics) | `cmake --build build --config Release` only |
-| Wireshark version upgrade | Both — cmake reconfigures against new headers; cdylib is unaffected but re-linking the C plugin picks up the new ABI |
-| Added or renamed a field exposed via the FFI (`CFieldDef`) | Both — the C ABI changed |
+| Decoding logic, field definitions, span recording | `just build-codec` |
+| Wireshark API interactions (reassembly, tree building, heuristics) | `just build-plugin` |
+| Wireshark version upgrade | `just build` — cmake reconfigures against new headers |
+| Added or renamed a field exposed via the FFI (`CFieldDef`) | `just build` — C ABI changed |
 
 ## Install
 

@@ -52,6 +52,7 @@
             libpcap
             eza
             fd
+            just
             cargo-machete
             cargo-expand
             lldb
