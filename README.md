@@ -97,28 +97,28 @@ On Windows, or to install manually:
 - **Linux**
 
     ```bash
-    PLUGIN_BASE=~/.local/lib/wireshark/plugins/4.6
-    mkdir -p "$PLUGIN_BASE/epan"
-    cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_BASE/epan/"
-    cp target/debug/libzenoh_codec_ffi.so "$PLUGIN_BASE/"
+    PLUGIN_DIR=~/.local/lib/wireshark/plugins/4.6/epan
+    mkdir -p "$PLUGIN_DIR"
+    cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_DIR/"
+    cp target/debug/libzenoh_codec_ffi.so "$PLUGIN_DIR/"
     ```
 
 - **macOS**
 
     ```bash
-    PLUGIN_BASE=$(tshark -G folders | awk -F'\t' '/Personal Plugins/{print $NF}')
-    mkdir -p "$PLUGIN_BASE/epan"
-    cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_BASE/epan/"
-    cp target/debug/libzenoh_codec_ffi.dylib "$PLUGIN_BASE/"
+    PLUGIN_DIR=$(tshark -G folders | awk -F'\t' '/Personal Plugins/{print $NF}')/epan
+    mkdir -p "$PLUGIN_DIR"
+    cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_DIR/"
+    cp target/debug/libzenoh_codec_ffi.dylib "$PLUGIN_DIR/"
     ```
 
 - **Windows**
 
     ```powershell
-    $plugin_base = "$Env:APPDATA\Wireshark\plugins\4.6"
-    New-Item -ItemType Directory -Force -Path "$plugin_base\epan" | Out-Null
-    Copy-Item _tmp\cmake-build\Release\packet-zenoh.dll "$plugin_base\epan\"
-    Copy-Item target\debug\zenoh_codec_ffi.dll "$plugin_base\"
+    $plugin_dir = "$Env:APPDATA\Wireshark\plugins\4.6\epan"
+    New-Item -ItemType Directory -Force -Path $plugin_dir | Out-Null
+    Copy-Item _tmp\cmake-build\Release\packet-zenoh.dll $plugin_dir
+    Copy-Item target\debug\zenoh_codec_ffi.dll $plugin_dir
     # Also place the FFI DLL next to tshark.exe so LoadLibrary can find it
     Copy-Item target\debug\zenoh_codec_ffi.dll "C:\Program Files\Wireshark\"
     ```

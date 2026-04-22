@@ -24,13 +24,11 @@ build-plugin:
 install: build
     #!/usr/bin/env bash
     set -euo pipefail
-    plugin_base=$(tshark -G folders 2>/dev/null | awk -F'\t' '/Personal Plugins/{print $NF}')
-    epan_dir="$plugin_base/epan"
-    mkdir -p "$epan_dir"
-    ln -sf "$(pwd)/{{build_dir}}/packet-zenoh.so" "$epan_dir/packet-zenoh.so"
-    # cdylib goes one level above epan/ so Wireshark's plugin scanner ignores it
-    ln -sf "$(pwd)/target/debug/libzenoh_codec_ffi.so" "$plugin_base/libzenoh_codec_ffi.so"
-    echo "Installed to $epan_dir"
+    plugin_dir=$(tshark -G folders 2>/dev/null | awk -F'\t' '/Personal Plugins/{print $NF}')/epan
+    mkdir -p "$plugin_dir"
+    ln -sf "$(pwd)/{{build_dir}}/packet-zenoh.so" "$plugin_dir/packet-zenoh.so"
+    ln -sf "$(pwd)/target/debug/libzenoh_codec_ffi.so" "$plugin_dir/libzenoh_codec_ffi.so"
+    echo "Installed to $plugin_dir"
 
 # Run unit tests (no Wireshark needed)
 test-unit:
