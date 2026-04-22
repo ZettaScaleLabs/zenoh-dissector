@@ -63,6 +63,15 @@ cmake -B build -S .
 cmake --build build --config Release -j4
 ```
 
+**When to rebuild each component:**
+
+| Changed | Rebuild needed |
+|---|---|
+| Zenoh protocol decoding logic, field definitions, span recording | `cargo build -p zenoh-codec-ffi --release` only |
+| Wireshark API interactions (TCP reassembly, tree building, heuristics) | `cmake --build build --config Release` only |
+| Wireshark version upgrade | Both — cmake reconfigures against new headers; cdylib is unaffected but re-linking the C plugin picks up the new ABI |
+| Added or renamed a field exposed via the FFI (`CFieldDef`) | Both — the C ABI changed |
+
 ## Install
 
 Copy both files to the Wireshark personal plugin directory.
