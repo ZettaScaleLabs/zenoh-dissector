@@ -60,10 +60,10 @@ static int hf_key_expr_resolved = -1;
 
 static hf_register_info g_static_hf[] = {
     { &hf_session_src_zid,
-      { "Session Source ZID", "zenoh.session.src_zid",
+      { "Src ZID", "zenoh.session.src_zid",
         FT_BYTES, BASE_NONE, NULL, 0x0, NULL, HFILL }},
     { &hf_session_dst_zid,
-      { "Session Destination ZID", "zenoh.session.dst_zid",
+      { "Dst ZID", "zenoh.session.dst_zid",
         FT_BYTES, BASE_NONE, NULL, 0x0, NULL, HFILL }},
     { &hf_key_expr_resolved,
       { "Key Expression (resolved)", "zenoh.key_expr_resolved",
