@@ -27,6 +27,8 @@ typedef struct {
     uint32_t length;
     /** Optional human-readable value string. Empty string means no override. */
     char display[ZENOH_FFI_KEY_LEN];
+    /** If non-zero, display replaces the raw-bytes label; otherwise it is appended in parens. */
+    uint8_t replace_display;
 } CSpanEntry;
 
 #ifdef __cplusplus
