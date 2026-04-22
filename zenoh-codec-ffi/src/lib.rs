@@ -81,14 +81,15 @@ fn make_cfield(key: &str, display_name: &str, is_branch: bool) -> CFieldDef {
     f
 }
 
-fn decode_vle(bytes: &[u8]) -> Option<u64> {
+/// Decode a VLE integer from `bytes`, returning (value, bytes_consumed).
+fn decode_vle(bytes: &[u8]) -> Option<(u64, usize)> {
     let mut val = 0u64;
     let mut shift = 0u32;
-    for &b in bytes {
+    for (i, &b) in bytes.iter().enumerate() {
         val |= ((b & 0x7f) as u64) << shift;
         shift += 7;
         if b & 0x80 == 0 {
-            return Some(val);
+            return Some((val, i + 1));
         }
         if shift >= 64 {
             return None;
@@ -176,7 +177,7 @@ fn build_display(key: &str, bytes: &[u8]) -> String {
             }
         }
         "encoding" => {
-            if let Some(enc_raw) = decode_vle(bytes) {
+            if let Some((enc_raw, _)) = decode_vle(bytes) {
                 let id = enc_raw >> 1;
                 let has_schema = enc_raw & 1 != 0;
                 let name = encoding_name(id);
@@ -203,8 +204,37 @@ fn build_display(key: &str, bytes: &[u8]) -> String {
             v => format!("0x{v:02x}"),
         },
         "version" => format!("{}", bytes[0]),
+        "wire_expr" => {
+            // bytes: scope_VLE [+ suffix_len_VLE + suffix_bytes]
+            let Some((scope, scope_sz)) = decode_vle(bytes) else {
+                return String::new();
+            };
+            let rest = &bytes[scope_sz..];
+            if rest.is_empty() {
+                if scope != 0 {
+                    format!("scope={scope}")
+                } else {
+                    String::new()
+                }
+            } else {
+                let Some((str_len, len_sz)) = decode_vle(rest) else {
+                    return String::new();
+                };
+                let str_start = len_sz;
+                let str_end = str_start + str_len as usize;
+                let suffix = rest
+                    .get(str_start..str_end)
+                    .and_then(|b| std::str::from_utf8(b).ok())
+                    .unwrap_or("");
+                if scope == 0 {
+                    suffix.to_string()
+                } else {
+                    format!("{scope}/{suffix}")
+                }
+            }
+        }
         "scope" | "id" | "batch_size" | "initial_sn" | "lease" | "sn" => {
-            if let Some(v) = decode_vle(bytes) {
+            if let Some((v, _)) = decode_vle(bytes) {
                 format!("{v}")
             } else {
                 String::new()
