@@ -1,197 +1,130 @@
 ![zenoh dissector banner](./assets/zenoh-dissector.svg)
 
-# Zenoh Dissector in Rust
+# Zenoh Dissector
 
 [Zenoh](http://zenoh.io/) protocol dissector for Wireshark.
 
 > [!WARNING]
-> For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/eclipse-zenoh/zenoh-dissector/tree/v0.7.2-rc).
+> For Zenoh protocol versions older than 0.10.0, use the Lua plugin [here](https://github.com/eclipse-zenoh/zenoh-dissector/tree/v0.7.2-rc).
 >
-> The plugin currently requires the Wireshark library version 4.6.
+> The plugin currently requires Wireshark 4.6.
+
+The dissector is split into two components:
+
+- **`zenoh_codec_ffi`** — Rust cdylib with no Wireshark dependency. Contains all decoding logic.
+- **`packet-zenoh`** — Standard C Wireshark plugin. Handles field registration, TCP reassembly, and tree building by calling into the Rust cdylib.
+
+Both files must be present in the Wireshark plugin directory.
 
 ## Prerequisites
 
-You must have Wireshark 4.6 installed on your platform. Please refer to the [download page](https://www.wireshark.org/download.html) or follow the
-installation commands below.
+- [Rust toolchain](https://rustup.rs) (for building `zenoh_codec_ffi`)
+- CMake 3.15+ (for building `packet-zenoh`)
+- Wireshark 4.6 with development headers
 
-## Installation
+### Install Wireshark + headers
 
-We highly recommend following the instructions in the [releases](https://github.com/eclipse-zenoh/zenoh-dissector/releases).
-Or you can follow the following instructions to build your own plugin.
-
-## (Optional) Build the zenoh-dissector from source
-
-### Install dependencies
-
-Zenoh dissector is based on Wireshark EPAN (Enhanced Packet ANalyzer) library.
-We need to install Wireshark with its library. Please follow the steps below according to your operating system.
-
-- Linux (Ubuntu)
+- **Linux (Ubuntu)**
 
     ```bash
     sudo apt install -y software-properties-common
     sudo add-apt-repository -y ppa:wireshark-dev/stable
-    sudo apt install -y wireshark-dev
-    sudo apt install -y --allow-change-held-packages wireshark
+    sudo apt install -y libwireshark-dev wireshark tshark cmake
     ```
 
-- macOS
-
-    Install Wireshark with [Homebrew](https://brew.sh/).
+- **macOS**
 
     ```bash
-    brew install --cask wireshark
+    brew install wireshark cmake
     ```
 
-    Create a symbolic link for linking the wireshark dynamic library later.
+- **Windows**
 
-    ```bash
-    ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
-    export WIRESHARK_LIB_DIR=$(pwd)
-    ```
-
-- Windows
-
-    Install Wireshark with [Chocolatey](https://docs.chocolatey.org/en-us/choco/setup#install-with-powershell.exe).
-
-    ```bash
-    choco install -y --force --no-progress xsltproc nsis winflexbison3 cmake wireshark
-    ```
-
-### Build the plugin
-
-zenoh-dissector is written in [Rust](https://www.rust-lang.org/), therefore the toolchain [Rustup](https://rustup.rs) is needed to build the program.
-
-```bash
-cargo build --release
-```
-
-> [!NOTE]
-> (Optional) Choose your custom Wireshark library
-> In case you want to build your Wireshark from source and link to this library while building zenoh-dissector.
-> We also support this way via setting enviromental variable. Note that users need to ensure this library can be found
-> while using it with Wireshark.
->
-> - Windows (Powershell and Windows version >= 10)
->     For example, assuming that you have Wireshark installed at 'C:\MyWireshark'. You can tell cargo build to find the Wireshark library you want to link.
->
->     ```powershell
->     $Env:WIRESHARK_LIB_DIR='C:\MyWireshark'
->     cargo build --release
->     ```
->
->     Add the folder into the `PATH` so that it can find the dynamic library in runtime.
->
->     ```powershell
->     [System.Environment]::SetEnvironmentVariable('PATH', [System.Environment]::GetEnvironmentVariable('PATH', 'user')+';C:\MyWireshark', 'user')
->     ```
->
-> - Linux (Ubuntu) and macOS
->
->     ```bash
->     WIRESHARK_LIB_DIR=MyWireshark cargo build --release
->     ```
->
->     Add the library into  `LD_LIBRARY_PATH` for linux or `DYLD_LIBRARY_PATH` for macOS.
-
-### Move the plugin to Wireshark's plugin folder
-
-- Linux (Ubuntu)
-
-    ```bash
-    mkdir -p ~/.local/lib/wireshark/plugins/4.6/epan
-    cp ./target/release/libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.6/epan/libzenoh_dissector.so
-    ```
-
-- macOS
-
-    ```bash
-    mkdir -p ~/.local/lib/wireshark/plugins/4-6/epan
-    cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/4-6/epan/libzenoh_dissector.so
-    ```
-
-- Windows
+    Install Wireshark via [Chocolatey](https://docs.chocolatey.org/en-us/choco/setup):
 
     ```powershell
-    $epan_dir = "$Env:APPDATA\Wireshark\plugins\4.6\epan"
-    if (-Not (Test-Path $epan_dir)) {
-        mkdir -p $epan_dir
-    }
-    cp .\target\release\zenoh_dissector.dll $epan_dir
+    choco install wireshark -y
+    ```
+
+    Then run the helper script to download headers and generate import libraries:
+
+    ```powershell
+    .\scripts\build-wireshark-windows.ps1 -WiresharkVersion 4.6.4
+    ```
+
+## Build from source
+
+```bash
+# Step 1: build the Rust cdylib
+cargo build -p zenoh-codec-ffi --release
+
+# Step 2: build the C plugin
+cmake -B build -S .
+cmake --build build --config Release -j4
+```
+
+## Install
+
+Copy both files to the Wireshark personal plugin directory.
+
+- **Linux**
+
+    ```bash
+    PLUGIN_DIR=~/.local/lib/wireshark/plugins/4.6/epan
+    mkdir -p "$PLUGIN_DIR"
+    cp build/packet-zenoh.so "$PLUGIN_DIR/"
+    cp target/release/libzenoh_codec_ffi.so "$PLUGIN_DIR/"
+    ```
+
+- **macOS**
+
+    ```bash
+    PLUGIN_DIR=$(tshark -G folders | awk '/Personal Plugins/{print $NF}')/epan
+    mkdir -p "$PLUGIN_DIR"
+    cp build/packet-zenoh.so "$PLUGIN_DIR/"
+    cp target/release/libzenoh_codec_ffi.dylib "$PLUGIN_DIR/"
+    ```
+
+- **Windows**
+
+    ```powershell
+    $plugin_dir = "$Env:APPDATA\Wireshark\plugins\4.6\epan"
+    New-Item -ItemType Directory -Force -Path $plugin_dir | Out-Null
+    Copy-Item build\Release\packet-zenoh.dll $plugin_dir
+    Copy-Item target\release\zenoh_codec_ffi.dll $plugin_dir
+    # Also place the FFI DLL next to tshark.exe so LoadLibrary can find it
+    Copy-Item target\release\zenoh_codec_ffi.dll "C:\Program Files\Wireshark\"
     ```
 
 ## Usage
 
-### Example: Sample Data
-
-Running Wireshark in TUI version
-
-Linux(Ubuntu) and macOS
+### Sample data
 
 ```bash
 tshark -r ./assets/sample-data.pcap
 ```
 
-Windows PowerShell
-
-```powershell
-& 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap
 ```
-
-Example outpout
-
-```bash
-1 0.000000000    127.0.0.1 → 127.0.0.1    TCP 74 60698 → 7447 [SYN] Seq=0 Win=65495 Len=0 MSS=65495 SACK_PERM TSval=1530879817 TSecr=0 WS=128
-2 0.000021385    127.0.0.1 → 127.0.0.1    TCP 74 7447 → 60698 [SYN, ACK] Seq=0 Ack=1 Win=65483 Len=0 MSS=65495 SACK_PERM TSval=1530879817 TSecr=1530879817 WS=128
-3 0.000042754    127.0.0.1 → 127.0.0.1    TCP 66 60698 → 7447 [ACK] Seq=1 Ack=1 Win=65536 Len=0 TSval=1530879817 TSecr=1530879817
+1 0.000000000    127.0.0.1 → 127.0.0.1    TCP 74 60698 → 7447 [SYN] ...
 4 0.000342409    127.0.0.1 → 127.0.0.1    Zenoh 88
-5 0.000358149    127.0.0.1 → 127.0.0.1    TCP 66 7447 → 60698 [ACK] Seq=1 Ack=23 Win=65536 Len=0 TSval=1530879817 TSecr=1530879817
 6 0.000488613    127.0.0.1 → 127.0.0.1    Zenoh 138
-7 0.000507245    127.0.0.1 → 127.0.0.1    TCP 66 60698 → 7447 [ACK] Seq=23 Ack=73 Win=65536 Len=0 TSval=1530879817 TSecr=1530879817
 8 0.000602256    127.0.0.1 → 127.0.0.1    Zenoh 124
-9 0.000731706    127.0.0.1 → 127.0.0.1    Zenoh 74
-10 0.001131081    127.0.0.1 → 127.0.0.1    Zenoh 100
-11 0.001280084    127.0.0.1 → 127.0.0.1    TCP 66 60698 → 7447 [ACK] Seq=81 Ack=115 Win=65536 Len=0 TSval=1530879818 TSecr=1530879818
-12 0.501613967    127.0.0.1 → 127.0.0.1    Zenoh 119
-13 0.501667850    127.0.0.1 → 127.0.0.1    Zenoh 70
-14 0.501971515    127.0.0.1 → 127.0.0.1    TCP 66 7447 → 60698 [ACK] Seq=115 Ack=138 Win=65536 Len=0 TSval=1530880319 TSecr=1530880319
-15 0.502048215    127.0.0.1 → 127.0.0.1    TCP 66 60698 → 7447 [FIN, ACK] Seq=138 Ack=115 Win=65536 Len=0 TSval=1530880319 TSecr=1530880319
-16 0.502105376    127.0.0.1 → 127.0.0.1    TCP 66 7447 → 60698 [FIN, ACK] Seq=115 Ack=139 Win=65536 Len=0 TSval=1530880319 TSecr=1530880319
-17 0.502135271    127.0.0.1 → 127.0.0.1    TCP 66 60698 → 7447 [ACK] Seq=139 Ack=116 Win=65536 Len=0 TSval=1530880319 TSecr=1530880319
+...
 ```
 
-### Example: Pub/Sub
-
-Take the pub/sub as a example. One can check [here](https://github.com/eclipse-zenoh/zenoh#how-to-build-it) for the building instructions.
+### Pub/Sub example
 
 ![demo-pubsub](./assets/demo-pubsub.png)
 
-### Preferences
+### Heuristic dissector
 
-Zenoh dissector's settings can be changed via the menu bar through `Edit > Preferences > Protocols >
-Zenoh` or by right clicking a Zenoh packet and selecting `Protocol Preferences > ZenohProtocol`.
+By default the dissector only decodes traffic on port 7447. To decode Zenoh on any port, enable the heuristic dissectors via `Analyze > Enabled Protocols > Zenoh`:
 
-Currently supported settings are as follows:
-
-- TCP/UDP port selection.
-- (Experimental) Message decompression.
-
-> [!WARNING]
-> Zenoh dissector does not support packet captures that mix compressed and uncompressed messages.
-> Message decompression should be enabled if and only if all Zenoh messages are compressed. If you
-> see a message that reads "Failed to decode possibly due to the experimental compression
-> preference", this might indicate that some Zenoh messages are not compressed, while the dissector
-> is configured to decode them as compressed messages (or vice versa).
-
-- (Experimental) Heuristic dissector. This setting is not present in `Edit > Preferences > Protocols > Zenoh`
-  but instead in `Analyze > Enabled Protocols`. Under the `Zenoh` protocol,
-  the two heuristic dissectors `zenoh_tcp_heur` (Zenoh over TCP) and `zenoh_udp_heur` (Zenoh over UDP)
-  can be enabled by switching their respective checkboxes.
+- `zenoh_tcp_heur` — Zenoh over TCP
+- `zenoh_udp_heur` — Zenoh over UDP
 
 > [!IMPORTANT]
-> When enabled, Zenoh dissector will attempt to decode all TCP and UDP packets as Zenoh messages.
-> Note that this might be performance-intensive and could theoretically even lead to decoding
-> non-Zenoh messages. For these reasons, the heuristic dissector is disabled by default.
+> When enabled, the dissector attempts to decode all TCP/UDP traffic as Zenoh. This may be performance-intensive and can misidentify non-Zenoh packets.
 
 ## License
 
