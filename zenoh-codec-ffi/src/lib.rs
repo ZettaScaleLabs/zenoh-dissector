@@ -289,3 +289,15 @@ pub extern "C" fn zenoh_codec_ffi_free_spans(entries: *mut CSpanEntry, count: u3
         let _ = Box::from_raw(std::ptr::slice_from_raw_parts_mut(entries, count as usize));
     }
 }
+
+// Wireshark plugin boilerplate — makes libzenoh_codec_ffi.so a valid (no-op) plugin
+// so Wireshark's plugin scanner loads it silently without a "no plugin_version" warning.
+// The actual dissection logic is in packet-zenoh (the C plugin).
+#[no_mangle]
+pub static plugin_version: [u8; 6] = *b"0.0.1\0";
+#[no_mangle]
+pub static plugin_want_major: i32 = 4;
+#[no_mangle]
+pub static plugin_want_minor: i32 = 6;
+#[no_mangle]
+pub extern "C" fn plugin_register() {}

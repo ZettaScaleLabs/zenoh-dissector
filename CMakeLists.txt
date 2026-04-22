@@ -259,11 +259,9 @@ target_include_directories(packet-zenoh PRIVATE
     $<$<BOOL:${WIN32}>:${_GLIB2_INCLUDE_DIRS}>
 )
 
-# $ORIGIN/.. lets packet-zenoh.so find libzenoh_codec_ffi installed one level above epan/,
-# keeping it out of Wireshark's plugin scanner (which would complain about a missing plugin_version).
 set_target_properties(packet-zenoh PROPERTIES
-    BUILD_RPATH "$ORIGIN/.."
-    INSTALL_RPATH "$ORIGIN/.."
+    BUILD_RPATH "$ORIGIN"
+    INSTALL_RPATH "$ORIGIN"
 )
 
 target_compile_options(packet-zenoh PRIVATE
