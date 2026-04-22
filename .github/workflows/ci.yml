@@ -71,10 +71,6 @@ jobs:
         with:
           version: "0.100"
 
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: just
-
       - name: Extract Wireshark version from Cargo.toml
         id: wireshark-version
         shell: nu {0}
@@ -114,41 +110,43 @@ jobs:
             -BuildConfig "Debug"
 
       - name: Build Rust cdylib
-        run: just build-codec
+        run: cargo build -p zenoh-codec-ffi -j4
 
-      - name: Build C plugin (cmake)
-        shell: bash
+      - name: Build C plugin (cmake — Linux)
+        if: matrix.platform == 'linux'
         run: |
-          case "${{ matrix.platform }}" in
-            windows) FFI_LIB="$(pwd)/target/debug/zenoh_codec_ffi.dll.lib" ;;
-            macos)   FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.dylib" ;;
-            *)       FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.so" ;;
-          esac
-          if [ "${{ matrix.platform }}" = "macos" ]; then
-            # Pin cmake to the brew-installed arm64 Wireshark to avoid picking up
-            # stale x86_64 cask frameworks; also expose pkg-config for glib
-            WS_PREFIX="$(brew --prefix wireshark)"
-            export PKG_CONFIG_PATH="${WS_PREFIX}/lib/pkgconfig:$(brew --prefix)/lib/pkgconfig:${PKG_CONFIG_PATH}"
-            cmake -B _tmp/cmake-build -S . \
-              -DZENOH_CODEC_FFI_LIB="$FFI_LIB" \
-              -DCMAKE_PREFIX_PATH="${WS_PREFIX}"
-          elif [ "${{ matrix.platform }}" = "windows" ]; then
-            cmake -B _tmp/cmake-build -S . \
-              -DZENOH_CODEC_FFI_LIB="$FFI_LIB" \
-              -DWIRESHARK_VERSION="${{ steps.wireshark-version.outputs.version }}" \
-              -DPKG_CONFIG_EXECUTABLE="C:/msys64/mingw64/bin/pkg-config.exe"
-          else
-            cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
-          fi
+          cmake -B _tmp/cmake-build -S . \
+            -DZENOH_CODEC_FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.so"
+          cmake --build _tmp/cmake-build --config Release -j4
+
+      - name: Build C plugin (cmake — macOS)
+        if: matrix.platform == 'macos'
+        run: |
+          WS_PREFIX="$(brew --prefix wireshark)"
+          export PKG_CONFIG_PATH="${WS_PREFIX}/lib/pkgconfig:$(brew --prefix)/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          cmake -B _tmp/cmake-build -S . \
+            -DZENOH_CODEC_FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.dylib" \
+            -DCMAKE_PREFIX_PATH="${WS_PREFIX}"
+          cmake --build _tmp/cmake-build --config Release -j4
+
+      - name: Build C plugin (cmake — Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $ffi_lib = "$(Get-Location)\target\debug\zenoh_codec_ffi.dll.lib"
+          cmake -B _tmp/cmake-build -S . `
+            -DZENOH_CODEC_FFI_LIB="$ffi_lib" `
+            -DWIRESHARK_VERSION="${{ steps.wireshark-version.outputs.version }}" `
+            -DPKG_CONFIG_EXECUTABLE="C:/msys64/mingw64/bin/pkg-config.exe"
           cmake --build _tmp/cmake-build --config Release -j4
 
       - name: Diagnose plugin directories
-        shell: bash
+        shell: nu {0}
         run: |
-          echo "=== tshark -G folders ==="
-          tshark -G folders 2>&1 || true
-          echo "=== tshark version ==="
-          tshark --version 2>&1 | head -3
+          print "=== tshark -G folders ==="
+          (tshark -G folders | complete).stdout | print
+          print "=== tshark version ==="
+          (tshark --version | complete).stdout | lines | first 3 | str join "\n" | print
 
       - name: Install plugin
         shell: nu {0}
@@ -209,7 +207,7 @@ jobs:
           }
 
       - name: Integration tests (via tshark)
-        run: just test-integration
+        run: cargo test -p zenoh-codec-ffi --test dissector -- --test-threads=1
 
   ci:
     name: CI status checks
