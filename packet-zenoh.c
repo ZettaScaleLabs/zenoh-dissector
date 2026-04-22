@@ -48,6 +48,8 @@ static gint **g_ett_ptrs = NULL;     /* gint*[g_subtree_count] → g_ett_handles
 
 /* Lookup: field key (char*) → int* (pointer into g_hf_handles) */
 static GHashTable *g_hf_by_key = NULL;
+/* Lookup: field key (char*) → display name (char*, static lifetime from Rust cdylib) */
+static GHashTable *g_name_by_key = NULL;
 
 /* ---------------------------------------------------------------------------
  * Static synthetic fields: session ZID and resolved key-expr
@@ -367,9 +369,10 @@ static void add_spans_to_tree(proto_tree *tree, tvbuff_t *tvb, int payload_offse
         proto_item *it = proto_tree_add_item(tree, *hf_ptr, tvb, start, length, ENC_NA);
         if (spans[i].display[0] != '\0') {
             if (spans[i].replace_display) {
-                header_field_info *hfi = proto_registrar_get_nth(*hf_ptr);
+                const char *fname = (const char *)g_hash_table_lookup(
+                                        g_name_by_key, spans[i].key);
                 proto_item_set_text(it, "%s: %s",
-                                    hfi ? hfi->name : spans[i].key,
+                                    fname ? fname : spans[i].key,
                                     spans[i].display);
             } else {
                 proto_item_append_text(it, " (%s)", spans[i].display);
@@ -537,7 +540,8 @@ void proto_register_zenoh(void)
     g_hf_handles = (int *)wmem_alloc0(wmem_epan_scope(), g_field_count * sizeof(int));
     g_hf_array = (hf_register_info *)wmem_alloc0(wmem_epan_scope(),
                                                    g_field_count * sizeof(hf_register_info));
-    g_hf_by_key = g_hash_table_new(g_str_hash, g_str_equal);
+    g_hf_by_key   = g_hash_table_new(g_str_hash, g_str_equal);
+    g_name_by_key = g_hash_table_new(g_str_hash, g_str_equal);
 
     for (uint32_t i = 0; i < g_field_count; i++) {
         g_hf_handles[i] = -1;
@@ -569,7 +573,8 @@ void proto_register_zenoh(void)
             };
         }
 
-        g_hash_table_insert(g_hf_by_key, (gpointer)abbrev, &g_hf_handles[i]);
+        g_hash_table_insert(g_hf_by_key,   (gpointer)abbrev, &g_hf_handles[i]);
+        g_hash_table_insert(g_name_by_key, (gpointer)abbrev, (gpointer)name);
     }
 
     /* Register protocol */
