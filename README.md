@@ -117,7 +117,7 @@ Copy both files to the Wireshark personal plugin directory.
 tshark -r ./assets/sample-data.pcap
 ```
 
-```
+```text
 1 0.000000000    127.0.0.1 → 127.0.0.1    TCP 74 60698 → 7447 [SYN] ...
 4 0.000342409    127.0.0.1 → 127.0.0.1    Zenoh 88
 6 0.000488613    127.0.0.1 → 127.0.0.1    Zenoh 138
