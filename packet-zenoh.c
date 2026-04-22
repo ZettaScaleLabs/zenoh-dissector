@@ -170,7 +170,6 @@ static void update_conv_and_annotate(
 
         /* --- DeclareKeyExpr: collect (id, suffix) pairs and store in map --- */
         /* Collect all .declare_key_expr.id span positions */
-        uint32_t id_offs[16];
         uint16_t id_vals[16];
         uint32_t n_ids = 0;
         for (uint32_t i = 0; i < count && n_ids < 16; i++) {
@@ -181,27 +180,24 @@ static void update_conv_and_annotate(
                 continue;
             int nb = 0;
             uint64_t id = vle_at(payload, off, payload_len, &nb);
-            id_offs[n_ids] = off;
             id_vals[n_ids] = (uint16_t)id;
             n_ids++;
         }
 
         /* Collect all .declare_key_expr.wire_expr.suffix span positions */
         uint32_t suf_offs[16];
-        uint32_t suf_lens[16];
         uint32_t n_sufs = 0;
         for (uint32_t i = 0; i < count && n_sufs < 16; i++) {
             if (!key_endswith(spans[i].key, ".declare_key_expr.wire_expr.suffix"))
                 continue;
             suf_offs[n_sufs] = spans[i].start;
-            suf_lens[n_sufs] = spans[i].length;
             n_sufs++;
         }
 
         /* Pair id[p] with suffix[p] — ordering is best-effort for multi-Declare frames */
         uint32_t pairs = n_ids < n_sufs ? n_ids : n_sufs;
         for (uint32_t p = 0; p < pairs; p++) {
-            uint32_t off = suf_offs[p], len = suf_lens[p];
+            uint32_t off = suf_offs[p];
             if (off >= payload_len)
                 continue;
             /* The suffix span is: VLE-length-prefix + string bytes */
@@ -519,9 +515,9 @@ void proto_reg_handoff_zenoh(void)
  * Wireshark plugin boilerplate
  * --------------------------------------------------------------------------- */
 
-WS_DLL_PUBLIC const char plugin_version[] = "0.0.1";
-WS_DLL_PUBLIC const int plugin_want_major = WIRESHARK_VERSION_MAJOR;
-WS_DLL_PUBLIC const int plugin_want_minor = WIRESHARK_VERSION_MINOR;
+const char plugin_version[] = "0.0.1";
+const int plugin_want_major = WIRESHARK_VERSION_MAJOR;
+const int plugin_want_minor = WIRESHARK_VERSION_MINOR;
 
 WS_DLL_PUBLIC void plugin_register(void);
 
