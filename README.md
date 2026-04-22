@@ -57,6 +57,12 @@ Both files must be present in the Wireshark plugin directory.
 ```bash
 just build          # build everything (debug)
 just build-release  # build everything (release)
+just build-codec    # Rust cdylib only
+just build-plugin   # C plugin only (cmake already configured)
+just install        # build + install to Wireshark plugin dir (Linux/macOS)
+just test           # unit + integration tests
+just check          # fmt + clippy
+just clean          # remove all build artifacts
 ```
 
 Or step by step:
@@ -78,15 +84,23 @@ cmake --build _tmp/cmake-build -j4   # C plugin build
 
 ## Install
 
-Copy both files to the Wireshark personal plugin directory.
+On Linux and macOS:
+
+```bash
+just install
+```
+
+This builds both components and copies them to the Wireshark personal plugin directory automatically.
+
+On Windows, or to install manually:
 
 - **Linux**
 
     ```bash
     PLUGIN_DIR=~/.local/lib/wireshark/plugins/4.6/epan
     mkdir -p "$PLUGIN_DIR"
-    cp build/packet-zenoh.so "$PLUGIN_DIR/"
-    cp target/release/libzenoh_codec_ffi.so "$PLUGIN_DIR/"
+    cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_DIR/"
+    cp target/debug/libzenoh_codec_ffi.so "$PLUGIN_DIR/"
     ```
 
 - **macOS**
@@ -94,8 +108,8 @@ Copy both files to the Wireshark personal plugin directory.
     ```bash
     PLUGIN_DIR=$(tshark -G folders | awk '/Personal Plugins/{print $NF}')/epan
     mkdir -p "$PLUGIN_DIR"
-    cp build/packet-zenoh.so "$PLUGIN_DIR/"
-    cp target/release/libzenoh_codec_ffi.dylib "$PLUGIN_DIR/"
+    cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_DIR/"
+    cp target/debug/libzenoh_codec_ffi.dylib "$PLUGIN_DIR/"
     ```
 
 - **Windows**
@@ -103,10 +117,10 @@ Copy both files to the Wireshark personal plugin directory.
     ```powershell
     $plugin_dir = "$Env:APPDATA\Wireshark\plugins\4.6\epan"
     New-Item -ItemType Directory -Force -Path $plugin_dir | Out-Null
-    Copy-Item build\Release\packet-zenoh.dll $plugin_dir
-    Copy-Item target\release\zenoh_codec_ffi.dll $plugin_dir
+    Copy-Item _tmp\cmake-build\Release\packet-zenoh.dll $plugin_dir
+    Copy-Item target\debug\zenoh_codec_ffi.dll $plugin_dir
     # Also place the FFI DLL next to tshark.exe so LoadLibrary can find it
-    Copy-Item target\release\zenoh_codec_ffi.dll "C:\Program Files\Wireshark\"
+    Copy-Item target\debug\zenoh_codec_ffi.dll "C:\Program Files\Wireshark\"
     ```
 
 ## Usage
