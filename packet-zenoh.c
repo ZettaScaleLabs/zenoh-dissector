@@ -132,6 +132,92 @@ static uint64_t vle_at(const uint8_t *buf, uint32_t off, uint32_t buf_len, int *
 }
 
 /* ---------------------------------------------------------------------------
+ * build_info_col: summarise the message types in a batch for COL_INFO.
+ * Transport-level messages (init_syn, frame, …) are shown; for frame, the
+ * enclosed network messages (push, declare, …) are listed in parens.
+ * --------------------------------------------------------------------------- */
+
+/* Converts a snake_case segment to a short display label. */
+static const char *msg_label(const char *seg, gsize len)
+{
+    if (len == 8  && memcmp(seg, "init_syn", 8) == 0) return "InitSyn";
+    if (len == 8  && memcmp(seg, "init_ack", 8) == 0) return "InitAck";
+    if (len == 8  && memcmp(seg, "open_syn", 8) == 0) return "OpenSyn";
+    if (len == 8  && memcmp(seg, "open_ack", 8) == 0) return "OpenAck";
+    if (len == 5  && memcmp(seg, "frame", 5) == 0)    return "Frame";
+    if (len == 8  && memcmp(seg, "fragment", 8) == 0) return "Fragment";
+    if (len == 10 && memcmp(seg, "keep_alive", 10) == 0) return "KeepAlive";
+    if (len == 4  && memcmp(seg, "join", 4) == 0)     return "Join";
+    if (len == 5  && memcmp(seg, "close", 5) == 0)    return "Close";
+    if (len == 3  && memcmp(seg, "o_a_m", 3) == 0)    return "OAM";
+    if (len == 4  && memcmp(seg, "push", 4) == 0)     return "Push";
+    if (len == 7  && memcmp(seg, "declare", 7) == 0)  return "Declare";
+    if (len == 7  && memcmp(seg, "request", 7) == 0)  return "Request";
+    if (len == 8  && memcmp(seg, "response", 8) == 0) return "Response";
+    if (len == 14 && memcmp(seg, "response_final", 14) == 0) return "ResponseFinal";
+    return NULL;
+}
+
+static void build_info_col(packet_info *pinfo, const CSpanEntry *spans, uint32_t count)
+{
+    /* Prefix lengths: "zenoh.transport." = 16, "zenoh.transport.frame.network." = 30 */
+    static const char tp_pfx[]  = "zenoh.transport.";
+    static const char net_pfx[] = "zenoh.transport.frame.network.";
+    const gsize tp_len  = sizeof(tp_pfx)  - 1;
+    const gsize net_len = sizeof(net_pfx) - 1;
+
+    /* Collect seen transport-level and network-level labels (no duplicates, order-stable). */
+    const char *tp_seen[8];  gsize n_tp  = 0;
+    const char *net_seen[8]; gsize n_net = 0;
+
+    for (uint32_t i = 0; i < count; i++) {
+        const char *k = spans[i].key;
+        const char *seg;
+        const char *dot;
+        const char *label;
+
+        if (strncmp(k, net_pfx, net_len) == 0) {
+            seg = k + net_len;
+            dot = strchr(seg, '.');
+            gsize slen = dot ? (gsize)(dot - seg) : strlen(seg);
+            label = msg_label(seg, slen);
+            if (label) {
+                gsize j; for (j = 0; j < n_net && net_seen[j] != label; j++) {}
+                if (j == n_net && n_net < 8) net_seen[n_net++] = label;
+            }
+        } else if (strncmp(k, tp_pfx, tp_len) == 0) {
+            seg = k + tp_len;
+            dot = strchr(seg, '.');
+            gsize slen = dot ? (gsize)(dot - seg) : strlen(seg);
+            label = msg_label(seg, slen);
+            if (label) {
+                gsize j; for (j = 0; j < n_tp && tp_seen[j] != label; j++) {}
+                if (j == n_tp && n_tp < 8) tp_seen[n_tp++] = label;
+            }
+        }
+    }
+
+    if (n_tp == 0) return;
+
+    wmem_strbuf_t *buf = wmem_strbuf_new(pinfo->pool, "");
+    for (gsize i = 0; i < n_tp; i++) {
+        if (i > 0) wmem_strbuf_append(buf, ", ");
+        wmem_strbuf_append(buf, tp_seen[i]);
+        /* For Frame, append enclosed network message types in parens */
+        if (strcmp(tp_seen[i], "Frame") == 0 && n_net > 0) {
+            wmem_strbuf_append_c(buf, ' ');
+            wmem_strbuf_append_c(buf, '(');
+            for (gsize j = 0; j < n_net; j++) {
+                if (j > 0) wmem_strbuf_append(buf, ", ");
+                wmem_strbuf_append(buf, net_seen[j]);
+            }
+            wmem_strbuf_append_c(buf, ')');
+        }
+    }
+    col_set_str(pinfo->cinfo, COL_INFO, wmem_strbuf_get_str(buf));
+}
+
+/* ---------------------------------------------------------------------------
  * update_conv_and_annotate: extract ZID / DeclareKeyExpr from spans,
  * update conversation state, then annotate the tree with session ZID fields
  * and resolved key-expr strings.
@@ -221,18 +307,18 @@ static void update_conv_and_annotate(
 
     uint8_t *src_entry = (uint8_t *)wmem_map_lookup(conv->zid_map, src_addr);
     if (src_entry && src_entry[0] > 0) {
-        proto_item *it = proto_tree_add_bytes(tree, hf_session_src_zid,
-                                              tvb, 0, 0,
-                                              src_entry + 1);
+        proto_item *it = proto_tree_add_bytes_with_length(tree, hf_session_src_zid,
+                                                          tvb, 0, 0,
+                                                          src_entry + 1, src_entry[0]);
         proto_item_set_len(it, 0);
         PROTO_ITEM_SET_GENERATED(it);
     }
 
     uint8_t *dst_entry = (uint8_t *)wmem_map_lookup(conv->zid_map, dst_addr);
     if (dst_entry && dst_entry[0] > 0) {
-        proto_item *it = proto_tree_add_bytes(tree, hf_session_dst_zid,
-                                              tvb, 0, 0,
-                                              dst_entry + 1);
+        proto_item *it = proto_tree_add_bytes_with_length(tree, hf_session_dst_zid,
+                                                          tvb, 0, 0,
+                                                          dst_entry + 1, dst_entry[0]);
         proto_item_set_len(it, 0);
         PROTO_ITEM_SET_GENERATED(it);
     }
@@ -330,6 +416,7 @@ static int dissect_zenoh_tcp_pdu(tvbuff_t *tvb, packet_info *pinfo, proto_tree *
     uint32_t span_count = 0;
     CSpanEntry *spans = zenoh_codec_ffi_decode_transport(payload, batch_len, &span_count);
     if (spans != NULL) {
+        build_info_col(pinfo, spans, span_count);
         add_spans_to_tree(zenoh_tree, tvb, ZENOH_BATCH_HEADER_LEN, spans, span_count);
         update_conv_and_annotate(zenoh_tree, tvb, ZENOH_BATCH_HEADER_LEN,
                                  spans, span_count,
