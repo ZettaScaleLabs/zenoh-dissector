@@ -617,9 +617,19 @@ void proto_reg_handoff_zenoh(void)
  * Wireshark plugin boilerplate
  * --------------------------------------------------------------------------- */
 
-WS_DLL_PUBLIC const char plugin_version[] = "0.0.1";
-WS_DLL_PUBLIC const int plugin_want_major = WIRESHARK_VERSION_MAJOR;
-WS_DLL_PUBLIC const int plugin_want_minor = WIRESHARK_VERSION_MINOR;
+/* On Windows/MSVC symbols must be explicitly exported; on ELF platforms all
+   symbols in a shared library are visible by default. WS_DLL_PUBLIC cannot be
+   used on initialized variable definitions because some GCC builds of the
+   Wireshark headers forward-declare these as `extern`, causing a conflict. */
+#ifdef _MSC_VER
+#  define ZENOH_PLUGIN_EXPORT __declspec(dllexport)
+#else
+#  define ZENOH_PLUGIN_EXPORT
+#endif
+
+ZENOH_PLUGIN_EXPORT const char plugin_version[] = "0.0.1";
+ZENOH_PLUGIN_EXPORT const int plugin_want_major = WIRESHARK_VERSION_MAJOR;
+ZENOH_PLUGIN_EXPORT const int plugin_want_minor = WIRESHARK_VERSION_MINOR;
 
 WS_DLL_PUBLIC void plugin_register(void);
 
