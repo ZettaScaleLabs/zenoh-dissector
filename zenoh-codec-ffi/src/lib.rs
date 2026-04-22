@@ -29,12 +29,14 @@ pub struct CFieldDef {
 /// The `key` is a null-terminated string matching a registered field abbrev.
 /// `start` and `length` are byte offsets relative to the PDU payload (after the 2-byte TCP length prefix).
 /// `display` is an optional null-terminated human-readable value string (empty string = no override).
+/// `replace_display`: if non-zero, `display` replaces the whole item label; otherwise it is appended in parens.
 #[repr(C)]
 pub struct CSpanEntry {
     pub key: [c_char; ZENOH_FFI_KEY_LEN],
     pub start: u32,
     pub length: u32,
     pub display: [c_char; ZENOH_FFI_KEY_LEN],
+    pub replace_display: u8,
 }
 
 // ---------------------------------------------------------------------------
@@ -154,12 +156,14 @@ fn encoding_name(id: u64) -> &'static str {
     }
 }
 
-fn build_display(key: &str, bytes: &[u8]) -> String {
+/// Returns `(display_string, replace)`.
+/// When `replace` is true the display string should replace the raw-bytes label entirely.
+fn build_display(key: &str, bytes: &[u8]) -> (String, bool) {
     if bytes.is_empty() {
-        return String::new();
+        return (String::new(), false);
     }
     let suffix = key.rsplit('.').next().unwrap_or("");
-    match suffix {
+    let s = match suffix {
         "whatami" => {
             let b = bytes[0];
             match b & 0x0f {
@@ -203,14 +207,37 @@ fn build_display(key: &str, bytes: &[u8]) -> String {
             0x07 => "ConnectionToSelf".to_string(),
             v => format!("0x{v:02x}"),
         },
+        "ext_qos" | "ext_qos_link" => {
+            // ENC_UNIT (1 byte): default priority, no body.
+            // ENC_Z64 (header + VLE): body value & 0b111 = Priority.
+            let priority = if bytes.len() == 1 {
+                5 // Priority::Data (default)
+            } else {
+                // skip header byte, decode VLE body
+                decode_vle(&bytes[1..])
+                    .map(|(v, _)| (v as u8 & 0b111) as u64)
+                    .unwrap_or(5)
+            };
+            let name = match priority {
+                1 => "RealTime",
+                2 => "InteractiveHigh",
+                3 => "InteractiveLow",
+                4 => "DataHigh",
+                5 => "Data",
+                6 => "DataLow",
+                7 => "Background",
+                _ => "Unknown",
+            };
+            name.to_string()
+        }
         "version" => format!("{}", bytes[0]),
         "wire_expr" => {
             // bytes: scope_VLE [+ suffix_len_VLE + suffix_bytes]
             let Some((scope, scope_sz)) = decode_vle(bytes) else {
-                return String::new();
+                return (String::new(), false);
             };
             let rest = &bytes[scope_sz..];
-            if rest.is_empty() {
+            let decoded = if rest.is_empty() {
                 if scope != 0 {
                     format!("scope={scope}")
                 } else {
@@ -218,20 +245,20 @@ fn build_display(key: &str, bytes: &[u8]) -> String {
                 }
             } else {
                 let Some((str_len, len_sz)) = decode_vle(rest) else {
-                    return String::new();
+                    return (String::new(), false);
                 };
-                let str_start = len_sz;
-                let str_end = str_start + str_len as usize;
-                let suffix = rest
-                    .get(str_start..str_end)
+                let str_end = len_sz + str_len as usize;
+                let kexpr_suffix = rest
+                    .get(len_sz..str_end)
                     .and_then(|b| std::str::from_utf8(b).ok())
                     .unwrap_or("");
                 if scope == 0 {
-                    suffix.to_string()
+                    kexpr_suffix.to_string()
                 } else {
-                    format!("{scope}/{suffix}")
+                    format!("{scope}/{kexpr_suffix}")
                 }
-            }
+            };
+            return (decoded, true);
         }
         "scope" | "id" | "batch_size" | "initial_sn" | "lease" | "sn" => {
             if let Some((v, _)) = decode_vle(bytes) {
@@ -241,15 +268,17 @@ fn build_display(key: &str, bytes: &[u8]) -> String {
             }
         }
         _ => String::new(),
-    }
+    };
+    (s, false)
 }
 
-fn make_cspan(key: &str, start: usize, length: usize, display: &str) -> CSpanEntry {
+fn make_cspan(key: &str, start: usize, length: usize, display: &str, replace: bool) -> CSpanEntry {
     let mut e = CSpanEntry {
         key: [0; ZENOH_FFI_KEY_LEN],
         start: start as u32,
         length: length as u32,
         display: [0; ZENOH_FFI_KEY_LEN],
+        replace_display: replace as u8,
     };
     fill_c_str(&mut e.key, key);
     fill_c_str(&mut e.display, display);
@@ -340,8 +369,8 @@ fn span_map_to_box(map: &SpanMap, raw: &[u8]) -> Box<[CSpanEntry]> {
         .map(|(key, span)| {
             let stripped = strip_indices(key);
             let span_bytes = raw.get(span.start..span.start + span.len()).unwrap_or(&[]);
-            let display = build_display(&stripped, span_bytes);
-            make_cspan(&stripped, span.start, span.len(), &display)
+            let (display, replace) = build_display(&stripped, span_bytes);
+            make_cspan(&stripped, span.start, span.len(), &display, replace)
         })
         .collect();
     entries.into_boxed_slice()

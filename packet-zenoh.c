@@ -366,7 +366,13 @@ static void add_spans_to_tree(proto_tree *tree, tvbuff_t *tvb, int payload_offse
         int length = (int)spans[i].length;
         proto_item *it = proto_tree_add_item(tree, *hf_ptr, tvb, start, length, ENC_NA);
         if (spans[i].display[0] != '\0') {
-            proto_item_append_text(it, " (%s)", spans[i].display);
+            if (spans[i].replace_display) {
+                proto_item_set_text(it, "%s: %s",
+                                    proto_registrar_get_name(*hf_ptr),
+                                    spans[i].display);
+            } else {
+                proto_item_append_text(it, " (%s)", spans[i].display);
+            }
         }
     }
 }
