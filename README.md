@@ -5,7 +5,7 @@
 [Zenoh](http://zenoh.io/) protocol dissector for Wireshark.
 
 > [!WARNING]
-> For Zenoh protocol versions older than 0.10.0, use the Lua plugin [here](https://github.com/eclipse-zenoh/zenoh-dissector/tree/v0.7.2-rc).
+> For Zenoh protocol versions older than 0.10.0, use the [Lua plugin](https://github.com/eclipse-zenoh/zenoh-dissector/tree/v0.7.2-rc).
 >
 > The plugin currently requires Wireshark 4.6.
 
@@ -76,7 +76,7 @@ cmake --build _tmp/cmake-build -j4   # C plugin build
 **When to rebuild each component:**
 
 | Changed | Rebuild needed |
-|---|---|
+| --- | --- |
 | Decoding logic, field definitions, span recording | `just build-codec` |
 | Wireshark API interactions (reassembly, tree building, heuristics) | `just build-plugin` |
 | Wireshark version upgrade | `just build` — cmake reconfigures against new headers |
@@ -97,28 +97,28 @@ On Windows, or to install manually:
 - **Linux**
 
     ```bash
-    PLUGIN_DIR=~/.local/lib/wireshark/plugins/4.6/epan
-    mkdir -p "$PLUGIN_DIR"
-    cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_DIR/"
-    cp target/debug/libzenoh_codec_ffi.so "$PLUGIN_DIR/"
+    PLUGIN_BASE=~/.local/lib/wireshark/plugins/4.6
+    mkdir -p "$PLUGIN_BASE/epan"
+    cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_BASE/epan/"
+    cp target/debug/libzenoh_codec_ffi.so "$PLUGIN_BASE/"
     ```
 
 - **macOS**
 
     ```bash
-    PLUGIN_DIR=$(tshark -G folders | awk '/Personal Plugins/{print $NF}')/epan
-    mkdir -p "$PLUGIN_DIR"
-    cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_DIR/"
-    cp target/debug/libzenoh_codec_ffi.dylib "$PLUGIN_DIR/"
+    PLUGIN_BASE=$(tshark -G folders | awk -F'\t' '/Personal Plugins/{print $NF}')
+    mkdir -p "$PLUGIN_BASE/epan"
+    cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_BASE/epan/"
+    cp target/debug/libzenoh_codec_ffi.dylib "$PLUGIN_BASE/"
     ```
 
 - **Windows**
 
     ```powershell
-    $plugin_dir = "$Env:APPDATA\Wireshark\plugins\4.6\epan"
-    New-Item -ItemType Directory -Force -Path $plugin_dir | Out-Null
-    Copy-Item _tmp\cmake-build\Release\packet-zenoh.dll $plugin_dir
-    Copy-Item target\debug\zenoh_codec_ffi.dll $plugin_dir
+    $plugin_base = "$Env:APPDATA\Wireshark\plugins\4.6"
+    New-Item -ItemType Directory -Force -Path "$plugin_base\epan" | Out-Null
+    Copy-Item _tmp\cmake-build\Release\packet-zenoh.dll "$plugin_base\epan\"
+    Copy-Item target\debug\zenoh_codec_ffi.dll "$plugin_base\"
     # Also place the FFI DLL next to tshark.exe so LoadLibrary can find it
     Copy-Item target\debug\zenoh_codec_ffi.dll "C:\Program Files\Wireshark\"
     ```
