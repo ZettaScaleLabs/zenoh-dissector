@@ -161,27 +161,30 @@ jobs:
           # "Personal Plugins:" already includes the version (may use hyphen on macOS: 4-6).
           let folders_out = (tshark -G folders | complete).stdout
           let personal_plugins_line = ($folders_out | lines | where {|l| $l =~ "Personal Plugins"} | first)
-          let plugin_dir = if ($personal_plugins_line | is-empty) {
-            $"($env.HOME)/.local/lib/wireshark/plugins/($maj_min)/epan"
+          # plugin_base is the personal plugins dir (contains the version already).
+          # epan/ is where Wireshark scans for plugins; the cdylib goes one level up
+          # so Wireshark's scanner doesn't try to load it as a plugin.
+          let plugin_base = if ($personal_plugins_line | is-empty) {
+            $"($env.HOME)/.local/lib/wireshark/plugins/($maj_min)"
           } else {
-            let plugin_base = $personal_plugins_line | split row "\t" | last | str trim
-            $"($plugin_base)/epan"
+            $personal_plugins_line | split row "\t" | last | str trim
           }
+          let plugin_dir = $"($plugin_base)/epan"
           print $"Installing to plugin_dir: ($plugin_dir)"
           mkdir $plugin_dir
 
           match $platform {
             "linux" => {
               cp _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
-              cp target/debug/libzenoh_codec_ffi.so $"($plugin_dir)/libzenoh_codec_ffi.so"
+              cp target/debug/libzenoh_codec_ffi.so $"($plugin_base)/libzenoh_codec_ffi.so"
             }
             "macos" => {
               cp _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
-              cp target/debug/libzenoh_codec_ffi.dylib $"($plugin_dir)/libzenoh_codec_ffi.dylib"
+              cp target/debug/libzenoh_codec_ffi.dylib $"($plugin_base)/libzenoh_codec_ffi.dylib"
             }
             "windows" => {
               cp _tmp/cmake-build/Release/packet-zenoh.dll $"($plugin_dir)/packet-zenoh.dll"
-              cp target/debug/zenoh_codec_ffi.dll $"($plugin_dir)/zenoh_codec_ffi.dll"
+              cp target/debug/zenoh_codec_ffi.dll $"($plugin_base)/zenoh_codec_ffi.dll"
               # LoadLibrary does not search the plugin's own dir for dependencies.
               # Copy the FFI DLL next to tshark.exe so it is always found at load time.
               cp target/debug/zenoh_codec_ffi.dll "C:/Program Files/Wireshark/zenoh_codec_ffi.dll"
@@ -190,7 +193,7 @@ jobs:
             }
           }
           print "=== Installed files ==="
-          ls $plugin_dir | print
+          ls $plugin_base | print
 
       - name: Test with sample data
         shell: nu {0}

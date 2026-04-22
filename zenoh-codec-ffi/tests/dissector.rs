@@ -82,22 +82,24 @@ fn install_dissector_impl() {
         .expect("cmake build failed");
     assert!(status.success(), "cmake --build failed");
 
-    // Determine the personal plugin directory by querying tshark -G folders.
-    // On macOS, Wireshark uses a hyphenated version suffix (4-6), not dotted (4.6).
-    let plugin_dir = {
+    // Determine the personal plugin base directory from tshark -G folders.
+    // epan/ is the subdirectory Wireshark scans for plugins.
+    // The cdylib goes into plugin_base (not epan/) so Wireshark's scanner ignores it;
+    // packet-zenoh.so finds it via $ORIGIN/.. rpath.
+    let plugin_base = {
         let out = Command::new("tshark")
             .args(["-G", "folders"])
             .output()
             .expect("tshark not found");
         let s = String::from_utf8_lossy(&out.stdout);
         if let Some(line) = s.lines().find(|l| l.contains("Personal Plugins")) {
-            let base = line.split('\t').next_back().unwrap_or("").trim();
-            format!("{base}/epan")
+            line.split('\t').next_back().unwrap_or("").trim().to_owned()
         } else {
             let home = std::env::var("HOME").unwrap_or_default();
-            format!("{home}/.local/lib/wireshark/plugins/4.6/epan")
+            format!("{home}/.local/lib/wireshark/plugins/4.6")
         }
     };
+    let plugin_dir = format!("{plugin_base}/epan");
     std::fs::create_dir_all(&plugin_dir).unwrap();
 
     // Platform-specific file names and install method.
@@ -112,7 +114,7 @@ fn install_dissector_impl() {
             .unwrap_or_else(|e| panic!("failed to copy packet-zenoh.dll: {e}"));
 
         let cdylib_src = workspace.join("target/debug/zenoh_codec_ffi.dll");
-        let cdylib_dst = format!("{plugin_dir}/zenoh_codec_ffi.dll");
+        let cdylib_dst = format!("{plugin_base}/zenoh_codec_ffi.dll");
         let _ = std::fs::remove_file(&cdylib_dst);
         std::fs::copy(&cdylib_src, &cdylib_dst)
             .unwrap_or_else(|e| panic!("failed to copy zenoh_codec_ffi.dll: {e}"));
@@ -133,7 +135,7 @@ fn install_dissector_impl() {
             .unwrap_or_else(|e| panic!("failed to symlink packet-zenoh.so: {e}"));
 
         let cdylib = workspace.join("target/debug/libzenoh_codec_ffi.dylib");
-        let cdylib_link = format!("{plugin_dir}/libzenoh_codec_ffi.dylib");
+        let cdylib_link = format!("{plugin_base}/libzenoh_codec_ffi.dylib");
         let _ = std::fs::remove_file(&cdylib_link);
         std::os::unix::fs::symlink(&cdylib, &cdylib_link)
             .unwrap_or_else(|e| panic!("failed to symlink libzenoh_codec_ffi.dylib: {e}"));
@@ -147,7 +149,7 @@ fn install_dissector_impl() {
             .unwrap_or_else(|e| panic!("failed to symlink packet-zenoh.so: {e}"));
 
         let cdylib = workspace.join("target/debug/libzenoh_codec_ffi.so");
-        let cdylib_link = format!("{plugin_dir}/libzenoh_codec_ffi.so");
+        let cdylib_link = format!("{plugin_base}/libzenoh_codec_ffi.so");
         let _ = std::fs::remove_file(&cdylib_link);
         std::os::unix::fs::symlink(&cdylib, &cdylib_link)
             .unwrap_or_else(|e| panic!("failed to symlink libzenoh_codec_ffi.so: {e}"));
