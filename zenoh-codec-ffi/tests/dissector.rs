@@ -439,8 +439,8 @@ fn unclaimed_fields(pdml: &str) -> Vec<String> {
         "Request (",
         "Response (",
         "Batch,",
-        "Source ZID:",
-        "Destination ZID:",
+        "Src ZID:",
+        "Dst ZID:",
     ];
     const DEFAULT_SHOW_SUBSTRINGS: &[&str] = &[
         "QoSType { inner: 5 }",
