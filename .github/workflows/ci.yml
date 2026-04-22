@@ -33,17 +33,18 @@ jobs:
       - name: Install Rust components
         run: rustup component add rustfmt clippy
 
-      - name: Code format check
-        run: cargo fmt -p zenoh-codec-ffi -- --check
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
 
-      - name: Clippy
-        run: cargo clippy -p zenoh-codec-ffi --all-targets -- --deny warnings
+      - name: Code format + Clippy
+        run: just check
 
       - name: Build
-        run: cargo build -p zenoh-codec-ffi -j4
+        run: just build-codec
 
       - name: Unit tests
-        run: cargo test -p zenoh-codec-ffi --lib -j4
+        run: just test-unit
 
   # ---------------------------------------------------------------------------
   # C plugin job: needs Wireshark headers, builds the C plugin via cmake,
@@ -69,6 +70,10 @@ jobs:
       - uses: hustcer/setup-nu@v3
         with:
           version: "0.100"
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
 
       - name: Extract Wireshark version from Cargo.toml
         id: wireshark-version
@@ -109,7 +114,7 @@ jobs:
             -BuildConfig "Debug"
 
       - name: Build Rust cdylib
-        run: cargo build -p zenoh-codec-ffi -j4
+        run: just build-codec
 
       - name: Build C plugin (cmake)
         shell: bash
@@ -144,25 +149,6 @@ jobs:
           tshark -G folders 2>&1 || true
           echo "=== tshark version ==="
           tshark --version 2>&1 | head -3
-
-      - name: Diagnose DLL dependencies (Windows)
-        if: matrix.platform == 'windows'
-        shell: powershell
-        run: |
-          $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          $vsInstall = & $vsWhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>&1 | Select-Object -First 1
-          $vcVer = (Get-Content (Join-Path $vsInstall "VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt")).Trim()
-          $dumpbinExe = Join-Path $vsInstall "VC\Tools\MSVC\$vcVer\bin\Hostx64\x64\dumpbin.exe"
-          Write-Host "=== packet-zenoh.dll DEPENDENTS ==="
-          & $dumpbinExe /DEPENDENTS "_tmp/cmake-build/Release/packet-zenoh.dll" 2>&1
-          Write-Host "=== zenoh_codec_ffi.dll DEPENDENTS ==="
-          & $dumpbinExe /DEPENDENTS "target/debug/zenoh_codec_ffi.dll" 2>&1
-          Write-Host "=== glib-2.0-0.dll DEPENDENTS ==="
-          & $dumpbinExe /DEPENDENTS "C:\Program Files\Wireshark\glib-2.0-0.dll" 2>&1
-          Write-Host "=== libwireshark.dll DEPENDENTS ==="
-          & $dumpbinExe /DEPENDENTS "C:\Program Files\Wireshark\libwireshark.dll" 2>&1
-          Write-Host "=== DLLs in C:\Program Files\Wireshark\ ==="
-          Get-ChildItem "C:\Program Files\Wireshark\" -Filter "*.dll" | Select-Object -ExpandProperty Name
 
       - name: Install plugin
         shell: nu {0}
@@ -223,7 +209,7 @@ jobs:
           }
 
       - name: Integration tests (via tshark)
-        run: cargo test -p zenoh-codec-ffi --test dissector -- --test-threads=1
+        run: just test-integration
 
   ci:
     name: CI status checks
