@@ -35,6 +35,7 @@
           hooks = {
             rustfmt.enable = true;
             taplo.enable = true;
+            markdownlint-cli2.enable = true;
           };
         };
 
