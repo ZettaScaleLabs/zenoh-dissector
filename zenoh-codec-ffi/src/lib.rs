@@ -191,6 +191,17 @@ fn build_display(key: &str, bytes: &[u8]) -> String {
                 String::new()
             }
         }
+        "reason" => match bytes[0] {
+            0x00 => "Generic".to_string(),
+            0x01 => "Unsupported".to_string(),
+            0x02 => "Invalid".to_string(),
+            0x03 => "MaxSessions".to_string(),
+            0x04 => "MaxLinks".to_string(),
+            0x05 => "Expired".to_string(),
+            0x06 => "Unresponsive".to_string(),
+            0x07 => "ConnectionToSelf".to_string(),
+            v => format!("0x{v:02x}"),
+        },
         "version" => format!("{}", bytes[0]),
         "scope" | "id" | "batch_size" | "initial_sn" | "lease" | "sn" => {
             if let Some(v) = decode_vle(bytes) {
