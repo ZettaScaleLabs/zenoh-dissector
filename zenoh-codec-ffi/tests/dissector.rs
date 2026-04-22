@@ -739,11 +739,15 @@ fn join_fields_highlighted() {
     install_dissector();
 
     use std::time::Duration;
+    let zid = ZenohIdProto::try_from(
+        [1u8, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].as_slice(),
+    )
+    .unwrap();
     let msg = TransportMessage {
         body: TransportBody::Join(Join {
             version: 0x08,
             whatami: WhatAmI::Peer,
-            zid: ZenohIdProto::rand(),
+            zid,
             resolution: Resolution::default(),
             batch_size: BatchSize::default(),
             lease: Duration::from_secs(10),
