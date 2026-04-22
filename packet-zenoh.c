@@ -617,9 +617,9 @@ void proto_reg_handoff_zenoh(void)
  * Wireshark plugin boilerplate
  * --------------------------------------------------------------------------- */
 
-const char plugin_version[] = "0.0.1";
-const int plugin_want_major = WIRESHARK_VERSION_MAJOR;
-const int plugin_want_minor = WIRESHARK_VERSION_MINOR;
+WS_DLL_PUBLIC const char plugin_version[] = "0.0.1";
+WS_DLL_PUBLIC const int plugin_want_major = WIRESHARK_VERSION_MAJOR;
+WS_DLL_PUBLIC const int plugin_want_minor = WIRESHARK_VERSION_MINOR;
 
 WS_DLL_PUBLIC void plugin_register(void);
 
