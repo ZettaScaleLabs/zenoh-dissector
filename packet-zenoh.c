@@ -364,7 +364,10 @@ static void add_spans_to_tree(proto_tree *tree, tvbuff_t *tvb, int payload_offse
         }
         int start = payload_offset + (int)spans[i].start;
         int length = (int)spans[i].length;
-        proto_tree_add_item(tree, *hf_ptr, tvb, start, length, ENC_NA);
+        proto_item *it = proto_tree_add_item(tree, *hf_ptr, tvb, start, length, ENC_NA);
+        if (spans[i].display[0] != '\0') {
+            proto_item_append_text(it, " (%s)", spans[i].display);
+        }
     }
 }
 
