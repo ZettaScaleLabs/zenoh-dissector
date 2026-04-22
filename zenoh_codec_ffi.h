@@ -25,6 +25,8 @@ typedef struct {
     char key[ZENOH_FFI_KEY_LEN];
     uint32_t start;
     uint32_t length;
+    /** Optional human-readable value string. Empty string means no override. */
+    char display[ZENOH_FFI_KEY_LEN];
 } CSpanEntry;
 
 #ifdef __cplusplus

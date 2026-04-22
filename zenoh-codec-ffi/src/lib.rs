@@ -28,11 +28,13 @@ pub struct CFieldDef {
 /// A single decoded field with its byte span in the original wire data.
 /// The `key` is a null-terminated string matching a registered field abbrev.
 /// `start` and `length` are byte offsets relative to the PDU payload (after the 2-byte TCP length prefix).
+/// `display` is an optional null-terminated human-readable value string (empty string = no override).
 #[repr(C)]
 pub struct CSpanEntry {
     pub key: [c_char; ZENOH_FFI_KEY_LEN],
     pub start: u32,
     pub length: u32,
+    pub display: [c_char; ZENOH_FFI_KEY_LEN],
 }
 
 // ---------------------------------------------------------------------------
@@ -79,13 +81,137 @@ fn make_cfield(key: &str, display_name: &str, is_branch: bool) -> CFieldDef {
     f
 }
 
-fn make_cspan(key: &str, start: usize, length: usize) -> CSpanEntry {
+fn decode_vle(bytes: &[u8]) -> Option<u64> {
+    let mut val = 0u64;
+    let mut shift = 0u32;
+    for &b in bytes {
+        val |= ((b & 0x7f) as u64) << shift;
+        shift += 7;
+        if b & 0x80 == 0 {
+            return Some(val);
+        }
+        if shift >= 64 {
+            return None;
+        }
+    }
+    None
+}
+
+fn encoding_name(id: u64) -> &'static str {
+    match id {
+        0 => "ZenohBytes",
+        1 => "ZenohString",
+        2 => "ZenohSerialized",
+        3 => "application/octet-stream",
+        4 => "text/plain",
+        5 => "application/json",
+        6 => "text/json",
+        7 => "application/cdr",
+        8 => "application/cbor",
+        9 => "application/yaml",
+        10 => "text/yaml",
+        11 => "text/json5",
+        12 => "application/python-serialized-object",
+        13 => "application/protobuf",
+        14 => "application/java-serialized-object",
+        15 => "application/openmetrics-text",
+        16 => "image/png",
+        17 => "image/jpeg",
+        18 => "image/gif",
+        19 => "image/bmp",
+        20 => "image/webp",
+        21 => "application/xml",
+        22 => "application/x-www-form-urlencoded",
+        23 => "text/html",
+        24 => "text/xml",
+        25 => "text/css",
+        26 => "text/javascript",
+        27 => "text/markdown",
+        28 => "text/csv",
+        29 => "application/sql",
+        30 => "application/coap-payload",
+        31 => "application/json-patch+json",
+        32 => "application/json-seq",
+        33 => "application/jsonpath",
+        34 => "application/jwt",
+        35 => "application/mp4",
+        36 => "application/soap+xml",
+        37 => "application/yang",
+        38 => "audio/aac",
+        39 => "audio/flac",
+        40 => "audio/mp4",
+        41 => "audio/ogg",
+        42 => "audio/vorbis",
+        43 => "video/h261",
+        44 => "video/h263",
+        45 => "video/h264",
+        46 => "video/h265",
+        47 => "video/h266",
+        48 => "video/mp4",
+        49 => "video/ogg",
+        _ => "",
+    }
+}
+
+fn build_display(key: &str, bytes: &[u8]) -> String {
+    if bytes.is_empty() {
+        return String::new();
+    }
+    let suffix = key.rsplit('.').next().unwrap_or("");
+    match suffix {
+        "whatami" => {
+            let b = bytes[0];
+            match b & 0x0f {
+                1 => "Router".to_string(),
+                2 => "Peer".to_string(),
+                4 => "Client".to_string(),
+                v => format!("0x{v:02x}"),
+            }
+        }
+        "reliability" => {
+            if (bytes[0] >> 5) & 1 == 1 {
+                "Reliable".to_string()
+            } else {
+                "BestEffort".to_string()
+            }
+        }
+        "encoding" => {
+            if let Some(enc_raw) = decode_vle(bytes) {
+                let id = enc_raw >> 1;
+                let has_schema = enc_raw & 1 != 0;
+                let name = encoding_name(id);
+                if name.is_empty() {
+                    format!("id={id}")
+                } else if has_schema {
+                    format!("{name} (with schema)")
+                } else {
+                    name.to_string()
+                }
+            } else {
+                String::new()
+            }
+        }
+        "version" => format!("{}", bytes[0]),
+        "scope" | "id" | "batch_size" | "initial_sn" | "lease" | "sn" => {
+            if let Some(v) = decode_vle(bytes) {
+                format!("{v}")
+            } else {
+                String::new()
+            }
+        }
+        _ => String::new(),
+    }
+}
+
+fn make_cspan(key: &str, start: usize, length: usize, display: &str) -> CSpanEntry {
     let mut e = CSpanEntry {
         key: [0; ZENOH_FFI_KEY_LEN],
         start: start as u32,
         length: length as u32,
+        display: [0; ZENOH_FFI_KEY_LEN],
     };
     fill_c_str(&mut e.key, key);
+    fill_c_str(&mut e.display, display);
     e
 }
 
@@ -167,10 +293,15 @@ fn strip_indices(key: &str) -> std::borrow::Cow<'_, str> {
     std::borrow::Cow::Owned(out)
 }
 
-fn span_map_to_box(map: &SpanMap) -> Box<[CSpanEntry]> {
+fn span_map_to_box(map: &SpanMap, raw: &[u8]) -> Box<[CSpanEntry]> {
     let entries: Vec<CSpanEntry> = map
         .iter()
-        .map(|(key, span)| make_cspan(&strip_indices(key), span.start, span.len()))
+        .map(|(key, span)| {
+            let stripped = strip_indices(key);
+            let span_bytes = raw.get(span.start..span.start + span.len()).unwrap_or(&[]);
+            let display = build_display(&stripped, span_bytes);
+            make_cspan(&stripped, span.start, span.len(), &display)
+        })
         .collect();
     entries.into_boxed_slice()
 }
@@ -220,7 +351,7 @@ pub extern "C" fn zenoh_codec_ffi_decode_transport(
         fail!();
     }
 
-    let boxed = span_map_to_box(&map);
+    let boxed = span_map_to_box(&map, bytes);
     let count = boxed.len() as u32;
     if !out_count.is_null() {
         unsafe { *out_count = count };
@@ -269,7 +400,7 @@ pub extern "C" fn zenoh_codec_ffi_decode_scouting(
         fail!();
     }
 
-    let boxed = span_map_to_box(&map);
+    let boxed = span_map_to_box(&map, bytes);
     let count = boxed.len() as u32;
     if !out_count.is_null() {
         unsafe { *out_count = count };
