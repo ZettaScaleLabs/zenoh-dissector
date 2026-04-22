@@ -144,9 +144,11 @@ jobs:
         shell: nu {0}
         run: |
           print "=== tshark -G folders ==="
-          (tshark -G folders | complete).stdout | print
+          let r1 = (^tshark -G folders | complete)
+          ($r1.stdout + $r1.stderr) | print
           print "=== tshark version ==="
-          (tshark --version | complete).stdout | lines | first 3 | str join "\n" | print
+          let r2 = (^tshark --version | complete)
+          ($r2.stdout + $r2.stderr) | lines | first 3 | str join "\n" | print
 
       - name: Install plugin
         shell: nu {0}
@@ -157,10 +159,16 @@ jobs:
 
           # Use the actual personal plugin directory reported by tshark -G folders.
           # "Personal Plugins:" already includes the version (may use hyphen on macOS: 4-6).
-          let folders_out = (tshark -G folders | complete).stdout
+          # On Windows, tshark writes to stderr instead of stdout — capture both.
+          let tshark_result = (^tshark -G folders | complete)
+          let folders_out = $tshark_result.stdout + $tshark_result.stderr
           let personal_plugins_line = ($folders_out | lines | where {|l| $l =~ "Personal Plugins"} | first)
           let plugin_dir = if ($personal_plugins_line | is-empty) {
-            $"($env.HOME)/.local/lib/wireshark/plugins/($maj_min)/epan"
+            if $platform == "windows" {
+              $"($env.APPDATA)\\Wireshark\\plugins\\($maj_min)\\epan"
+            } else {
+              $"($env.HOME)/.local/lib/wireshark/plugins/($maj_min)/epan"
+            }
           } else {
             let plugin_base = $personal_plugins_line | split row "\t" | last | str trim
             $"($plugin_base)/epan"
