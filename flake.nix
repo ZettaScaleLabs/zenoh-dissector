@@ -64,6 +64,12 @@
             mkdir -p $out/lib
             cp target/*/release/libzenoh_codec_ffi${dylibExt} $out/lib/ \
               || cp target/*/debug/libzenoh_codec_ffi${dylibExt} $out/lib/
+          '' + pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+            # Rust cdylib on macOS stamps the build-dir path as LC_ID_DYLIB.
+            # Rewrite to @rpath so consumers (packet-zenoh.so) resolve it via
+            # their own rpath (@loader_path) instead of the ephemeral sandbox.
+            install_name_tool -id @rpath/libzenoh_codec_ffi.dylib \
+              $out/lib/libzenoh_codec_ffi.dylib
           '';
 
           meta.description = "Rust cdylib that decodes zenoh protocol messages into tshark field spans";
