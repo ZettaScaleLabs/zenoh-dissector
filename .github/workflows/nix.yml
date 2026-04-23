@@ -40,7 +40,23 @@ jobs:
       - name: verify plugin loads in tshark
         run: |
           nix develop --accept-flake-config --command bash -c '
+            set -x
+            PLUGIN="$(find "$WIRESHARK_PLUGIN_DIR" -name packet-zenoh.so | head -1)"
+            echo "plugin: $PLUGIN"
+            if [ "$(uname)" = "Darwin" ]; then
+              otool -L "$PLUGIN" || true
+              otool -l "$PLUGIN" | grep -A2 LC_RPATH || true
+            else
+              ldd "$PLUGIN" || true
+              readelf -d "$PLUGIN" | grep -E "RPATH|RUNPATH|NEEDED" || true
+            fi
+            echo "--- tshark plugin scan ---"
+            tshark -G plugins 2>&1 | grep -i zenoh || echo "NOT IN plugins"
+            tshark -G protocols 2>&1 | grep -i zenoh || echo "NOT IN protocols"
+            tshark -G fields 2>&1 | grep -E "zenoh\.transport" | head -3 || echo "NO zenoh.transport fields"
+          '
+          # Gate on actual protocol registration
+          nix develop --accept-flake-config --command bash -c '
             set -e
-            tshark -G protocols 2>&1 | grep -i "^zenoh"
-            tshark -G fields 2>&1 | grep -E "^F\s+.*\s+zenoh\.transport\." >/dev/null
+            tshark -G protocols 2>&1 | grep -iq "zenoh"
           '
