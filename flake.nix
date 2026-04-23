@@ -32,6 +32,10 @@
         wiresharkMajorMinor =
           let v = pkgs.lib.versions; in "${v.major wireshark.version}.${v.minor wireshark.version}";
 
+        # .so on Linux, .dylib on macOS (for the Rust cdylib).
+        # Wireshark MODULE plugins stay .so on both via cmake defaults.
+        dylibExt = pkgs.stdenv.hostPlatform.extensions.sharedLibrary;
+
         # ---- Rust cdylib ----------------------------------------------------
         # Builds libzenoh_codec_ffi.so. The workspace has git-sourced zenoh-*
         # deps pinned to a specific commit in Cargo.lock; cargoLock.outputHashes
@@ -58,8 +62,8 @@
           # Expose the .so as the primary artifact
           postInstall = ''
             mkdir -p $out/lib
-            cp target/*/release/libzenoh_codec_ffi.so $out/lib/ \
-              || cp target/*/debug/libzenoh_codec_ffi.so $out/lib/
+            cp target/*/release/libzenoh_codec_ffi${dylibExt} $out/lib/ \
+              || cp target/*/debug/libzenoh_codec_ffi${dylibExt} $out/lib/
           '';
 
           meta.description = "Rust cdylib that decodes zenoh protocol messages into tshark field spans";
@@ -76,15 +80,17 @@
 
           # Point cmake at the Rust cdylib produced above
           cmakeFlags = [
-            "-DZENOH_CODEC_FFI_LIB=${libzenoh_codec_ffi}/lib/libzenoh_codec_ffi.so"
+            "-DZENOH_CODEC_FFI_LIB=${libzenoh_codec_ffi}/lib/libzenoh_codec_ffi${dylibExt}"
           ];
 
           installPhase = ''
-            mkdir -p $out/lib/wireshark/plugins/${wiresharkMajorMinor}/epan
-            cp packet-zenoh.so $out/lib/wireshark/plugins/${wiresharkMajorMinor}/epan/
+            pluginDir=$out/lib/wireshark/plugins/${wiresharkMajorMinor}/epan
+            mkdir -p $pluginDir
+            # cmake MODULE libraries produce packet-zenoh.so on both Linux and
+            # macOS (wireshark's expected plugin extension).
+            cp packet-zenoh.so $pluginDir/
             # Co-locate the cdylib so dlopen of the C plugin can find it by SONAME
-            cp ${libzenoh_codec_ffi}/lib/libzenoh_codec_ffi.so \
-               $out/lib/wireshark/plugins/${wiresharkMajorMinor}/epan/
+            cp ${libzenoh_codec_ffi}/lib/libzenoh_codec_ffi${dylibExt} $pluginDir/
           '';
 
           meta.description = "tshark C plugin for the zenoh protocol";
