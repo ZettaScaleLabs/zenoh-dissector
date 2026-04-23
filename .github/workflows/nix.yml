@@ -50,6 +50,15 @@ jobs:
               ldd "$PLUGIN" || true
               readelf -d "$PLUGIN" | grep -E "RPATH|RUNPATH|NEEDED" || true
             fi
+            echo "--- tshark -G folders ---"
+            tshark -G folders 2>&1 || true
+            echo "--- tshark --version (full) ---"
+            tshark --version 2>&1 || true
+            echo "--- dyld load check ---"
+            if [ "$(uname)" = "Darwin" ]; then
+              DYLD_PRINT_LIBRARIES=1 tshark -G protocols >/dev/null 2>dyld.log || true
+              grep -i "zenoh\|packet-zenoh" dyld.log || echo "no zenoh in dyld log"
+            fi
             echo "--- tshark plugin scan ---"
             tshark -G plugins 2>&1 | grep -i zenoh || echo "NOT IN plugins"
             tshark -G protocols 2>&1 | grep -i zenoh || echo "NOT IN protocols"
