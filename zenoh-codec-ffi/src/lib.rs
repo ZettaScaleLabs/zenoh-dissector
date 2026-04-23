@@ -408,8 +408,10 @@ pub extern "C" fn zenoh_codec_ffi_decode_transport(
     }
 
     let bytes = unsafe { std::slice::from_raw_parts(data, len as usize) };
-    let zbuf: zenoh_buffers::ZBuf = bytes.to_vec().into();
-    let mut reader = zbuf.reader();
+    // Use slice reader instead of ZBuf reader: ZBuf's reader is stricter about buffer
+    // boundaries and returns DidntRead on exact-length messages where no trailing bytes
+    // remain (e.g. a 4-byte empty-cookie OpenSyn from zenoh-pico).
+    let mut reader = bytes.reader();
     let msg: TransportMessage = match Zenoh080::new().read(&mut reader) {
         Ok(m) => m,
         Err(_) => fail!(),
@@ -457,8 +459,8 @@ pub extern "C" fn zenoh_codec_ffi_decode_scouting(
     }
 
     let bytes = unsafe { std::slice::from_raw_parts(data, len as usize) };
-    let zbuf: zenoh_buffers::ZBuf = bytes.to_vec().into();
-    let mut reader = zbuf.reader();
+    // Use slice reader instead of ZBuf reader (see transport decoder comment).
+    let mut reader = bytes.reader();
     let msg: ScoutingMessage = match Zenoh080::new().read(&mut reader) {
         Ok(m) => m,
         Err(_) => fail!(),
