@@ -124,38 +124,47 @@ impl RecordSpans for TransportMessage {
         let header: u8 = cursor.decode()?;
         let header_span = cursor.span_since(header_start);
         let tp = format!("{prefix}.transport");
+
+        // Helper macro: call record_spans_with_header and then insert the parent span
+        // covering the entire message (from header byte through all fields).
+        // Errors from child-field parsing are ignored so the parent span is always
+        // emitted — a partial child decode is better than no tree entry at all.
+        macro_rules! record_with_parent {
+            ($m:expr, $key:expr) => {{
+                let msg_start = header_start;
+                let key = format!("{tp}.{}", $key);
+                let _ = $m.record_spans_with_header(header, cursor, &key, map);
+                map.insert(key, cursor.span_since(msg_start));
+                Ok(())
+            }};
+        }
+
         match &self.body {
-            TransportBody::InitSyn(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{tp}.init_syn"), map)
-            }
-            TransportBody::InitAck(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{tp}.init_ack"), map)
-            }
-            TransportBody::OpenSyn(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{tp}.open_syn"), map)
-            }
-            TransportBody::OpenAck(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{tp}.open_ack"), map)
-            }
+            TransportBody::InitSyn(m) => record_with_parent!(m, "init_syn"),
+            TransportBody::InitAck(m) => record_with_parent!(m, "init_ack"),
+            TransportBody::OpenSyn(m) => record_with_parent!(m, "open_syn"),
+            TransportBody::OpenAck(m) => record_with_parent!(m, "open_ack"),
+            TransportBody::KeepAlive(m) => record_with_parent!(m, "keep_alive"),
+            TransportBody::OAM(m) => record_with_parent!(m, "o_a_m"),
+            TransportBody::Join(m) => record_with_parent!(m, "join"),
             TransportBody::Frame(m) => {
                 // R flag (bit 5) in header byte encodes reliability
                 map.insert(format!("{tp}.frame.reliability"), header_span);
-                m.record_spans_with_header(header, cursor, &format!("{tp}.frame"), map)
+                let msg_start = header_start;
+                let key = format!("{tp}.frame");
+                m.record_spans_with_header(header, cursor, &key, map)?;
+                map.insert(key, cursor.span_since(msg_start));
+                Ok(())
             }
             TransportBody::Fragment(m) => {
                 // R flag (bit 5) = reliability, M flag (bit 6) = more-fragments, both in header byte
                 map.insert(format!("{tp}.fragment.reliability"), header_span);
                 map.insert(format!("{tp}.fragment.more"), header_span);
-                m.record_spans_with_header(header, cursor, &format!("{tp}.fragment"), map)
-            }
-            TransportBody::KeepAlive(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{tp}.keep_alive"), map)
-            }
-            TransportBody::OAM(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{tp}.o_a_m"), map)
-            }
-            TransportBody::Join(m) => {
-                m.record_spans_with_header(header, cursor, &format!("{tp}.join"), map)
+                let msg_start = header_start;
+                let key = format!("{tp}.fragment");
+                m.record_spans_with_header(header, cursor, &key, map)?;
+                map.insert(key, cursor.span_since(msg_start));
+                Ok(())
             }
             TransportBody::Close(m) => {
                 // S flag in header byte encodes session
@@ -163,6 +172,7 @@ impl RecordSpans for TransportMessage {
                 let b = cursor.checkpoint();
                 let _: u8 = cursor.decode()?; // reason byte
                 map.insert(format!("{tp}.close.reason"), cursor.span_since(b));
+                map.insert(format!("{tp}.close"), cursor.span_since(header_start));
                 let _ = m;
                 Ok(())
             }
@@ -539,30 +549,40 @@ fn record_network_message_spans(
 ) -> Result<()> {
     use zenoh_protocol::network::NetworkBody;
 
+    let msg_start = cursor.checkpoint();
     let header: u8 = cursor.decode()?;
     let mid = imsg::mid(header);
 
+    // Each branch: record child spans (errors ignored), then insert the parent span.
     match &msg.body {
         NetworkBody::Push(_) if mid == net_id::PUSH => {
-            record_push_spans(header, cursor, prefix, map)
+            let _ = record_push_spans(header, cursor, prefix, map);
+            map.insert(format!("{prefix}.push"), cursor.span_since(msg_start));
         }
         NetworkBody::Request(_) if mid == net_id::REQUEST => {
-            record_request_spans(header, cursor, prefix, map)
+            let _ = record_request_spans(header, cursor, prefix, map);
+            map.insert(format!("{prefix}.request"), cursor.span_since(msg_start));
         }
         NetworkBody::Response(_) if mid == net_id::RESPONSE => {
-            record_response_spans(header, cursor, prefix, map)
+            let _ = record_response_spans(header, cursor, prefix, map);
+            map.insert(format!("{prefix}.response"), cursor.span_since(msg_start));
         }
         NetworkBody::ResponseFinal(_) if mid == net_id::RESPONSE_FINAL => {
-            record_response_final_spans(header, cursor, prefix, map)
+            let _ = record_response_final_spans(header, cursor, prefix, map);
+            map.insert(
+                format!("{prefix}.response_final"),
+                cursor.span_since(msg_start),
+            );
         }
         NetworkBody::Declare(_) if mid == net_id::DECLARE => {
-            record_declare_spans(header, cursor, prefix, map)
+            let _ = record_declare_spans(header, cursor, prefix, map);
+            map.insert(format!("{prefix}.declare"), cursor.span_since(msg_start));
         }
         _ => {
             // Unknown/OAM — skip this message's bytes.
-            Ok(())
         }
     }
+    Ok(())
 }
 
 // Extension header (enc|id, without FLAG_Z) → field name for network messages.
@@ -750,6 +770,7 @@ fn record_declare_spans(
     )?;
 
     // DeclareBody header byte
+    let db_start = cursor.checkpoint();
     let db_header: u8 = cursor.decode()?;
     let db_mid = imsg::mid(db_header);
 
@@ -771,6 +792,10 @@ fn record_declare_spans(
                 has_suffix,
             )?;
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+            map.insert(
+                format!("{prefix}.declare.declare_key_expr"),
+                cursor.span_since(db_start),
+            );
         }
         D_SUBSCRIBER => {
             let b = cursor.checkpoint();
@@ -787,6 +812,10 @@ fn record_declare_spans(
                 has_suffix,
             )?;
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+            map.insert(
+                format!("{prefix}.declare.declare_subscriber"),
+                cursor.span_since(db_start),
+            );
         }
         D_QUERYABLE => {
             let b = cursor.checkpoint();
@@ -803,6 +832,10 @@ fn record_declare_spans(
                 has_suffix,
             )?;
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+            map.insert(
+                format!("{prefix}.declare.declare_queryable"),
+                cursor.span_since(db_start),
+            );
         }
         D_TOKEN => {
             let b = cursor.checkpoint();
@@ -819,6 +852,17 @@ fn record_declare_spans(
                 has_suffix,
             )?;
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+            map.insert(
+                format!("{prefix}.declare.declare_token"),
+                cursor.span_since(db_start),
+            );
+        }
+        D_FINAL => {
+            skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+            map.insert(
+                format!("{prefix}.declare.declare_final"),
+                cursor.span_since(db_start),
+            );
         }
         U_KEYEXPR => {
             let b = cursor.checkpoint();
@@ -828,6 +872,10 @@ fn record_declare_spans(
                 cursor.span_since(b),
             );
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+            map.insert(
+                format!("{prefix}.declare.undeclare_key_expr"),
+                cursor.span_since(db_start),
+            );
         }
         U_SUBSCRIBER => {
             let b = cursor.checkpoint();
@@ -837,6 +885,10 @@ fn record_declare_spans(
                 cursor.span_since(b),
             );
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+            map.insert(
+                format!("{prefix}.declare.undeclare_subscriber"),
+                cursor.span_since(db_start),
+            );
         }
         U_QUERYABLE => {
             let b = cursor.checkpoint();
@@ -846,6 +898,10 @@ fn record_declare_spans(
                 cursor.span_since(b),
             );
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+            map.insert(
+                format!("{prefix}.declare.undeclare_queryable"),
+                cursor.span_since(db_start),
+            );
         }
         U_TOKEN => {
             let b = cursor.checkpoint();
@@ -855,8 +911,12 @@ fn record_declare_spans(
                 cursor.span_since(b),
             );
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
+            map.insert(
+                format!("{prefix}.declare.undeclare_token"),
+                cursor.span_since(db_start),
+            );
         }
-        _ => {} // D_FINAL and unknown: skip, fall back to parent span
+        _ => {}
     }
 
     Ok(())
@@ -1021,6 +1081,68 @@ mod tests {
 
         let z = &map["zenoh.transport.init_syn.zid"];
         assert!(z.end > z.start, "zid must span at least 1 byte");
+    }
+
+    #[test]
+    fn test_parent_span_emitted_init_syn() {
+        let msg = make_init_syn();
+        let buf = encode(&msg);
+        let mut cursor = SpanCursor::new(&buf);
+        let mut map = SpanMap::new();
+        record_transport_message_spans(&msg, &mut cursor, "zenoh", &mut map).unwrap();
+
+        assert!(
+            map.contains_key("zenoh.transport.init_syn"),
+            "parent span 'zenoh.transport.init_syn' missing from SpanMap; present keys: {:?}",
+            {
+                let mut keys: Vec<_> = map.keys().collect();
+                keys.sort();
+                keys
+            }
+        );
+        let parent = &map["zenoh.transport.init_syn"];
+        assert!(
+            parent.end > parent.start,
+            "parent span has zero length: start={} end={}",
+            parent.start,
+            parent.end
+        );
+        // Parent span must cover the entire message (starts at 0, ends at buf length)
+        assert_eq!(parent.start, 0, "parent span must start at byte 0");
+        assert_eq!(parent.end, buf.len(), "parent span must cover full message");
+    }
+
+    #[test]
+    fn test_parent_span_emitted_open_syn() {
+        use zenoh_protocol::transport::{OpenSyn, TransportSn};
+        let msg = TransportMessage {
+            body: TransportBody::OpenSyn(OpenSyn {
+                lease: core::time::Duration::from_secs(10),
+                initial_sn: TransportSn::default(),
+                cookie: zenoh_buffers::ZSlice::from(vec![0u8; 4]),
+                ext_qos: None,
+                ext_shm: None,
+                ext_auth: None,
+                ext_mlink: None,
+                ext_lowlatency: None,
+                ext_compression: None,
+                ext_remote_bound: None,
+            }),
+        };
+        let buf = encode(&msg);
+        let mut cursor = SpanCursor::new(&buf);
+        let mut map = SpanMap::new();
+        record_transport_message_spans(&msg, &mut cursor, "zenoh", &mut map).unwrap();
+
+        assert!(
+            map.contains_key("zenoh.transport.open_syn"),
+            "parent span 'zenoh.transport.open_syn' missing; keys: {:?}",
+            {
+                let mut keys: Vec<_> = map.keys().collect();
+                keys.sort();
+                keys
+            }
+        );
     }
 
     fn make_push_net_msg(key: &str) -> NetworkMessage {
