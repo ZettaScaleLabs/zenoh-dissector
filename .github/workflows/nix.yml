@@ -1,0 +1,48 @@
+name: nix
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  build:
+    name: nix build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: flake check
+        run: nix flake check --no-build --accept-flake-config
+
+      - name: build libzenoh_codec_ffi
+        run: nix build .#libzenoh_codec_ffi --accept-flake-config --print-build-logs
+
+      - name: build packet-zenoh
+        run: nix build .#packet-zenoh --accept-flake-config --print-build-logs
+
+      - name: devShell smoke test
+        run: |
+          nix develop --accept-flake-config --command bash -c '
+            set -e
+            echo "WIRESHARK_PLUGIN_DIR=$WIRESHARK_PLUGIN_DIR"
+            test -n "$WIRESHARK_PLUGIN_DIR"
+            tshark -v | head -1
+          '
+
+      - name: verify plugin loads in tshark
+        run: |
+          nix develop --accept-flake-config --command bash -c '
+            set -e
+            tshark -G plugins | grep -i zenoh
+            tshark -G fields | grep "^F.*zenoh\.transport" | head
+          '
