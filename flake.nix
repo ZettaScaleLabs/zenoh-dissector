@@ -29,7 +29,12 @@
         # we stay in sync when a consuming flake follows a different nixpkgs
         # revision (e.g. scalability's nix-ros-overlay pins an older tshark
         # and a different plugins/<ver>/epan path).
+        # Wireshark 4.4+ changed the plugin subdir from "M.m" (dot) to "M-m"
+        # (dash) on macOS; Linux still reads both. Use dash as the primary
+        # layout and install to both for robustness.
         wiresharkMajorMinor =
+          let v = pkgs.lib.versions; in "${v.major wireshark.version}-${v.minor wireshark.version}";
+        wiresharkMajorMinorDot =
           let v = pkgs.lib.versions; in "${v.major wireshark.version}.${v.minor wireshark.version}";
 
         # .so on Linux, .dylib on macOS (for the Rust cdylib).
@@ -90,13 +95,15 @@
           ];
 
           installPhase = ''
-            pluginDir=$out/lib/wireshark/plugins/${wiresharkMajorMinor}/epan
-            mkdir -p $pluginDir
-            # cmake MODULE libraries produce packet-zenoh.so on both Linux and
-            # macOS (wireshark's expected plugin extension).
-            cp packet-zenoh.so $pluginDir/
-            # Co-locate the cdylib so dlopen of the C plugin can find it by SONAME
-            cp ${libzenoh_codec_ffi}/lib/libzenoh_codec_ffi${dylibExt} $pluginDir/
+            for ver in ${wiresharkMajorMinor} ${wiresharkMajorMinorDot}; do
+              pluginDir=$out/lib/wireshark/plugins/$ver/epan
+              mkdir -p $pluginDir
+              # cmake MODULE libraries produce packet-zenoh.so on both Linux and
+              # macOS (wireshark's expected plugin extension).
+              cp packet-zenoh.so $pluginDir/
+              # Co-locate the cdylib so dlopen of the C plugin can find it by SONAME
+              cp ${libzenoh_codec_ffi}/lib/libzenoh_codec_ffi${dylibExt} $pluginDir/
+            done
           '';
 
           meta.description = "tshark C plugin for the zenoh protocol";
