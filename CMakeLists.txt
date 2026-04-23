@@ -259,10 +259,15 @@ target_include_directories(packet-zenoh PRIVATE
     $<$<BOOL:${WIN32}>:${_GLIB2_INCLUDE_DIRS}>
 )
 
-set_target_properties(packet-zenoh PROPERTIES
-    BUILD_RPATH "$ORIGIN"
-    INSTALL_RPATH "$ORIGIN"
-)
+if(NOT APPLE AND NOT WIN32)
+    # Linux: use ELF $ORIGIN so the plugin finds libzenoh_codec_ffi.so next to it.
+    # On Apple, @loader_path is set in the APPLE block above; setting $ORIGIN here
+    # would override and break dlopen on macOS.
+    set_target_properties(packet-zenoh PROPERTIES
+        BUILD_RPATH "$ORIGIN"
+        INSTALL_RPATH "$ORIGIN"
+    )
+endif()
 
 target_compile_options(packet-zenoh PRIVATE
     $<$<C_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Werror -std=c11>
