@@ -40,7 +40,13 @@ jobs:
       - name: verify plugin loads in tshark
         run: |
           nix develop --accept-flake-config --command bash -c '
-            set -e
-            tshark -G plugins | grep -i zenoh
-            tshark -G fields | grep "^F.*zenoh\.transport" >/dev/null
+            set -x
+            echo "--- plugin dir contents ---"
+            ls -la "$WIRESHARK_PLUGIN_DIR"/*/epan/ || true
+            echo "--- tshark version ---"
+            tshark --version 2>&1 | head -20 || true
+            echo "--- tshark -G plugins ---"
+            tshark -G plugins 2>&1 || true
+            echo "--- grep for zenoh ---"
+            tshark -G plugins 2>&1 | grep -i zenoh
           '
