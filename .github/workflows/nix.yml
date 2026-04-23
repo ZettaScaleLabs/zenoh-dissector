@@ -34,7 +34,7 @@ jobs:
             set -e
             echo "WIRESHARK_PLUGIN_DIR=$WIRESHARK_PLUGIN_DIR"
             test -n "$WIRESHARK_PLUGIN_DIR"
-            tshark -v | head -1
+            tshark --version >/dev/null
           '
 
       - name: verify plugin loads in tshark
@@ -42,5 +42,5 @@ jobs:
           nix develop --accept-flake-config --command bash -c '
             set -e
             tshark -G plugins | grep -i zenoh
-            tshark -G fields | grep "^F.*zenoh\.transport" | head
+            tshark -G fields | grep "^F.*zenoh\.transport" >/dev/null
           '
