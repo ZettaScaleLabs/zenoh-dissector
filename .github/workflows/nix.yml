@@ -19,8 +19,6 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@main
 
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-
       - name: flake check
         run: nix flake check --no-build --accept-flake-config
 
