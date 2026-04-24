@@ -52,6 +52,27 @@ Both files must be present in the Wireshark plugin directory.
     .\scripts\build-wireshark-windows.ps1 -WiresharkVersion 4.6.4
     ```
 
+## Using with Nix
+
+No need to install Wireshark headers, Rust, or CMake — the flake has everything. Works on Linux and macOS.
+
+**Easiest way** — one command gives you a shell where `tshark` already knows about the plugin:
+
+```bash
+nix develop github:eclipse-zenoh/zenoh-dissector
+tshark -r capture.pcap      # decode Zenoh traffic
+```
+
+**Use with your own Wireshark** — build the plugin, then tell Wireshark where it is:
+
+```bash
+nix build github:eclipse-zenoh/zenoh-dissector
+export WIRESHARK_PLUGIN_DIR="$PWD/result/lib/wireshark/plugins"
+wireshark                   # or: tshark -r capture.pcap
+```
+
+That's it. The `WIRESHARK_PLUGIN_DIR` variable only lives in your current shell, so nothing is installed system-wide.
+
 ## Build from source
 
 ```bash
