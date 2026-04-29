@@ -76,6 +76,21 @@ CSpanEntry *zenoh_codec_ffi_decode_transport_compressed(const uint8_t *data, uin
                                                          uint32_t *out_count);
 
 /**
+ * Decompress an lz4-compressed zenoh batch payload (BatchHeader byte already stripped).
+ *
+ * On success, writes the decompressed length to *out_len and returns a heap-allocated buffer.
+ * The caller MUST call zenoh_codec_ffi_free_buf(ptr, *out_len) when done.
+ * Returns NULL if decompression fails; *out_len is set to 0.
+ */
+uint8_t *zenoh_codec_ffi_decompress(const uint8_t *data, uint32_t len, uint32_t *out_len);
+
+/**
+ * Free a buffer returned by zenoh_codec_ffi_decompress.
+ * `buf` must be the exact pointer returned and `len` must match *out_len.
+ */
+void zenoh_codec_ffi_free_buf(uint8_t *buf, uint32_t len);
+
+/**
  * Decode a Zenoh scouting-level PDU from raw bytes (typically UDP, no length prefix).
  * Same ownership rules as zenoh_codec_ffi_decode_transport.
  */
