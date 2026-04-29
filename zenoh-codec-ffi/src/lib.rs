@@ -376,20 +376,8 @@ fn span_map_to_box(map: &SpanMap, raw: &[u8]) -> Box<[CSpanEntry]> {
     entries.into_boxed_slice()
 }
 
-/// Decode a Zenoh transport-level PDU from raw bytes.
-///
-/// `data` must point to the PDU payload (NOT including the 2-byte TCP length prefix).
-/// `len` is the payload length in bytes.
-/// On success, writes the span count to `*out_count` and returns a heap-allocated
-/// `CSpanEntry[]`. The caller MUST call `zenoh_codec_ffi_free_spans(ptr, count)` when done.
-/// Returns NULL on decode error; `*out_count` is set to 0.
-#[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub extern "C" fn zenoh_codec_ffi_decode_transport(
-    data: *const u8,
-    len: u32,
-    out_count: *mut u32,
-) -> *mut CSpanEntry {
+/// Shared inner transport decode: takes a plain byte slice, returns heap-allocated spans.
+fn decode_transport_bytes(bytes: &[u8], out_count: *mut u32) -> *mut CSpanEntry {
     use zenoh_buffers::reader::HasReader;
     use zenoh_codec::{RCodec, Zenoh080};
     use zenoh_protocol::transport::TransportMessage;
@@ -403,11 +391,6 @@ pub extern "C" fn zenoh_codec_ffi_decode_transport(
         }};
     }
 
-    if data.is_null() || len == 0 {
-        fail!();
-    }
-
-    let bytes = unsafe { std::slice::from_raw_parts(data, len as usize) };
     // Use slice reader instead of ZBuf reader: ZBuf's reader is stricter about buffer
     // boundaries and returns DidntRead on exact-length messages where no trailing bytes
     // remain (e.g. a 4-byte empty-cookie OpenSyn from zenoh-pico).
@@ -429,6 +412,65 @@ pub extern "C" fn zenoh_codec_ffi_decode_transport(
         unsafe { *out_count = count };
     }
     Box::into_raw(boxed) as *mut CSpanEntry
+}
+
+/// Decode a Zenoh transport-level PDU from raw bytes.
+///
+/// `data` must point to the PDU payload (NOT including the 2-byte TCP length prefix).
+/// `len` is the payload length in bytes.
+/// On success, writes the span count to `*out_count` and returns a heap-allocated
+/// `CSpanEntry[]`. The caller MUST call `zenoh_codec_ffi_free_spans(ptr, count)` when done.
+/// Returns NULL on decode error; `*out_count` is set to 0.
+#[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
+pub extern "C" fn zenoh_codec_ffi_decode_transport(
+    data: *const u8,
+    len: u32,
+    out_count: *mut u32,
+) -> *mut CSpanEntry {
+    if data.is_null() || len == 0 {
+        if !out_count.is_null() {
+            unsafe { *out_count = 0 };
+        }
+        return std::ptr::null_mut();
+    }
+    let bytes = unsafe { std::slice::from_raw_parts(data, len as usize) };
+    decode_transport_bytes(bytes, out_count)
+}
+
+/// Decode a Zenoh transport-level PDU from an lz4-compressed payload.
+///
+/// `data` points to the raw lz4 block bytes (the BatchHeader byte must already be stripped).
+/// Decompresses in a temporary buffer then decodes. Same ownership rules as
+/// `zenoh_codec_ffi_decode_transport`. Returns NULL if decompression or decoding fails.
+#[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
+pub extern "C" fn zenoh_codec_ffi_decode_transport_compressed(
+    data: *const u8,
+    len: u32,
+    out_count: *mut u32,
+) -> *mut CSpanEntry {
+    macro_rules! fail {
+        () => {{
+            if !out_count.is_null() {
+                unsafe { *out_count = 0 };
+            }
+            return std::ptr::null_mut();
+        }};
+    }
+
+    if data.is_null() || len == 0 {
+        fail!();
+    }
+    let compressed = unsafe { std::slice::from_raw_parts(data, len as usize) };
+    let max_out = lz4_flex::block::get_maximum_output_size(compressed.len());
+    let mut buf = vec![0u8; max_out];
+    let n = match lz4_flex::block::decompress_into(compressed, &mut buf) {
+        Ok(n) => n,
+        Err(_) => fail!(),
+    };
+    buf.truncate(n);
+    decode_transport_bytes(&buf, out_count)
 }
 
 /// Decode a Zenoh scouting-level PDU from raw bytes (UDP, no length prefix).

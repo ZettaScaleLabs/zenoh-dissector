@@ -7,6 +7,7 @@ use std::{
     process::Command,
 };
 
+use lz4_flex;
 use zenoh_buffers::writer::DidntWrite;
 use zenoh_codec::{WCodec, Zenoh080};
 use zenoh_protocol::{
@@ -1245,4 +1246,87 @@ fn open_ack_compression_ext_highlighted() {
     write_single_tcp_pcap(&pcap, &payload);
     let pdml = run_tshark(&pcap);
     assert_size!(&pdml, &format!("{TP}.open_ack.ext_compression"), 1);
+}
+
+/// Verify that a compressed batch is transparently decoded.
+///
+/// The pcap contains three TCP segments:
+///  1. InitSyn  with ext_compression — triggers is_compression in the dissector
+///  2. InitAck  with ext_compression — sets is_compression flag for subsequent batches
+///  3. A Frame  carrying a Push, whose payload is lz4-compressed and prefixed with
+///     BatchHeader byte 0x01.
+///
+/// The dissector must decompress segment 3 and expose the inner Frame fields.
+#[test]
+fn compressed_batch_decodes_frame_fields() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    // --- packet 1: InitSyn with ext_compression ---
+    let init_syn = encode_transport(&TransportMessage {
+        body: TransportBody::InitSyn(InitSyn {
+            version: 0x08,
+            whatami: WhatAmI::Client,
+            zid: ZenohIdProto::rand(),
+            resolution: Resolution::default(),
+            batch_size: BatchSize::default(),
+            ext_qos: None,
+            ext_qos_link: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: Some(Default::default()),
+            ext_patch: PatchType::NONE,
+            ext_region_name: None,
+        }),
+    });
+
+    // --- packet 2: InitAck with ext_compression (sets is_compression on dissector) ---
+    let init_ack = encode_transport(&TransportMessage {
+        body: TransportBody::InitAck(InitAck {
+            version: 0x08,
+            whatami: WhatAmI::Router,
+            zid: ZenohIdProto::rand(),
+            resolution: Resolution::default(),
+            batch_size: BatchSize::default(),
+            cookie: zenoh_buffers::ZSlice::from(vec![0xab; 8]),
+            ext_qos: None,
+            ext_qos_link: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: Some(Default::default()),
+            ext_patch: PatchType::NONE,
+            ext_region_name: None,
+        }),
+    });
+
+    // --- packet 3: lz4-compressed Frame with a Push ---
+    let frame_bytes = encode_transport(&make_frame_with(vec![make_push_put("test/key", b"hello")]));
+    let compressed = lz4_flex::block::compress(&frame_bytes);
+    // BatchHeader byte 0x01 = compression bit set
+    let mut compressed_batch = vec![0x01u8];
+    compressed_batch.extend_from_slice(&compressed);
+
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("compressed_frame.pcap");
+    write_multi_tcp_pcap(&pcap, &[&init_syn, &init_ack, &compressed_batch]);
+
+    let pdml = run_tshark(&pcap);
+
+    // The frame sequence number must be highlighted — proves decompression + decode worked.
+    assert_size!(&pdml, &format!("{TP}.frame.sn"), 4);
+    // The push wire_expr inside the frame must also be decoded.
+    assert!(
+        pdml.contains("test/key"),
+        "Push wire_expr 'test/key' not found in PDML after decompression:\n{pdml}"
+    );
+    // The synthetic 'zenoh.batch.compressed' field must appear for this packet.
+    assert!(
+        pdml.contains("zenoh.batch.compressed"),
+        "zenoh.batch.compressed field not present in PDML:\n{pdml}"
+    );
 }

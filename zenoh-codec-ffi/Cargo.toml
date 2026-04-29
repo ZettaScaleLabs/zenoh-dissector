@@ -9,12 +9,14 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 anyhow = { workspace = true }
 convert_case = { workspace = true }
+lz4_flex = { workspace = true }
 zenoh-buffers = { workspace = true }
 zenoh-codec = { workspace = true }
 zenoh-protocol = { workspace = true }
 zenoh-transport = { workspace = true }
 
 [dev-dependencies]
+lz4_flex = { workspace = true }
 zenoh-buffers = { workspace = true }
 zenoh-codec = { workspace = true }
 zenoh-protocol = { workspace = true }

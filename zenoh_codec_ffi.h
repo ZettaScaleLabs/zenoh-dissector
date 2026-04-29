@@ -65,6 +65,17 @@ CSpanEntry *zenoh_codec_ffi_decode_transport(const uint8_t *data, uint32_t len,
                                               uint32_t *out_count);
 
 /**
+ * Decode a Zenoh transport-level PDU from an lz4-compressed payload.
+ *
+ * `data` points to the raw lz4 block bytes with the BatchHeader byte already stripped.
+ * Decompresses into a temporary buffer then decodes normally.
+ * Same ownership rules as zenoh_codec_ffi_decode_transport.
+ * Returns NULL if decompression or decoding fails.
+ */
+CSpanEntry *zenoh_codec_ffi_decode_transport_compressed(const uint8_t *data, uint32_t len,
+                                                         uint32_t *out_count);
+
+/**
  * Decode a Zenoh scouting-level PDU from raw bytes (typically UDP, no length prefix).
  * Same ownership rules as zenoh_codec_ffi_decode_transport.
  */
