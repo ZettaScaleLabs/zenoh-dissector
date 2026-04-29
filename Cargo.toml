@@ -27,6 +27,7 @@ wireshark_version = "4.6.4"
 [workspace.dependencies]
 anyhow = "1.0.97"
 convert_case = "0.8.0"
+lz4_flex = "0.10.0"
 zenoh-buffers = { version = "1.9.0", git = "https://github.com/eclipse-zenoh/zenoh.git", branch = "main" }
 zenoh-codec = { version = "1.9.0", git = "https://github.com/eclipse-zenoh/zenoh.git", branch = "main", features = [
   "shared-memory",

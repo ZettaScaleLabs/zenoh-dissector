@@ -59,6 +59,7 @@ static GHashTable *g_name_by_key = NULL;
 static int hf_session_src_zid   = -1;
 static int hf_session_dst_zid   = -1;
 static int hf_key_expr_resolved = -1;
+static int hf_batch_compressed  = -1;
 
 static hf_register_info g_static_hf[] = {
     { &hf_session_src_zid,
@@ -70,6 +71,9 @@ static hf_register_info g_static_hf[] = {
     { &hf_key_expr_resolved,
       { "Key Expression (resolved)", "zenoh.key_expr_resolved",
         FT_STRING, BASE_NONE, NULL, 0x0, NULL, HFILL }},
+    { &hf_batch_compressed,
+      { "Batch Compressed", "zenoh.batch.compressed",
+        FT_BOOLEAN, BASE_NONE, NULL, 0x0, NULL, HFILL }},
 };
 
 /* ---------------------------------------------------------------------------
@@ -81,6 +85,10 @@ typedef struct {
     wmem_map_t *zid_map;
     /* Key-expr mapping: GUINT_TO_POINTER(uint32 id) → gchar* suffix string */
     wmem_map_t *key_expr_map;
+    /* True once compression is negotiated (InitAck/OpenSyn/OpenAck with ext_compression seen).
+     * When true, every batch from the initiator direction (and both directions after OpenAck)
+     * carries a one-byte BatchHeader prefix before the zenoh payload. */
+    bool is_compression;
 } zenoh_conv_data_t;
 
 static zenoh_conv_data_t *get_conv_data(packet_info *pinfo)
@@ -301,6 +309,22 @@ static void update_conv_and_annotate(
                             GUINT_TO_POINTER((guint)id_vals[p]),
                             suffix_str);
         }
+
+        /* --- Compression negotiation: set after InitAck/OpenSyn/OpenAck with ext_compression.
+         * Setting after InitAck (not InitSyn) ensures the InitAck batch itself is decoded
+         * without a BatchHeader, which is correct — the initiator only enables BatchHeader
+         * starting from OpenSyn onward. --- */
+        if (!conv->is_compression) {
+            for (uint32_t i = 0; i < count; i++) {
+                const char *k = spans[i].key;
+                if (!key_endswith(k, ".ext_compression"))
+                    continue;
+                if (strstr(k, "init_ack") || strstr(k, "open_syn") || strstr(k, "open_ack")) {
+                    conv->is_compression = true;
+                    break;
+                }
+            }
+        }
     }
 
     /* --- Annotate tree with session ZID (every packet) --- */
@@ -426,14 +450,66 @@ static int dissect_zenoh_tcp_pdu(tvbuff_t *tvb, packet_info *pinfo, proto_tree *
         return ZENOH_BATCH_HEADER_LEN;
     }
 
+    zenoh_conv_data_t *conv_data = get_conv_data(pinfo);
+
     uint32_t span_count = 0;
-    CSpanEntry *spans = zenoh_codec_ffi_decode_transport(payload, batch_len, &span_count);
+    CSpanEntry *spans = NULL;
+    /* tvb offset where the decoded payload starts (after TCP len prefix + optional BatchHeader) */
+    int payload_offset = ZENOH_BATCH_HEADER_LEN;
+    const guint8 *decode_payload = payload;
+    guint16 decode_len = batch_len;
+    bool batch_compressed = false;
+    bool used_batch_header = false;
+
+    if (conv_data->is_compression && batch_len >= 1) {
+        uint8_t batch_hdr = payload[0];
+
+        if (batch_hdr & 0x01) {
+            /* BatchHeader bit 0 set: payload is lz4-compressed */
+            spans = zenoh_codec_ffi_decode_transport_compressed(
+                payload + 1, batch_len - 1, &span_count);
+            if (spans != NULL) {
+                batch_compressed = true;
+                used_batch_header = true;
+                payload_offset = ZENOH_BATCH_HEADER_LEN + 1;
+                decode_payload = payload + 1;
+                decode_len = batch_len - 1;
+            }
+        }
+
+        if (spans == NULL) {
+            /* BatchHeader bit 0 clear: batch header present but payload uncompressed */
+            spans = zenoh_codec_ffi_decode_transport(
+                payload + 1, batch_len - 1, &span_count);
+            if (spans != NULL) {
+                used_batch_header = true;
+                payload_offset = ZENOH_BATCH_HEADER_LEN + 1;
+                decode_payload = payload + 1;
+                decode_len = batch_len - 1;
+            }
+        }
+
+        if (spans == NULL) {
+            /* Fallback: no BatchHeader byte present (e.g. OpenAck is sent without one) */
+            spans = zenoh_codec_ffi_decode_transport(payload, batch_len, &span_count);
+        }
+    } else {
+        spans = zenoh_codec_ffi_decode_transport(payload, batch_len, &span_count);
+    }
+
     if (spans != NULL) {
+        if (conv_data->is_compression && used_batch_header) {
+            proto_item *hdr_it = proto_tree_add_boolean(
+                zenoh_tree, hf_batch_compressed,
+                tvb, ZENOH_BATCH_HEADER_LEN, 1,
+                batch_compressed ? TRUE : FALSE);
+            PROTO_ITEM_SET_GENERATED(hdr_it);
+        }
         build_info_col(pinfo, spans, span_count);
-        add_spans_to_tree(zenoh_tree, tvb, ZENOH_BATCH_HEADER_LEN, spans, span_count);
-        update_conv_and_annotate(zenoh_tree, tvb, ZENOH_BATCH_HEADER_LEN,
+        add_spans_to_tree(zenoh_tree, tvb, payload_offset, spans, span_count);
+        update_conv_and_annotate(zenoh_tree, tvb, payload_offset,
                                  spans, span_count,
-                                 payload, batch_len, pinfo);
+                                 decode_payload, decode_len, pinfo);
         zenoh_codec_ffi_free_spans(spans, span_count);
     }
 

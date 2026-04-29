@@ -2581,6 +2581,7 @@ version = "1.9.0"
 dependencies = [
  "anyhow",
  "convert_case",
+ "lz4_flex",
  "zenoh-buffers",
  "zenoh-codec",
  "zenoh-protocol",
