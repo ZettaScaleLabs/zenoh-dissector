@@ -1317,7 +1317,8 @@ fn compressed_batch_decodes_frame_fields() {
     let pdml = run_tshark(&pcap);
 
     // The frame sequence number must be highlighted — proves decompression + decode worked.
-    assert_size!(&pdml, &format!("{TP}.frame.sn"), 4);
+    // sn=1 encodes as a 1-byte VLE in zenoh.
+    assert_size!(&pdml, &format!("{TP}.frame.sn"), 1);
     // The push wire_expr inside the frame must also be decoded.
     assert!(
         pdml.contains("test/key"),
