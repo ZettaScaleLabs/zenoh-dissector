@@ -7,7 +7,6 @@ use std::{
     process::Command,
 };
 
-use lz4_flex;
 use zenoh_buffers::writer::DidntWrite;
 use zenoh_codec::{WCodec, Zenoh080};
 use zenoh_protocol::{
@@ -1211,7 +1210,7 @@ fn open_syn_compression_ext_highlighted() {
             ext_mlink: None,
             ext_lowlatency: None,
             ext_compression: Some(Default::default()),
-            ext_south: None,
+            ext_remote_bound: None,
         }),
     };
     let payload = encode_transport(&msg);
@@ -1238,7 +1237,7 @@ fn open_ack_compression_ext_highlighted() {
             ext_mlink: None,
             ext_lowlatency: None,
             ext_compression: Some(Default::default()),
-            ext_south: None,
+            ext_remote_bound: None,
         }),
     };
     let payload = encode_transport(&msg);
