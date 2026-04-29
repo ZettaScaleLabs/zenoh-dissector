@@ -52,6 +52,14 @@ static GHashTable *g_hf_by_key = NULL;
 static GHashTable *g_name_by_key = NULL;
 
 /* ---------------------------------------------------------------------------
+ * Cross-link key-expr map: (src_ip_str "/" scope_id) → gchar* suffix
+ * Populated from DeclareKeyExpr on any link; used to resolve wire_expr scopes
+ * on other links from the same peer (multi-link sessions).
+ * Reinitialized per capture file via register_init_routine.
+ * --------------------------------------------------------------------------- */
+static wmem_map_t *g_cross_link_key_expr = NULL;
+
+/* ---------------------------------------------------------------------------
  * Static synthetic fields: session ZID and resolved key-expr
  * These are not from the Rust cdylib — registered directly here.
  * --------------------------------------------------------------------------- */
@@ -292,6 +300,7 @@ static void update_conv_and_annotate(
 
         /* Pair id[p] with suffix[p] — ordering is best-effort for multi-Declare frames */
         uint32_t pairs = n_ids < n_sufs ? n_ids : n_sufs;
+        gchar *src_addr_file = address_to_str(wmem_file_scope(), &pinfo->src);
         for (uint32_t p = 0; p < pairs; p++) {
             uint32_t off = suf_offs[p];
             if (off >= payload_len)
@@ -308,6 +317,13 @@ static void update_conv_and_annotate(
             wmem_map_insert(conv->key_expr_map,
                             GUINT_TO_POINTER((guint)id_vals[p]),
                             suffix_str);
+            /* Also store in the cross-link map so other conversations from the same
+             * source IP can resolve this key expression (multi-link sessions). */
+            if (g_cross_link_key_expr) {
+                gchar *xkey = wmem_strdup_printf(wmem_file_scope(), "%s/%u",
+                                                  src_addr_file, (unsigned)id_vals[p]);
+                wmem_map_insert(g_cross_link_key_expr, xkey, suffix_str);
+            }
         }
 
         /* --- Compression negotiation: set after InitAck/OpenSyn/OpenAck with ext_compression.
@@ -365,6 +381,14 @@ static void update_conv_and_annotate(
             continue; /* full string wire-expr — no resolution needed */
         gchar *resolved = (gchar *)wmem_map_lookup(conv->key_expr_map,
                                                     GUINT_TO_POINTER((guint)scope));
+        if (!resolved && g_cross_link_key_expr) {
+            /* Cross-link fallback: publisher may have declared the key expr on a
+             * different TCP connection. Key = "<src_ip>/<scope_id>". */
+            gchar *xkey = wmem_strdup_printf(pinfo->pool, "%s/%u",
+                                              address_to_str(pinfo->pool, &pinfo->src),
+                                              (unsigned)scope);
+            resolved = (gchar *)wmem_map_lookup(g_cross_link_key_expr, xkey);
+        }
         if (!resolved)
             continue;
         proto_item *it = proto_tree_add_string(tree, hf_key_expr_resolved,
@@ -618,6 +642,11 @@ static bool dissect_zenoh_tcp_heur(tvbuff_t *tvb, packet_info *pinfo, proto_tree
  * Registration
  * --------------------------------------------------------------------------- */
 
+static void zenoh_init(void)
+{
+    g_cross_link_key_expr = wmem_map_new(wmem_file_scope(), g_str_hash, g_str_equal);
+}
+
 void proto_register_zenoh(void)
 {
     /* Get field definitions from the Rust cdylib */
@@ -689,6 +718,8 @@ void proto_register_zenoh(void)
 
 void proto_reg_handoff_zenoh(void)
 {
+    register_init_routine(zenoh_init);
+
     zenoh_tcp_handle = create_dissector_handle(dissect_zenoh_tcp, proto_zenoh);
     zenoh_udp_handle = create_dissector_handle(dissect_zenoh_udp, proto_zenoh);
 
