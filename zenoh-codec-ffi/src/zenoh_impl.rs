@@ -51,6 +51,7 @@ mod impl_for_transport {
             ext_qos_link: Option<QoSLink>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLink>,
+            ext_compression: Option<Compression>,
         }
     }
 
@@ -65,6 +66,7 @@ mod impl_for_transport {
             ext_qos_link: Option<QoSLink>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLink>,
+            ext_compression: Option<Compression>,
         }
     }
 
@@ -76,6 +78,7 @@ mod impl_for_transport {
             ext_qos: Option<QoS>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLinkSyn>,
+            ext_compression: Option<Compression>,
         }
     }
 
@@ -86,6 +89,7 @@ mod impl_for_transport {
             ext_qos: Option<QoS>,
             ext_auth: Option<Auth>,
             ext_mlink: Option<MultiLinkAck>,
+            ext_compression: Option<Compression>,
         }
     }
 

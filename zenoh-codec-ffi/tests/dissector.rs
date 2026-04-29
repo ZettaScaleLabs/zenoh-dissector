@@ -20,7 +20,8 @@ use zenoh_protocol::{
     },
     transport::{
         fragment::ext as frag_ext, frame::ext as frame_ext, init::ext::PatchType, BatchSize, Close,
-        Fragment, Frame, InitSyn, Join, KeepAlive, PrioritySn, TransportBody, TransportMessage,
+        Fragment, Frame, InitAck, InitSyn, Join, KeepAlive, OpenAck, OpenSyn, PrioritySn,
+        TransportBody, TransportMessage, TransportSn,
     },
     zenoh::{PushBody, Put, Query, Reply, RequestBody, ResponseBody},
 };
@@ -1122,4 +1123,126 @@ fn declare_key_expr_resolves_in_subsequent_push() {
         pdml.contains("demo/key"),
         "Resolved key-expr value 'demo/key' not found in PDML:\n{pdml}"
     );
+}
+
+#[test]
+fn init_syn_compression_ext_highlighted() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let msg = TransportMessage {
+        body: TransportBody::InitSyn(InitSyn {
+            version: 0x08,
+            whatami: WhatAmI::Client,
+            zid: ZenohIdProto::rand(),
+            resolution: Resolution::default(),
+            batch_size: BatchSize::default(),
+            ext_qos: None,
+            ext_qos_link: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: Some(Default::default()),
+            ext_patch: PatchType::NONE,
+            ext_region_name: None,
+        }),
+    };
+    let payload = encode_transport(&msg);
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("init_syn_compression.pcap");
+    write_single_tcp_pcap(&pcap, &payload);
+    let pdml = run_tshark(&pcap);
+    assert_size!(&pdml, &format!("{TP}.init_syn.ext_compression"), 1);
+}
+
+#[test]
+fn init_ack_compression_ext_highlighted() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let cookie = zenoh_buffers::ZSlice::from(vec![0xab; 8]);
+    let msg = TransportMessage {
+        body: TransportBody::InitAck(InitAck {
+            version: 0x08,
+            whatami: WhatAmI::Router,
+            zid: ZenohIdProto::rand(),
+            resolution: Resolution::default(),
+            batch_size: BatchSize::default(),
+            cookie,
+            ext_qos: None,
+            ext_qos_link: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: Some(Default::default()),
+            ext_patch: PatchType::NONE,
+            ext_region_name: None,
+        }),
+    };
+    let payload = encode_transport(&msg);
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("init_ack_compression.pcap");
+    write_single_tcp_pcap(&pcap, &payload);
+    let pdml = run_tshark(&pcap);
+    assert_size!(&pdml, &format!("{TP}.init_ack.ext_compression"), 1);
+}
+
+#[test]
+fn open_syn_compression_ext_highlighted() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let cookie = zenoh_buffers::ZSlice::from(vec![0xcd; 8]);
+    let msg = TransportMessage {
+        body: TransportBody::OpenSyn(OpenSyn {
+            lease: std::time::Duration::from_secs(10),
+            initial_sn: TransportSn::default(),
+            cookie,
+            ext_qos: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: Some(Default::default()),
+            ext_south: None,
+        }),
+    };
+    let payload = encode_transport(&msg);
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("open_syn_compression.pcap");
+    write_single_tcp_pcap(&pcap, &payload);
+    let pdml = run_tshark(&pcap);
+    assert_size!(&pdml, &format!("{TP}.open_syn.ext_compression"), 1);
+}
+
+#[test]
+fn open_ack_compression_ext_highlighted() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let msg = TransportMessage {
+        body: TransportBody::OpenAck(OpenAck {
+            lease: std::time::Duration::from_secs(10),
+            initial_sn: TransportSn::default(),
+            ext_qos: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: Some(Default::default()),
+            ext_south: None,
+        }),
+    };
+    let payload = encode_transport(&msg);
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("open_ack_compression.pcap");
+    write_single_tcp_pcap(&pcap, &payload);
+    let pdml = run_tshark(&pcap);
+    assert_size!(&pdml, &format!("{TP}.open_ack.ext_compression"), 1);
 }

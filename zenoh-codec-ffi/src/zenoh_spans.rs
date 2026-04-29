@@ -238,7 +238,7 @@ fn record_init_spans(
         map.insert(format!("{prefix}.cookie"), cursor.span_since(b));
     }
 
-    // InitSyn/InitAck extensions: QoS=UNIT|0x1=0x01, QoSLink=Z64|0x1=0x21, Auth=ZBUF|0x3=0x43, MLink=ZBUF|0x4=0x44
+    // InitSyn/InitAck extensions: QoS=UNIT|0x1, QoSLink=Z64|0x1, Auth=ZBUF|0x3, MLink=ZBUF|0x4, Compression=UNIT|0x6
     record_extension_spans(
         cursor,
         imsg::has_flag(header, init_flag::Z),
@@ -248,6 +248,7 @@ fn record_init_spans(
             (iext::ENC_Z64 | 0x1, "ext_qos_link"),
             (iext::ENC_ZBUF | 0x3, "ext_auth"),
             (iext::ENC_ZBUF | 0x4, "ext_mlink"),
+            (iext::ENC_UNIT | 0x6, "ext_compression"),
         ],
         map,
     )
@@ -311,7 +312,7 @@ impl RecordSpansWithHeader for OpenSyn {
         cursor.skip(cookie_len as usize)?;
         map.insert(format!("{prefix}.cookie"), cursor.span_since(b));
 
-        // OpenSyn extensions: QoS=UNIT|0x1=0x01, Auth=ZBUF|0x3=0x43, MLink=ZBUF|0x4=0x44
+        // OpenSyn extensions: QoS=UNIT|0x1, Auth=ZBUF|0x3, MLink=ZBUF|0x4, Compression=UNIT|0x6
         record_extension_spans(
             cursor,
             imsg::has_flag(header, open_flag::Z),
@@ -320,6 +321,7 @@ impl RecordSpansWithHeader for OpenSyn {
                 (iext::ENC_UNIT | 0x1, "ext_qos"),
                 (iext::ENC_ZBUF | 0x3, "ext_auth"),
                 (iext::ENC_ZBUF | 0x4, "ext_mlink"),
+                (iext::ENC_UNIT | 0x6, "ext_compression"),
             ],
             map,
         )
@@ -350,7 +352,7 @@ impl RecordSpansWithHeader for OpenAck {
         let _: TransportSn = cursor.decode()?;
         map.insert(format!("{prefix}.initial_sn"), cursor.span_since(b));
 
-        // OpenAck extensions: QoS=UNIT|0x1=0x01, Auth=ZBUF|0x3=0x43, MLink=UNIT|0x4=0x04
+        // OpenAck extensions: QoS=UNIT|0x1, Auth=ZBUF|0x3, MLink=UNIT|0x4, Compression=UNIT|0x6
         record_extension_spans(
             cursor,
             imsg::has_flag(header, open_flag::Z),
@@ -359,6 +361,7 @@ impl RecordSpansWithHeader for OpenAck {
                 (iext::ENC_UNIT | 0x1, "ext_qos"),
                 (iext::ENC_ZBUF | 0x3, "ext_auth"),
                 (iext::ENC_UNIT | 0x4, "ext_mlink"),
+                (iext::ENC_UNIT | 0x6, "ext_compression"),
             ],
             map,
         )
