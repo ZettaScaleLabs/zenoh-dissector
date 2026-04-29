@@ -454,6 +454,8 @@ static int dissect_zenoh_tcp_pdu(tvbuff_t *tvb, packet_info *pinfo, proto_tree *
 
     uint32_t span_count = 0;
     CSpanEntry *spans = NULL;
+    /* tvb used for span highlighting (may be a child tvb of decompressed bytes) */
+    tvbuff_t *decode_tvb = tvb;
     /* tvb offset where the decoded payload starts (after TCP len prefix + optional BatchHeader) */
     int payload_offset = ZENOH_BATCH_HEADER_LEN;
     const guint8 *decode_payload = payload;
@@ -465,15 +467,23 @@ static int dissect_zenoh_tcp_pdu(tvbuff_t *tvb, packet_info *pinfo, proto_tree *
         uint8_t batch_hdr = payload[0];
 
         if (batch_hdr & 0x01) {
-            /* BatchHeader bit 0 set: payload is lz4-compressed */
-            spans = zenoh_codec_ffi_decode_transport_compressed(
-                payload + 1, batch_len - 1, &span_count);
-            if (spans != NULL) {
-                batch_compressed = true;
-                used_batch_header = true;
-                payload_offset = ZENOH_BATCH_HEADER_LEN + 1;
-                decode_payload = payload + 1;
-                decode_len = batch_len - 1;
+            /* BatchHeader bit 0 set: payload is lz4-compressed.
+             * Decompress to a new tvb so span offsets map correctly. */
+            uint32_t decomp_len = 0;
+            uint8_t *decomp = zenoh_codec_ffi_decompress(payload + 1, batch_len - 1, &decomp_len);
+            if (decomp != NULL) {
+                spans = zenoh_codec_ffi_decode_transport(decomp, decomp_len, &span_count);
+                if (spans != NULL) {
+                    batch_compressed = true;
+                    used_batch_header = true;
+                    /* Copy into a wmem allocation so Wireshark owns the lifetime */
+                    guint8 *wmem_buf = (guint8 *)wmem_memdup(pinfo->pool, decomp, decomp_len);
+                    decode_tvb = tvb_new_child_real_data(tvb, wmem_buf, decomp_len, decomp_len);
+                    decode_payload = wmem_buf;
+                    decode_len = (guint16)decomp_len;
+                    payload_offset = 0;
+                }
+                zenoh_codec_ffi_free_buf(decomp, decomp_len);
             }
         }
 
@@ -506,8 +516,8 @@ static int dissect_zenoh_tcp_pdu(tvbuff_t *tvb, packet_info *pinfo, proto_tree *
             PROTO_ITEM_SET_GENERATED(hdr_it);
         }
         build_info_col(pinfo, spans, span_count);
-        add_spans_to_tree(zenoh_tree, tvb, payload_offset, spans, span_count);
-        update_conv_and_annotate(zenoh_tree, tvb, payload_offset,
+        add_spans_to_tree(zenoh_tree, decode_tvb, payload_offset, spans, span_count);
+        update_conv_and_annotate(zenoh_tree, decode_tvb, payload_offset,
                                  spans, span_count,
                                  decode_payload, decode_len, pinfo);
         zenoh_codec_ffi_free_spans(spans, span_count);

@@ -473,6 +473,56 @@ pub extern "C" fn zenoh_codec_ffi_decode_transport_compressed(
     decode_transport_bytes(&buf, out_count)
 }
 
+/// Decompress an lz4-compressed zenoh batch payload (BatchHeader byte already stripped).
+///
+/// Returns a heap-allocated buffer with the decompressed bytes and writes its length to
+/// `*out_len`. The caller MUST free it with `zenoh_codec_ffi_free_buf(ptr, *out_len)`.
+/// Returns NULL if decompression fails; `*out_len` is set to 0.
+#[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
+pub extern "C" fn zenoh_codec_ffi_decompress(
+    data: *const u8,
+    len: u32,
+    out_len: *mut u32,
+) -> *mut u8 {
+    if data.is_null() || len == 0 || out_len.is_null() {
+        if !out_len.is_null() {
+            unsafe { *out_len = 0 };
+        }
+        return std::ptr::null_mut();
+    }
+    let compressed = unsafe { std::slice::from_raw_parts(data, len as usize) };
+    let max_out = lz4_flex::block::get_maximum_output_size(compressed.len());
+    let mut buf = vec![0u8; max_out];
+    let n = match lz4_flex::block::decompress_into(compressed, &mut buf) {
+        Ok(n) => n,
+        Err(_) => {
+            unsafe { *out_len = 0 };
+            return std::ptr::null_mut();
+        }
+    };
+    buf.truncate(n);
+    unsafe { *out_len = n as u32 };
+    let boxed = buf.into_boxed_slice();
+    Box::into_raw(boxed) as *mut u8
+}
+
+/// Free a buffer returned by `zenoh_codec_ffi_decompress`.
+/// `buf` must be the exact pointer returned and `len` must match `*out_len`.
+#[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
+pub extern "C" fn zenoh_codec_ffi_free_buf(buf: *mut u8, len: u32) {
+    if buf.is_null() {
+        return;
+    }
+    unsafe {
+        drop(Box::from_raw(std::ptr::slice_from_raw_parts_mut(
+            buf,
+            len as usize,
+        )));
+    }
+}
+
 /// Decode a Zenoh scouting-level PDU from raw bytes (UDP, no length prefix).
 ///
 /// Same ownership rules as `zenoh_codec_ffi_decode_transport`.
