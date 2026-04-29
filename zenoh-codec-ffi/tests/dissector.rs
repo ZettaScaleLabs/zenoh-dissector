@@ -176,6 +176,15 @@ fn ethernet_ipv4_tcp_packet(tcp_payload: &[u8], seq: u32) -> Vec<u8> {
 }
 
 fn ethernet_ipv4_tcp_packet_port(tcp_payload: &[u8], seq: u32, dst_port: u16) -> Vec<u8> {
+    ethernet_ipv4_tcp_packet_ports(tcp_payload, seq, 60000, dst_port)
+}
+
+fn ethernet_ipv4_tcp_packet_ports(
+    tcp_payload: &[u8],
+    seq: u32,
+    src_port: u16,
+    dst_port: u16,
+) -> Vec<u8> {
     let tcp_len = 20 + tcp_payload.len();
     let ip_len = 20 + tcp_len;
     let mut pkt = Vec::with_capacity(14 + ip_len);
@@ -192,7 +201,7 @@ fn ethernet_ipv4_tcp_packet_port(tcp_payload: &[u8], seq: u32, dst_port: u16) ->
     pkt.extend_from_slice(&[0x00, 0x00]);
     pkt.extend_from_slice(&[127, 0, 0, 1]);
     pkt.extend_from_slice(&[127, 0, 0, 1]);
-    pkt.extend_from_slice(&60000u16.to_be_bytes());
+    pkt.extend_from_slice(&src_port.to_be_bytes());
     pkt.extend_from_slice(&dst_port.to_be_bytes());
     pkt.extend_from_slice(&seq.to_be_bytes());
     pkt.extend_from_slice(&0u32.to_be_bytes());
@@ -268,6 +277,29 @@ fn write_multi_tcp_pcap(path: &Path, batches: &[&[u8]]) {
         let pkt = ethernet_ipv4_tcp_packet(&frame, seq);
         f.write_all(&pcap_record(&pkt)).unwrap();
         seq += frame.len() as u32;
+    }
+}
+
+/// Write a pcap with two independent TCP connections ("links") interleaved.
+/// Link A uses src_port=60000, link B uses src_port=60001, both dst_port=7447.
+/// `link_a` and `link_b` are sequences of zenoh batch payloads (without TCP length prefix).
+fn write_two_link_pcap(path: &Path, link_a: &[&[u8]], link_b: &[&[u8]]) {
+    let mut f = std::fs::File::create(path).unwrap();
+    f.write_all(&pcap_global_header()).unwrap();
+    let mut seq_a: u32 = 1;
+    let mut seq_b: u32 = 1;
+    // Interleave: all of link_a first, then all of link_b.
+    for batch in link_a {
+        let frame = zenoh_batch_frame(batch);
+        let pkt = ethernet_ipv4_tcp_packet_ports(&frame, seq_a, 60000, 7447);
+        f.write_all(&pcap_record(&pkt)).unwrap();
+        seq_a += frame.len() as u32;
+    }
+    for batch in link_b {
+        let frame = zenoh_batch_frame(batch);
+        let pkt = ethernet_ipv4_tcp_packet_ports(&frame, seq_b, 60001, 7447);
+        f.write_all(&pcap_record(&pkt)).unwrap();
+        seq_b += frame.len() as u32;
     }
 }
 
@@ -1328,5 +1360,65 @@ fn compressed_batch_decodes_frame_fields() {
     assert!(
         pdml.contains("zenoh.batch.compressed"),
         "zenoh.batch.compressed field not present in PDML:\n{pdml}"
+    );
+}
+
+/// Verify cross-link key-expression resolution.
+///
+/// When a DeclareKeyExpr is sent on link A (TCP connection :60000→:7447) and a
+/// Push using that scope id arrives on link B (TCP connection :60001→:7447) from
+/// the *same source IP*, the dissector must resolve the key expression and show
+/// `zenoh.key_expr_resolved` on the Push packet even though the declaration was
+/// never seen on link B's conversation.
+#[test]
+fn declare_key_expr_resolves_across_links() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    // Link A: DeclareKeyExpr id=1 → "cross/link/key"
+    let decl = make_declare_msg(declare::DeclareBody::DeclareKeyExpr(DeclareKeyExpr {
+        id: 1 as ExprId,
+        wire_expr: WireExpr::from("cross/link/key"),
+    }));
+    let link_a_frame = encode_transport(&make_frame_with(vec![decl]));
+
+    // Link B: Push with wire_expr scope=1, no suffix — requires cross-link resolution
+    let push = NetworkMessage {
+        body: NetworkBody::Push(Push {
+            wire_expr: WireExpr {
+                scope: 1 as ExprId,
+                suffix: std::borrow::Cow::Borrowed(""),
+                mapping: zenoh_protocol::network::Mapping::Sender,
+            },
+            ext_qos: dec_ext::QoSType::DEFAULT,
+            ext_tstamp: None,
+            ext_nodeid: dec_ext::NodeIdType::DEFAULT,
+            payload: zenoh_protocol::zenoh::PushBody::Put(Put {
+                timestamp: None,
+                encoding: zenoh_protocol::core::Encoding::default(),
+                ext_sinfo: None,
+                ext_shm: None,
+                ext_attachment: None,
+                ext_unknown: vec![],
+                payload: zenoh_buffers::ZBuf::from(b"value".to_vec()),
+            }),
+        }),
+        reliability: Reliability::BestEffort,
+    };
+    let link_b_frame = encode_transport(&make_frame_with(vec![push]));
+
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("cross_link_key_expr.pcap");
+    write_two_link_pcap(&pcap, &[&link_a_frame], &[&link_b_frame]);
+
+    let pdml = run_tshark(&pcap);
+    assert!(
+        pdml.contains("zenoh.key_expr_resolved"),
+        "Cross-link resolved key-expr not shown in Push on link B:\n{pdml}"
+    );
+    assert!(
+        pdml.contains("cross/link/key"),
+        "Cross-link resolved key-expr value 'cross/link/key' not found in PDML:\n{pdml}"
     );
 }
