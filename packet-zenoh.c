@@ -654,6 +654,38 @@ static int dissect_zenoh_scouting_udp(tvbuff_t *tvb, packet_info *pinfo, proto_t
 }
 
 /* ---------------------------------------------------------------------------
+ * Heuristic: detect Zenoh UDP by attempting to decode the payload
+ * --------------------------------------------------------------------------- */
+
+static bool dissect_zenoh_udp_heur(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree,
+                                    void *data)
+{
+    gint payload_len = tvb_captured_length(tvb);
+    if (payload_len <= 0)
+        return false;
+
+    const guint8 *payload = tvb_get_ptr(tvb, 0, payload_len);
+    if (payload == NULL)
+        return false;
+
+    uint32_t span_count = 0;
+    CSpanEntry *spans = zenoh_codec_ffi_decode_scouting(payload, (uint32_t)payload_len, &span_count);
+    if (spans == NULL)
+        spans = zenoh_codec_ffi_decode_transport(payload, (uint32_t)payload_len, &span_count);
+
+    if (spans == NULL)
+        return false;
+
+    zenoh_codec_ffi_free_spans(spans, span_count);
+
+    conversation_t *conv = find_or_create_conversation(pinfo);
+    conversation_set_dissector(conv, zenoh_udp_handle);
+
+    dissect_zenoh_udp(tvb, pinfo, tree, data);
+    return true;
+}
+
+/* ---------------------------------------------------------------------------
  * Heuristic: detect Zenoh TCP by checking batch length sanity
  * --------------------------------------------------------------------------- */
 
@@ -771,6 +803,8 @@ void proto_reg_handoff_zenoh(void)
 
     heur_dissector_add("tcp", dissect_zenoh_tcp_heur, "Zenoh over TCP heuristic",
                        "zenoh_tcp_heur", proto_zenoh, HEURISTIC_ENABLE);
+    heur_dissector_add("udp", dissect_zenoh_udp_heur, "Zenoh over UDP heuristic",
+                       "zenoh_udp_heur", proto_zenoh, HEURISTIC_ENABLE);
 }
 
 /* ---------------------------------------------------------------------------
