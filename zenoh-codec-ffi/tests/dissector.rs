@@ -60,6 +60,19 @@ fn install_dissector_impl() {
     let build_dir = workspace.join("_tmp/cmake-build");
     std::fs::create_dir_all(&build_dir).unwrap();
 
+    // Prefer Ninja when available; fall back to the cmake default generator.
+    let ninja_flag: &[&str] = if cfg!(not(target_os = "windows"))
+        && std::process::Command::new("ninja")
+            .arg("--version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    {
+        &["-G", "Ninja"]
+    } else {
+        &[]
+    };
+
     let status = Command::new("cmake")
         .args([
             "-B",
@@ -67,6 +80,7 @@ fn install_dissector_impl() {
             "-S",
             workspace.to_str().unwrap(),
         ])
+        .args(ninja_flag)
         .current_dir(workspace)
         .status()
         .expect("cmake configure failed");
@@ -417,8 +431,6 @@ fn run_tshark(pcap: &Path) -> String {
             "pdml",
             "-d",
             "tcp.port==7447,zenoh",
-            "-d",
-            "udp.port==7446,zenoh",
             "-d",
             "udp.port==7447,zenoh",
             "-o",

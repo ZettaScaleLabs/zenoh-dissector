@@ -260,11 +260,13 @@ target_include_directories(packet-zenoh PRIVATE
 )
 
 if(NOT APPLE AND NOT WIN32)
-    # Linux: use ELF $ORIGIN so the plugin finds libzenoh_codec_ffi.so next to it.
-    # On Apple, @loader_path is set in the APPLE block above; setting $ORIGIN here
-    # would override and break dlopen on macOS.
+    # Linux: embed $ORIGIN so after install the plugin finds libzenoh_codec_ffi.so
+    # co-located in the same plugin dir. Also embed the build-tree path so the
+    # cmake-build symlink used by integration tests resolves the cdylib from its
+    # actual location (target/debug/) rather than relying on LD_LIBRARY_PATH.
+    get_filename_component(_FFI_DIR "${ZENOH_CODEC_FFI_LIB}" DIRECTORY)
     set_target_properties(packet-zenoh PROPERTIES
-        BUILD_RPATH "$ORIGIN"
+        BUILD_RPATH "$ORIGIN:${_FFI_DIR}"
         INSTALL_RPATH "$ORIGIN"
     )
 endif()

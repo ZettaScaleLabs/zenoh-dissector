@@ -22,8 +22,9 @@
 
 #include "zenoh_codec_ffi.h"
 
-/* Default Zenoh port for both TCP and UDP */
-#define ZENOH_PORT 7447
+/* Default Zenoh ports */
+#define ZENOH_PORT          7447  /* TCP + UDP: transport messages (and scouting on UDP) */
+#define ZENOH_SCOUTING_PORT 7446  /* UDP only: Scout / Hello scouting messages */
 
 /* Zenoh TCP batch: 2-byte LE length prefix + payload */
 #define ZENOH_BATCH_HEADER_LEN 2
@@ -33,6 +34,7 @@ static int proto_zenoh = -1;
 /* Dissector handles */
 static dissector_handle_t zenoh_tcp_handle;
 static dissector_handle_t zenoh_udp_handle;
+static dissector_handle_t zenoh_udp_scouting_handle;
 
 /* ---------------------------------------------------------------------------
  * Dynamic field registration (filled from Rust cdylib at startup)
@@ -613,6 +615,45 @@ static int dissect_zenoh_udp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree
 }
 
 /* ---------------------------------------------------------------------------
+ * UDP scouting entry point (port 7446)
+ * Port 7446 carries only Scout / Hello messages.  No transport fallback.
+ * --------------------------------------------------------------------------- */
+
+static int dissect_zenoh_scouting_udp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree,
+                                       void *data _U_)
+{
+    col_set_str(pinfo->cinfo, COL_PROTOCOL, "Zenoh");
+    col_clear(pinfo->cinfo, COL_INFO);
+
+    gint payload_len = tvb_reported_length(tvb);
+    if (payload_len <= 0)
+        return 0;
+
+    proto_item *ti = proto_tree_add_protocol_format(
+        tree, proto_zenoh, tvb, 0, payload_len, "Zenoh Scouting");
+    proto_tree *zenoh_tree = proto_item_add_subtree(ti, 0);
+
+    const guint8 *payload = tvb_get_ptr(tvb, 0, payload_len);
+    if (payload == NULL)
+        return 0;
+
+    uint32_t span_count = 0;
+    CSpanEntry *spans = zenoh_codec_ffi_decode_scouting(payload, (uint32_t)payload_len,
+                                                         &span_count);
+    if (spans != NULL) {
+        add_spans_to_tree(zenoh_tree, tvb, 0, spans, span_count);
+        update_conv_and_annotate(zenoh_tree, tvb, 0,
+                                 spans, span_count,
+                                 payload, (uint32_t)payload_len, pinfo);
+        zenoh_codec_ffi_free_spans(spans, span_count);
+    } else {
+        col_add_str(pinfo->cinfo, COL_INFO, "Unknown Zenoh Scouting");
+    }
+
+    return payload_len;
+}
+
+/* ---------------------------------------------------------------------------
  * Heuristic: detect Zenoh TCP by checking batch length sanity
  * --------------------------------------------------------------------------- */
 
@@ -722,9 +763,11 @@ void proto_reg_handoff_zenoh(void)
 
     zenoh_tcp_handle = create_dissector_handle(dissect_zenoh_tcp, proto_zenoh);
     zenoh_udp_handle = create_dissector_handle(dissect_zenoh_udp, proto_zenoh);
+    zenoh_udp_scouting_handle = create_dissector_handle(dissect_zenoh_scouting_udp, proto_zenoh);
 
     dissector_add_uint("tcp.port", ZENOH_PORT, zenoh_tcp_handle);
     dissector_add_uint("udp.port", ZENOH_PORT, zenoh_udp_handle);
+    dissector_add_uint("udp.port", ZENOH_SCOUTING_PORT, zenoh_udp_scouting_handle);
 
     heur_dissector_add("tcp", dissect_zenoh_tcp_heur, "Zenoh over TCP heuristic",
                        "zenoh_tcp_heur", proto_zenoh, HEURISTIC_ENABLE);
