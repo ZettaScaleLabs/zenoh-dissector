@@ -49,6 +49,10 @@ jobs:
   # ---------------------------------------------------------------------------
   # C plugin job: needs Wireshark headers, builds the C plugin via cmake,
   # and runs the full integration test suite via tshark.
+  #
+  # Ubuntu: uses nix (DeterminateSystems) — avoids the Wireshark PPA entirely.
+  # macOS:  uses Homebrew.
+  # Windows: builds Wireshark from source via build-wireshark-windows.ps1.
   # ---------------------------------------------------------------------------
   c_plugin:
     name: C plugin + integration tests (${{ matrix.os }})
@@ -78,51 +82,46 @@ jobs:
           let version = (open Cargo.toml | get workspace.metadata.wireshark_version)
           $"version=($version)" | save --append $env.GITHUB_OUTPUT
 
-      - name: Cache Wireshark debs (Ubuntu)
+      # ── Ubuntu: install nix, then build + test everything inside nix develop ──
+      - name: Install Nix (Ubuntu)
         if: matrix.platform == 'linux'
-        id: wireshark-deb-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.wireshark-debs
-          key: wireshark-debs-${{ steps.wireshark-version.outputs.version }}-ubuntu-24.04
+        uses: DeterminateSystems/nix-installer-action@main
 
-      - name: Install Wireshark (Ubuntu)
+      - name: Build, install and test plugin (Ubuntu — via nix)
         if: matrix.platform == 'linux'
-        env:
-          DEBIAN_FRONTEND: noninteractive
         run: |
-          EXPECTED="${{ steps.wireshark-version.outputs.version }}"
-          if [[ "${{ steps.wireshark-deb-cache.outputs.cache-hit }}" == "true" ]] \
-              && ls ~/.wireshark-debs/*.deb 2>/dev/null | head -1; then
-            echo "Installing Wireshark from deb cache"
-            sudo dpkg -i ~/.wireshark-debs/*.deb 2>/dev/null || true
-            sudo apt-get install -f -y
-          else
-            sudo apt install -y software-properties-common
-            sudo add-apt-repository -y ppa:wireshark-dev/stable-staging
-            for i in 1 2 3 4 5; do
-              sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 update -y && break
-              echo "apt-get update attempt $i failed, retrying in 30s..."
-              sleep 30
-            done
-            PKG_VER=$(apt-cache madison libwireshark-dev | awk '{print $3}' | grep "^${EXPECTED}" | head -1)
-            if [ -z "$PKG_VER" ]; then
-              echo "ERROR: libwireshark-dev ${EXPECTED} not found. Available:"
-              apt-cache madison libwireshark-dev | awk '{print $3}'
+          nix develop --accept-flake-config --command bash -c '
+            set -euo pipefail
+
+            echo "=== Rust cdylib ==="
+            cargo build -p zenoh-codec-ffi -j4
+
+            echo "=== C plugin (cmake) ==="
+            cmake -B _tmp/cmake-build -S . \
+              -DZENOH_CODEC_FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.so"
+            cmake --build _tmp/cmake-build -j4
+
+            echo "=== Install plugin to $WIRESHARK_PLUGIN_DIR ==="
+            mkdir -p "$WIRESHARK_PLUGIN_DIR"
+            cp _tmp/cmake-build/packet-zenoh.so "$WIRESHARK_PLUGIN_DIR/"
+            cp target/debug/libzenoh_codec_ffi.so "$WIRESHARK_PLUGIN_DIR/"
+            ls "$WIRESHARK_PLUGIN_DIR"
+
+            echo "=== Smoke test ==="
+            tshark -G protocols 2>&1 | grep -i zenoh
+            tshark -r ./assets/sample-data.pcap | tee _tmp/tshark-sample.txt
+            zenoh_count=$(grep -c "Zenoh" _tmp/tshark-sample.txt || true)
+            if [ "$zenoh_count" != "7" ]; then
+              echo "ERROR: Expected 7 Zenoh packets, found $zenoh_count"
+              cat _tmp/tshark-sample.txt
               exit 1
             fi
-            sudo apt install -y libwireshark-dev="$PKG_VER" wireshark tshark cmake
-            mkdir -p ~/.wireshark-debs
-            sudo cp /var/cache/apt/archives/libwireshark*.deb \
-                    /var/cache/apt/archives/libwsutil*.deb \
-                    /var/cache/apt/archives/libwiretap*.deb \
-                    /var/cache/apt/archives/wireshark*.deb \
-                    /var/cache/apt/archives/tshark*.deb \
-                    ~/.wireshark-debs/ 2>/dev/null || true
-            sudo chown -R "$(id -u):$(id -g)" ~/.wireshark-debs/
-          fi
-          sudo apt install -y cmake
 
+            echo "=== Integration tests ==="
+            cargo test -p zenoh-codec-ffi --test dissector -- --test-threads=1
+          '
+
+      # ── macOS / Windows: existing apt/brew/source approach ──
       - name: Install Wireshark (macOS)
         if: matrix.platform == 'macos'
         run: |
@@ -138,14 +137,8 @@ jobs:
             -BuildConfig "Debug"
 
       - name: Build Rust cdylib
+        if: matrix.platform != 'linux'
         run: cargo build -p zenoh-codec-ffi -j4
-
-      - name: Build C plugin (cmake — Linux)
-        if: matrix.platform == 'linux'
-        run: |
-          cmake -B _tmp/cmake-build -S . \
-            -DZENOH_CODEC_FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.so"
-          cmake --build _tmp/cmake-build --config Release -j4
 
       - name: Build C plugin (cmake — macOS)
         if: matrix.platform == 'macos'
@@ -169,6 +162,7 @@ jobs:
           cmake --build _tmp/cmake-build --config Release -j4
 
       - name: Diagnose plugin directories
+        if: matrix.platform != 'linux'
         shell: nu {0}
         run: |
           print "=== tshark -G folders ==="
@@ -179,6 +173,7 @@ jobs:
           ($r2.stdout + $r2.stderr) | lines | first 3 | str join "\n" | print
 
       - name: Install plugin
+        if: matrix.platform != 'linux'
         shell: nu {0}
         run: |
           let platform = "${{ matrix.platform }}"
@@ -205,10 +200,6 @@ jobs:
           mkdir $plugin_dir
 
           match $platform {
-            "linux" => {
-              cp _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
-              cp target/debug/libzenoh_codec_ffi.so $"($plugin_dir)/libzenoh_codec_ffi.so"
-            }
             "macos" => {
               cp _tmp/cmake-build/packet-zenoh.so $"($plugin_dir)/packet-zenoh.so"
               cp target/debug/libzenoh_codec_ffi.dylib $"($plugin_dir)/libzenoh_codec_ffi.dylib"
@@ -227,6 +218,7 @@ jobs:
           ls $plugin_dir | print
 
       - name: Test with sample data
+        if: matrix.platform != 'linux'
         shell: nu {0}
         run: |
           print "=== tshark plugins ==="
@@ -243,6 +235,7 @@ jobs:
           }
 
       - name: Integration tests (via tshark)
+        if: matrix.platform != 'linux'
         run: cargo test -p zenoh-codec-ffi --test dissector -- --test-threads=1
 
   ci:
