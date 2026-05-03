@@ -101,11 +101,14 @@ jobs:
               -DZENOH_CODEC_FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.so"
             cmake --build _tmp/cmake-build -j4
 
-            echo "=== Install plugin to $WIRESHARK_PLUGIN_DIR ==="
-            mkdir -p "$WIRESHARK_PLUGIN_DIR"
-            cp _tmp/cmake-build/packet-zenoh.so "$WIRESHARK_PLUGIN_DIR/"
-            cp target/debug/libzenoh_codec_ffi.so "$WIRESHARK_PLUGIN_DIR/"
-            ls "$WIRESHARK_PLUGIN_DIR"
+            echo "=== Install plugin ==="
+            PERSONAL_PLUGINS=$(tshark -G folders 2>&1 | grep "Personal Plugins" | cut -f2)
+            PLUGIN_DIR="${PERSONAL_PLUGINS}/epan"
+            echo "Plugin dir: $PLUGIN_DIR"
+            mkdir -p "$PLUGIN_DIR"
+            cp _tmp/cmake-build/packet-zenoh.so "$PLUGIN_DIR/"
+            cp target/debug/libzenoh_codec_ffi.so "$PLUGIN_DIR/"
+            ls "$PLUGIN_DIR"
 
             echo "=== Smoke test ==="
             tshark -G protocols 2>&1 | grep -i zenoh
