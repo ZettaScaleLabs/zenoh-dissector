@@ -56,35 +56,39 @@ fn install_dissector_impl() {
         .expect("cargo build failed");
     assert!(status.success(), "cargo build -p zenoh-codec-ffi failed");
 
-    // Step 2: cmake configure
+    // Step 2: cmake configure (skip if a cache already exists — e.g. CI pre-built it).
+    // Re-configuring with a different generator (-G Ninja vs Makefiles) on an existing
+    // cache causes "CMake Error: generator mismatch", so honour whatever was used first.
     let build_dir = workspace.join("_tmp/cmake-build");
     std::fs::create_dir_all(&build_dir).unwrap();
 
-    // Prefer Ninja when available; fall back to the cmake default generator.
-    let ninja_flag: &[&str] = if cfg!(not(target_os = "windows"))
-        && std::process::Command::new("ninja")
-            .arg("--version")
-            .output()
-            .map(|o| o.status.success())
-            .unwrap_or(false)
-    {
-        &["-G", "Ninja"]
-    } else {
-        &[]
-    };
+    if !build_dir.join("CMakeCache.txt").exists() {
+        // Prefer Ninja when available; fall back to the cmake default generator.
+        let ninja_flag: &[&str] = if cfg!(not(target_os = "windows"))
+            && std::process::Command::new("ninja")
+                .arg("--version")
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false)
+        {
+            &["-G", "Ninja"]
+        } else {
+            &[]
+        };
 
-    let status = Command::new("cmake")
-        .args([
-            "-B",
-            build_dir.to_str().unwrap(),
-            "-S",
-            workspace.to_str().unwrap(),
-        ])
-        .args(ninja_flag)
-        .current_dir(workspace)
-        .status()
-        .expect("cmake configure failed");
-    assert!(status.success(), "cmake configure failed");
+        let status = Command::new("cmake")
+            .args([
+                "-B",
+                build_dir.to_str().unwrap(),
+                "-S",
+                workspace.to_str().unwrap(),
+            ])
+            .args(ninja_flag)
+            .current_dir(workspace)
+            .status()
+            .expect("cmake configure failed");
+        assert!(status.success(), "cmake configure failed");
+    }
 
     // Step 3: cmake build (use Release config on Windows to avoid debug CRT dep)
     let mut cmake_build = Command::new("cmake");
