@@ -703,6 +703,27 @@ static bool dissect_zenoh_tcp_heur(tvbuff_t *tvb, packet_info *pinfo, proto_tree
         return false;
     }
 
+    /* Need at least the 2-byte length prefix + 1-byte message header */
+    if (tvb_captured_length(tvb) < 3) {
+        return false;
+    }
+
+    uint8_t hdr    = tvb_get_uint8(tvb, 2);
+    uint8_t msg_id = hdr & 0x1F;  /* bits 4:0 */
+
+    /* Valid transport message IDs: 0x01–0x07 (0x00 / OAM is too ambiguous) */
+    if (msg_id == 0 || msg_id > 0x07) {
+        return false;
+    }
+
+    /* For INIT (0x01) and JOIN (0x07) the next byte is the protocol version.
+     * Reject version==0 — null bytes are common in non-Zenoh protocols. */
+    if ((msg_id == 0x01 || msg_id == 0x07) && tvb_captured_length(tvb) >= 4) {
+        if (tvb_get_uint8(tvb, 3) == 0) {
+            return false;
+        }
+    }
+
     /* Claim the conversation */
     conversation_t *conv = find_or_create_conversation(pinfo);
     conversation_set_dissector(conv, zenoh_tcp_handle);
