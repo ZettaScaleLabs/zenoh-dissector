@@ -78,22 +78,50 @@ jobs:
           let version = (open Cargo.toml | get workspace.metadata.wireshark_version)
           $"version=($version)" | save --append $env.GITHUB_OUTPUT
 
+      - name: Cache Wireshark debs (Ubuntu)
+        if: matrix.platform == 'linux'
+        id: wireshark-deb-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.wireshark-debs
+          key: wireshark-debs-${{ steps.wireshark-version.outputs.version }}-ubuntu-24.04
+
       - name: Install Wireshark (Ubuntu)
         if: matrix.platform == 'linux'
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo apt install -y software-properties-common
-          sudo add-apt-repository -y ppa:wireshark-dev/stable-staging
-          for i in 1 2 3; do sudo apt-get update -y && break || sleep 15; done
           EXPECTED="${{ steps.wireshark-version.outputs.version }}"
-          PKG_VER=$(apt-cache madison libwireshark-dev | awk '{print $3}' | grep "^${EXPECTED}" | head -1)
-          if [ -z "$PKG_VER" ]; then
-            echo "ERROR: libwireshark-dev ${EXPECTED} not found. Available:"
-            apt-cache madison libwireshark-dev | awk '{print $3}'
-            exit 1
+          if [[ "${{ steps.wireshark-deb-cache.outputs.cache-hit }}" == "true" ]] \
+              && ls ~/.wireshark-debs/*.deb 2>/dev/null | head -1; then
+            echo "Installing Wireshark from deb cache"
+            sudo dpkg -i ~/.wireshark-debs/*.deb 2>/dev/null || true
+            sudo apt-get install -f -y
+          else
+            sudo apt install -y software-properties-common
+            sudo add-apt-repository -y ppa:wireshark-dev/stable-staging
+            for i in 1 2 3 4 5; do
+              sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 update -y && break
+              echo "apt-get update attempt $i failed, retrying in 30s..."
+              sleep 30
+            done
+            PKG_VER=$(apt-cache madison libwireshark-dev | awk '{print $3}' | grep "^${EXPECTED}" | head -1)
+            if [ -z "$PKG_VER" ]; then
+              echo "ERROR: libwireshark-dev ${EXPECTED} not found. Available:"
+              apt-cache madison libwireshark-dev | awk '{print $3}'
+              exit 1
+            fi
+            sudo apt install -y libwireshark-dev="$PKG_VER" wireshark tshark cmake
+            mkdir -p ~/.wireshark-debs
+            sudo cp /var/cache/apt/archives/libwireshark*.deb \
+                    /var/cache/apt/archives/libwsutil*.deb \
+                    /var/cache/apt/archives/libwiretap*.deb \
+                    /var/cache/apt/archives/wireshark*.deb \
+                    /var/cache/apt/archives/tshark*.deb \
+                    ~/.wireshark-debs/ 2>/dev/null || true
+            sudo chown -R "$(id -u):$(id -g)" ~/.wireshark-debs/
           fi
-          sudo apt install -y libwireshark-dev="$PKG_VER" wireshark tshark cmake
+          sudo apt install -y cmake
 
       - name: Install Wireshark (macOS)
         if: matrix.platform == 'macos'
