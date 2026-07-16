@@ -21,7 +21,7 @@ impl TreeArgs<'_> {
         if let Some(hf) = self.hf_map.get(key) {
             Ok(*hf)
         } else {
-            bail!("{key} not found in {:?}", &self.hf_map)
+            bail!("{key} not found in {:?}", self.hf_map)
         }
     }
 
@@ -29,7 +29,7 @@ impl TreeArgs<'_> {
         if let Some(st) = self.st_map.get(key) {
             Ok(*st)
         } else {
-            bail!("{key} not found in {:?}", &self.st_map)
+            bail!("{key} not found in {:?}", self.st_map)
         }
     }
 
