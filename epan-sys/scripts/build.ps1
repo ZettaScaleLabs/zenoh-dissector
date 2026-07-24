@@ -66,9 +66,8 @@ if (-not (Test-Path (Join-Path $SrcDir "CMakeLists.txt"))) {
             $docbookHandled = $true
         }
         elseif ($fetchArtifactsContent.Contains($OldDocbookUrl)) {
-            $updatedContent = $fetchArtifactsContent.Replace($OldDocbookUrl, $NewDocbookUrl)
             if ($updatedContent -ne $fetchArtifactsContent) {
-                Set-Content -Path $FetchArtifactsFile -Value $updatedContent -NoNewline
+                [System.IO.File]::WriteAllText($FetchArtifactsFile, $updatedContent, (New-Object System.Text.UTF8Encoding $false))
                 Write-Host "Updated DocBook URL in FetchArtifacts.cmake directly."
                 $docbookHandled = $true
             }
