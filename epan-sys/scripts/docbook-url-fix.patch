@@ -1,0 +1,36 @@
+From 2be6899941c73a4406a459b6677d0aa0929477a0 Mon Sep 17 00:00:00 2001
+From: John Thacker <johnthacker@gmail.com>
+Date: Fri, 2 Jan 2026 12:13:47 -0500
+Subject: [PATCH] CMake: Update docbook to archived site URL
+
+The docbook.org website was updated, the URL we've used to download
+the zip archive of dockbook has changed. (Can we get what we need
+from the GitHub site like the other two docbook archives?)
+---
+ cmake/modules/FetchArtifacts.cmake | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/cmake/modules/FetchArtifacts.cmake b/cmake/modules/FetchArtifacts.cmake
+index 0f683f21cf7..30d08185f75 100644
+--- a/cmake/modules/FetchArtifacts.cmake
++++ b/cmake/modules/FetchArtifacts.cmake
+@@ -181,7 +181,7 @@ if(APPLE)
+   add_artifact(zlib-ng/zlib-ng-2.2.4-1-macos-universal.tar.xz 52f1f054be4c97320b4417ebad5d4d8e278f615efac8fbec94abb4986100cbb0)
+   add_artifact(zstd/zstd-1.5.7-1-macos-universal.tar.xz a7bfa6fdc228badbe30da5b89fc875e1c9bad52ee692df117aba9721798249d0)
+ 
+-  add_external_artifact(https://docbook.org/xml/5.0.1/docbook-5.0.1.zip 7af9df452410e035a3707883e43039b4062f09dc2f49f2e986da3e4c0386e3c7 etc/xml)
++  add_external_artifact(https://archive.docbook.org/xml/5.0.1/docbook-5.0.1.zip 7af9df452410e035a3707883e43039b4062f09dc2f49f2e986da3e4c0386e3c7 etc/xml)
+   add_external_artifact(https://github.com/docbook/xslt10-stylesheets/releases/download/release%2F1.79.2/docbook-xsl-1.79.2.zip 853dce096f5b32fe0b157d8018d8fecf92022e9c79b5947a98b365679c7e31d7 etc/xml)
+   add_external_artifact(https://github.com/docbook/xslt10-stylesheets/releases/download/release%2F1.79.2/docbook-xsl-nons-1.79.2.zip ba41126fbf4021e38952f3074dc87cdf1e50f3981280c7a619f88acf31456822 etc/xml)
+ 
+@@ -259,7 +259,7 @@ elseif(WIN32)
+     endif()
+   endif()
+   add_artifact(asciidoctor/asciidoctor-bundle-${asciidoctor_version}-x64-windows-ws.7z d1dae73dd61ded005b8f1f2d7d19bd08e6edbeed216428e8ab898267229d150b)
+-  add_external_artifact(https://docbook.org/xml/5.0.1/docbook-5.0.1.zip 7af9df452410e035a3707883e43039b4062f09dc2f49f2e986da3e4c0386e3c7 asciidoctor-bundle-${asciidoctor_version}-x64-windows-ws/etc/xml)
++  add_external_artifact(https://archive.docbook.org/xml/5.0.1/docbook-5.0.1.zip 7af9df452410e035a3707883e43039b4062f09dc2f49f2e986da3e4c0386e3c7 asciidoctor-bundle-${asciidoctor_version}-x64-windows-ws/etc/xml)
+   add_external_artifact(https://github.com/docbook/xslt10-stylesheets/releases/download/release%2F1.79.2/docbook-xsl-1.79.2.zip 853dce096f5b32fe0b157d8018d8fecf92022e9c79b5947a98b365679c7e31d7 asciidoctor-bundle-${asciidoctor_version}-x64-windows-ws/etc/xml)
+   add_external_artifact(https://github.com/docbook/xslt10-stylesheets/releases/download/release%2F1.79.2/docbook-xsl-nons-1.79.2.zip ba41126fbf4021e38952f3074dc87cdf1e50f3981280c7a619f88acf31456822 asciidoctor-bundle-${asciidoctor_version}-x64-windows-ws/etc/xml)
+ endif()
+-- 
+GitLab

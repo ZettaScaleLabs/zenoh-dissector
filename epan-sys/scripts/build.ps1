@@ -46,48 +46,76 @@ if (-not (Test-Path (Join-Path $SrcDir "CMakeLists.txt"))) {
 
     # Apply patch to Wireshark to correct docbook URL
     Write-Host "Patching DocBook location..."
-    $PatchUrl = "https://gitlab.com/wireshark/wireshark/-/commit/2be6899941c73a4406a459b6677d0aa0929477a0.patch"
-    $PatchFile = Join-Path $PWD "docbook-url-fix.patch"
+    $PatchFile = Join-Path $PSScriptRoot "docbook-url-fix.patch"
+    if (-not (Test-Path $PatchFile)) {
+        Write-Error "DocBook patch file not found at $PatchFile"
+        exit 1
+    }
 
-    Invoke-WebRequest -Uri $PatchUrl -OutFile $PatchFile -UseBasicParsing
     Push-Location $SrcDir
 
-    # Apply the patch if not already included in this Wireshark version.
-    # Use SilentlyContinue locally so non-zero exit from git apply --check
-    # doesn't trigger the global Stop preference before we inspect $LASTEXITCODE.
-    if (Get-Command git -ErrorAction SilentlyContinue) {
-        $prev = $ErrorActionPreference
-        $ErrorActionPreference = 'SilentlyContinue'
-        git apply --check "$PatchFile" 2>$null
-        $checkExit = $LASTEXITCODE
-        $ErrorActionPreference = $prev
+    $FetchArtifactsFile = Join-Path $SrcDir "cmake/modules/FetchArtifacts.cmake"
+    $OldDocbookUrl = "https://docbook.org/xml/5.0.1/docbook-5.0.1.zip"
+    $NewDocbookUrl = "https://archive.docbook.org/xml/5.0.1/docbook-5.0.1.zip"
+    $docbookHandled = $false
 
-        if ($checkExit -eq 0) {
-            git apply "$PatchFile"
-            if ($LASTEXITCODE -ne 0) {
+    if (Test-Path $FetchArtifactsFile) {
+        $fetchArtifactsContent = Get-Content -Raw $FetchArtifactsFile
+        if ($fetchArtifactsContent.Contains($NewDocbookUrl)) {
+            Write-Host "DocBook URL already updated in Wireshark $WiresharkVersion, skipping patch."
+            $docbookHandled = $true
+        }
+        elseif ($fetchArtifactsContent.Contains($OldDocbookUrl)) {
+            $updatedContent = $fetchArtifactsContent.Replace($OldDocbookUrl, $NewDocbookUrl)
+            if ($updatedContent -ne $fetchArtifactsContent) {
+                Set-Content -Path $FetchArtifactsFile -Value $updatedContent -NoNewline
+                Write-Host "Updated DocBook URL in FetchArtifacts.cmake directly."
+                $docbookHandled = $true
+            }
+        }
+    }
+
+    if (-not $docbookHandled) {
+        # Apply the patch if not already included in this Wireshark version.
+        # Use SilentlyContinue locally so non-zero exit from git apply --check
+        # doesn't trigger the global Stop preference before we inspect $LASTEXITCODE.
+        if (Get-Command git -ErrorAction SilentlyContinue) {
+            $prev = $ErrorActionPreference
+            $ErrorActionPreference = 'SilentlyContinue'
+            git apply --check "$PatchFile" 2>$null
+            $checkExit = $LASTEXITCODE
+            $ErrorActionPreference = $prev
+
+            if ($checkExit -eq 0) {
+                git apply "$PatchFile"
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Error "Applying the DocBook URL patch failed."
+                    exit 1
+                }
+            }
+            else {
+                # Check if already applied (patch already included in this version)
+                $prev = $ErrorActionPreference
+                $ErrorActionPreference = 'SilentlyContinue'
+                git apply --check -R "$PatchFile" 2>$null
+                $reverseExit = $LASTEXITCODE
+                $ErrorActionPreference = $prev
+
+                if ($reverseExit -eq 0) {
+                    Write-Host "DocBook URL patch already included in Wireshark $WiresharkVersion, skipping."
+                }
+                else {
+                    Write-Error "Applying the DocBook URL patch failed (patch does not apply forward or reverse)."
+                    exit 1
+                }
+            }
+        }
+        else {
+            & patch -p1 --forward -i "$PatchFile"
+            if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1) {
                 Write-Error "Applying the DocBook URL patch failed."
                 exit 1
             }
-        } else {
-            # Check if already applied (patch already included in this version)
-            $prev = $ErrorActionPreference
-            $ErrorActionPreference = 'SilentlyContinue'
-            git apply --check -R "$PatchFile" 2>$null
-            $reverseExit = $LASTEXITCODE
-            $ErrorActionPreference = $prev
-
-            if ($reverseExit -eq 0) {
-                Write-Host "DocBook URL patch already included in Wireshark $WiresharkVersion, skipping."
-            } else {
-                Write-Error "Applying the DocBook URL patch failed (patch does not apply forward or reverse)."
-                exit 1
-            }
-        }
-    } else {
-        & patch -p1 --forward -i "$PatchFile"
-        if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1) {
-            Write-Error "Applying the DocBook URL patch failed."
-            exit 1
         }
     }
     Pop-Location
@@ -129,7 +157,8 @@ $DebugDir = Join-Path $BuildDir "run\$BuildConfig"
 if (Test-Path $DebugDir) {
     Write-Host "Build output directory exists: $DebugDir"
     Get-ChildItem $DebugDir -Filter "*.lib" | ForEach-Object { Write-Host "  Found: $($_.Name)" }
-} else {
+}
+else {
     Write-Host "ERROR: Build output directory not found at $DebugDir"
     Write-Host "Contents of $($BuildDir):"
     Get-ChildItem $BuildDir | ForEach-Object { Write-Host "  $_" }
