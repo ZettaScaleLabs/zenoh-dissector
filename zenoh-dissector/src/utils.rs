@@ -61,7 +61,10 @@ impl std::fmt::Display for SizedSummary {
     }
 }
 
-pub(crate) fn new_rbatch(batch: &[u8], compression: bool) -> Result<RBatch, Box<dyn Error>> {
+pub(crate) fn new_rbatch(
+    batch: &[u8],
+    compression: bool,
+) -> Result<RBatch<ZSlice>, Box<dyn Error>> {
     let zslice = ZSlice::from(batch.to_vec());
     let config = BatchConfig {
         mtu: BatchSize::MAX,
