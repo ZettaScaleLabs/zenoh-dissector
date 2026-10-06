@@ -615,7 +615,8 @@ mod tests {
         assert!(lz4_flex::block::get_maximum_output_size(compressed.len()) < batch.len());
 
         let mut out_len = 0u32;
-        let ptr = zenoh_codec_ffi_decompress(compressed.as_ptr(), compressed.len() as u32, &mut out_len);
+        let ptr =
+            zenoh_codec_ffi_decompress(compressed.as_ptr(), compressed.len() as u32, &mut out_len);
         assert!(!ptr.is_null());
         assert_eq!(out_len as usize, batch.len());
         zenoh_codec_ffi_free_buf(ptr, out_len);
