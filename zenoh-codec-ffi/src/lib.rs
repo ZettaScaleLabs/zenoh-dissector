@@ -303,7 +303,7 @@ pub extern "C" fn zenoh_codec_ffi_get_fields(out_count: *mut u32) -> *const CFie
             })
             .collect();
         // Sort for deterministic order (makes C-side debugging easier)
-        fields.sort_by(|a, b| a.key.cmp(&b.key));
+        fields.sort_by_key(|a| a.key);
         StaticFields { fields }
     });
     if !out_count.is_null() {

@@ -2,7 +2,7 @@
   description = "zenoh tshark dissector (Rust cdylib + C wrapper) as a Nix package";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable?shallow=1";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
     flake-utils.url = "github:numtide/flake-utils";
   };
