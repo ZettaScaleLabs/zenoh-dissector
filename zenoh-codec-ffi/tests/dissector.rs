@@ -408,6 +408,7 @@ fn make_push_put(wire_expr: impl Into<String>, payload_data: &[u8]) -> NetworkMe
             ext_qos: dec_ext::QoSType::DEFAULT,
             ext_tstamp: None,
             ext_nodeid: dec_ext::NodeIdType::DEFAULT,
+            ext_ts_stack: None,
             payload: PushBody::Put(Put {
                 timestamp: None,
                 encoding: zenoh_protocol::core::Encoding::default(),
@@ -937,6 +938,7 @@ fn request_fields_highlighted() {
             ext_qos: dec_ext::QoSType::DEFAULT,
             ext_tstamp: None,
             ext_nodeid: dec_ext::NodeIdType::DEFAULT,
+            ext_ts_stack: None,
             ext_target: zenoh_protocol::network::request::ext::QueryTarget::DEFAULT,
             ext_budget: None,
             ext_timeout: None,
@@ -972,6 +974,7 @@ fn response_fields_highlighted() {
             wire_expr: WireExpr::from("demo/ans"),
             ext_qos: dec_ext::QoSType::DEFAULT,
             ext_tstamp: None,
+            ext_ts_stack: None,
             ext_respid: None,
             payload: ResponseBody::Reply(Reply {
                 consolidation: zenoh_protocol::zenoh::query::ConsolidationMode::DEFAULT,
@@ -1145,6 +1148,7 @@ fn declare_key_expr_resolves_in_subsequent_push() {
             ext_qos: dec_ext::QoSType::DEFAULT,
             ext_tstamp: None,
             ext_nodeid: dec_ext::NodeIdType::DEFAULT,
+            ext_ts_stack: None,
             payload: zenoh_protocol::zenoh::PushBody::Put(Put {
                 timestamp: None,
                 encoding: zenoh_protocol::core::Encoding::default(),
@@ -1411,6 +1415,7 @@ fn declare_key_expr_resolves_across_links() {
             ext_qos: dec_ext::QoSType::DEFAULT,
             ext_tstamp: None,
             ext_nodeid: dec_ext::NodeIdType::DEFAULT,
+            ext_ts_stack: None,
             payload: zenoh_protocol::zenoh::PushBody::Put(Put {
                 timestamp: None,
                 encoding: zenoh_protocol::core::Encoding::default(),
