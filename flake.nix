@@ -47,7 +47,7 @@
         # keeps the derivation reproducible.
         libzenoh_codec_ffi = rustPlatform.buildRustPackage {
           pname = "libzenoh_codec_ffi";
-          version = "1.9.0";
+          version = "1.10.1";
           src = pkgs.lib.cleanSource ./.;
 
           cargoLock = {
@@ -56,7 +56,7 @@
             # expected hash; paste it in and the build is reproducible from
             # then on.
             outputHashes = {
-              "zenoh-buffers-1.9.0" = "sha256-Wixnu6CgcH2+hSCK55cBJuR87NoyC975QrvEkSLq7bo=";
+              "zenoh-buffers-1.10.1" = pkgs.lib.fakeHash;
             };
           };
 
@@ -83,7 +83,7 @@
         # ---- C plugin (packet-zenoh.so) -------------------------------------
         packet-zenoh = pkgs.stdenv.mkDerivation {
           pname = "packet-zenoh";
-          version = "1.9.0";
+          version = "1.10.1";
           src = pkgs.lib.cleanSource ./.;
 
           nativeBuildInputs = with pkgs; [ cmake pkg-config ];
