@@ -93,7 +93,9 @@ static hf_register_info g_static_hf[] = {
 typedef struct {
     /* ZID per source address: gchar* addr_str → uint8_t* (byte[0]=len, bytes[1..n]=ZID) */
     wmem_map_t *zid_map;
-    /* Key-expr mapping: GUINT_TO_POINTER(uint32 id) → gchar* suffix string */
+    /* Key-expr mapping, per sender: "<src_addr>:<src_port>/<id>" → gchar* suffix string.
+     * An id is only meaningful to the peer that declared it, so both directions of one
+     * connection need separate tables. */
     wmem_map_t *key_expr_map;
     /* True once compression is negotiated (InitAck/OpenSyn/OpenAck with ext_compression seen).
      * When true, every batch from the initiator direction (and both directions after OpenAck)
@@ -108,7 +110,7 @@ static zenoh_conv_data_t *get_conv_data(packet_info *pinfo)
     if (!data) {
         data = wmem_new0(wmem_file_scope(), zenoh_conv_data_t);
         data->zid_map = wmem_map_new(wmem_file_scope(), g_str_hash, g_str_equal);
-        data->key_expr_map = wmem_map_new(wmem_file_scope(), g_direct_hash, g_direct_equal);
+        data->key_expr_map = wmem_map_new(wmem_file_scope(), g_str_hash, g_str_equal);
         conversation_add_proto_data(conv, proto_zenoh, data);
     }
     return data;
@@ -317,7 +319,8 @@ static void update_conv_and_annotate(
                                              (const gchar *)(payload + str_off),
                                              (gsize)str_len);
             wmem_map_insert(conv->key_expr_map,
-                            GUINT_TO_POINTER((guint)id_vals[p]),
+                            wmem_strdup_printf(wmem_file_scope(), "%s:%u/%u", src_addr_file,
+                                               (unsigned)pinfo->srcport, (unsigned)id_vals[p]),
                             suffix_str);
             /* Also store in the cross-link map so other conversations from the same
              * source IP can resolve this key expression (multi-link sessions). */
@@ -381,8 +384,10 @@ static void update_conv_and_annotate(
         uint64_t scope = vle_at(payload, off, payload_len, NULL);
         if (scope == 0)
             continue; /* full string wire-expr — no resolution needed */
-        gchar *resolved = (gchar *)wmem_map_lookup(conv->key_expr_map,
-                                                    GUINT_TO_POINTER((guint)scope));
+        gchar *sender_key = wmem_strdup_printf(pinfo->pool, "%s:%u/%u",
+                                               address_to_str(pinfo->pool, &pinfo->src),
+                                               (unsigned)pinfo->srcport, (unsigned)scope);
+        gchar *resolved = (gchar *)wmem_map_lookup(conv->key_expr_map, sender_key);
         if (!resolved && g_cross_link_key_expr) {
             /* Cross-link fallback: publisher may have declared the key expr on a
              * different TCP connection. Key = "<src_ip>/<scope_id>". */
