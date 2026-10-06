@@ -460,6 +460,19 @@ fn field_spans(pdml: &str, name: &str) -> Vec<(usize, usize)> {
     result
 }
 
+/// The displayed value (`show="..."`) of every occurrence of field `name`.
+fn field_shows(pdml: &str, name: &str) -> Vec<String> {
+    let needle = "show=\"";
+    pdml.lines()
+        .filter(|l| l.contains(&format!("name=\"{name}\"")))
+        .filter_map(|l| {
+            let start = l.find(needle)? + needle.len();
+            let end = l[start..].find('"')? + start;
+            Some(l[start..end].to_string())
+        })
+        .collect()
+}
+
 fn attr(line: &str, name: &str) -> Option<usize> {
     let needle = format!("{name}=\"");
     let start = line.find(&needle)? + needle.len();
@@ -1188,6 +1201,74 @@ fn declare_key_expr_resolves_in_subsequent_push() {
     assert!(
         pdml.contains("demo/key"),
         "Resolved key-expr value 'demo/key' not found in PDML:\n{pdml}"
+    );
+}
+
+/// Two peers on one TCP connection each declare key-expr id 1 with a different suffix.
+/// A Push from peer A on scope 1 must resolve to A's suffix, not the last one declared.
+#[test]
+fn declare_key_expr_ids_are_per_sender() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let declare = |suffix: &str| {
+        let decl = make_declare_msg(declare::DeclareBody::DeclareKeyExpr(DeclareKeyExpr {
+            id: 1 as ExprId,
+            wire_expr: WireExpr::from(suffix.to_string()),
+        }));
+        encode_transport(&make_frame_with(vec![decl]))
+    };
+    let push_scope_1 = NetworkMessage {
+        body: NetworkBody::Push(Push {
+            wire_expr: WireExpr {
+                scope: 1 as ExprId,
+                suffix: std::borrow::Cow::Borrowed(""),
+                mapping: zenoh_protocol::network::Mapping::Sender,
+            },
+            ext_qos: dec_ext::QoSType::DEFAULT,
+            ext_tstamp: None,
+            ext_nodeid: dec_ext::NodeIdType::DEFAULT,
+            ext_ts_stack: None,
+            payload: zenoh_protocol::zenoh::PushBody::Put(Put {
+                timestamp: None,
+                encoding: zenoh_protocol::core::Encoding::default(),
+                ext_sinfo: None,
+                ext_shm: None,
+                ext_attachment: None,
+                ext_unknown: vec![],
+                payload: zenoh_buffers::ZBuf::from(b"hello".to_vec()),
+            }),
+        }),
+        reliability: Reliability::BestEffort,
+    };
+
+    // Peer A is the client (60000 -> 7447), peer B the server (7447 -> 60000).
+    let a_declare = zenoh_batch_frame(&declare("peer/a"));
+    let b_declare = zenoh_batch_frame(&declare("peer/b"));
+    let a_push = zenoh_batch_frame(&encode_transport(&make_frame_with(vec![push_scope_1])));
+
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("wire_expr_per_sender.pcap");
+    let mut f = std::fs::File::create(&pcap).unwrap();
+    f.write_all(&pcap_global_header()).unwrap();
+    let seq_a = 1u32;
+    let seq_b = 1u32;
+    for pkt in [
+        ethernet_ipv4_tcp_packet_ports(&a_declare, seq_a, 60000, 7447),
+        ethernet_ipv4_tcp_packet_ports(&b_declare, seq_b, 7447, 60000),
+        ethernet_ipv4_tcp_packet_ports(&a_push, seq_a + a_declare.len() as u32, 60000, 7447),
+    ] {
+        f.write_all(&pcap_record(&pkt)).unwrap();
+    }
+    drop(f);
+
+    let pdml = run_tshark(&pcap);
+    let resolved = field_shows(&pdml, "zenoh.key_expr_resolved");
+    assert_eq!(
+        resolved,
+        vec!["peer/a".to_string()],
+        "Push from A on scope 1 must resolve to A's declaration; PDML:\n{pdml}"
     );
 }
 
