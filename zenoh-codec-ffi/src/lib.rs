@@ -438,6 +438,17 @@ pub extern "C" fn zenoh_codec_ffi_decode_transport(
     decode_transport_bytes(bytes, out_count)
 }
 
+/// Decompress an lz4 block holding one zenoh batch.
+///
+/// A batch is at most `BatchSize::MAX` bytes, so that bounds the output.
+/// `get_maximum_output_size` is the compression bound and is too small here.
+fn decompress_batch(compressed: &[u8]) -> Option<Vec<u8>> {
+    let mut buf = vec![0u8; zenoh_protocol::transport::BatchSize::MAX as usize];
+    let n = lz4_flex::block::decompress_into(compressed, &mut buf).ok()?;
+    buf.truncate(n);
+    Some(buf)
+}
+
 /// Decode a Zenoh transport-level PDU from an lz4-compressed payload.
 ///
 /// `data` points to the raw lz4 block bytes (the BatchHeader byte must already be stripped).
@@ -463,13 +474,10 @@ pub extern "C" fn zenoh_codec_ffi_decode_transport_compressed(
         fail!();
     }
     let compressed = unsafe { std::slice::from_raw_parts(data, len as usize) };
-    let max_out = lz4_flex::block::get_maximum_output_size(compressed.len());
-    let mut buf = vec![0u8; max_out];
-    let n = match lz4_flex::block::decompress_into(compressed, &mut buf) {
-        Ok(n) => n,
-        Err(_) => fail!(),
+    let buf = match decompress_batch(compressed) {
+        Some(buf) => buf,
+        None => fail!(),
     };
-    buf.truncate(n);
     decode_transport_bytes(&buf, out_count)
 }
 
@@ -492,17 +500,14 @@ pub extern "C" fn zenoh_codec_ffi_decompress(
         return std::ptr::null_mut();
     }
     let compressed = unsafe { std::slice::from_raw_parts(data, len as usize) };
-    let max_out = lz4_flex::block::get_maximum_output_size(compressed.len());
-    let mut buf = vec![0u8; max_out];
-    let n = match lz4_flex::block::decompress_into(compressed, &mut buf) {
-        Ok(n) => n,
-        Err(_) => {
+    let buf = match decompress_batch(compressed) {
+        Some(buf) => buf,
+        None => {
             unsafe { *out_len = 0 };
             return std::ptr::null_mut();
         }
     };
-    buf.truncate(n);
-    unsafe { *out_len = n as u32 };
+    unsafe { *out_len = buf.len() as u32 };
     let boxed = buf.into_boxed_slice();
     Box::into_raw(boxed) as *mut u8
 }
@@ -596,3 +601,23 @@ pub static plugin_want_major: i32 = 4;
 pub static plugin_want_minor: i32 = 6;
 #[no_mangle]
 pub extern "C" fn plugin_register() {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A highly compressible batch expands far beyond lz4's compression bound
+    /// for its compressed size, so the output buffer must be sized by `BatchSize::MAX`.
+    #[test]
+    fn decompress_batch_larger_than_compression_bound() {
+        let batch = vec![0u8; zenoh_protocol::transport::BatchSize::MAX as usize];
+        let compressed = lz4_flex::block::compress(&batch);
+        assert!(lz4_flex::block::get_maximum_output_size(compressed.len()) < batch.len());
+
+        let mut out_len = 0u32;
+        let ptr = zenoh_codec_ffi_decompress(compressed.as_ptr(), compressed.len() as u32, &mut out_len);
+        assert!(!ptr.is_null());
+        assert_eq!(out_len as usize, batch.len());
+        zenoh_codec_ffi_free_buf(ptr, out_len);
+    }
+}
