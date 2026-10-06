@@ -56,7 +56,7 @@
             # expected hash; paste it in and the build is reproducible from
             # then on.
             outputHashes = {
-              "zenoh-buffers-1.10.1" = pkgs.lib.fakeHash;
+              "zenoh-buffers-1.10.1" = "sha256-RF/1xvJxx8D4LQWJOUZuxYvWRIpFdGS0BWJAhsiDXho=";
             };
           };
 
