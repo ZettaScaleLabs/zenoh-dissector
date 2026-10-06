@@ -1133,6 +1133,47 @@ fn heuristic_tcp_dissector_fires_on_nonstandard_port() {
     );
 }
 
+/// The UDP heuristic claims a datagram only after a full Rust decode succeeds. The valid
+/// datagram is the positive control: without it, "garbage not claimed" would also hold
+/// when the dissector or the heuristic is not running at all.
+#[test]
+fn heuristic_udp_dissector_claims_only_decodable_zenoh() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let run = |name: &str, payload: &[u8]| -> String {
+        let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(name);
+        // Port 12345 is not in Zenoh's default port list, so only the heuristic can claim it.
+        write_single_udp_pcap(&pcap, payload, 12345);
+        let out = Command::new("tshark")
+            .args([
+                "-r",
+                pcap.to_str().unwrap(),
+                "-T",
+                "pdml",
+                "--enable-heuristic",
+                "zenoh_udp_heur",
+            ])
+            .output()
+            .expect("tshark not found");
+        String::from_utf8_lossy(&out.stdout).into_owned()
+    };
+
+    let valid = run("heuristic_udp_valid.pcap", &encode_transport(&make_init_syn()));
+    assert!(
+        valid.contains("zenoh.transport.init_syn"),
+        "UDP heuristic did not claim a valid Zenoh datagram on port 12345:\n{valid}"
+    );
+
+    let garbage = run("heuristic_udp_garbage.pcap", b"GET / HTTP/1.1\r\nHost: x\r\n\r\n");
+    assert!(
+        !garbage.contains("proto name=\"zenoh\""),
+        "UDP heuristic claimed a non-Zenoh datagram:\n{garbage}"
+    );
+}
+
 #[test]
 fn session_zid_annotated_on_init_syn() {
     if !tshark_available() {
