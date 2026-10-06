@@ -1157,6 +1157,7 @@ mod tests {
                 ext_qos: push_ext::QoSType::DEFAULT,
                 ext_tstamp: None,
                 ext_nodeid: push_ext::NodeIdType::DEFAULT,
+                ext_ts_stack: None,
                 payload: zenoh_protocol::zenoh::PushBody::Put(zenoh_protocol::zenoh::Put {
                     timestamp: None,
                     encoding: zenoh_protocol::core::Encoding::default(),
