@@ -28,7 +28,7 @@ Both files must be present in the Wireshark plugin directory.
 
     ```bash
     sudo apt install -y software-properties-common
-    sudo add-apt-repository -y ppa:wireshark-dev/stable
+    sudo add-apt-repository -y ppa:wireshark-dev/stable-staging
     sudo apt install -y libwireshark-dev wireshark tshark cmake
     ```
 
@@ -101,7 +101,6 @@ cmake --build _tmp/cmake-build -j4   # C plugin build
 | Decoding logic, field definitions, span recording | `just build-codec` |
 | Wireshark API interactions (reassembly, tree building, heuristics) | `just build-plugin` |
 | Wireshark version upgrade | `just build` — cmake reconfigures against new headers |
-| Added or renamed a field exposed via the FFI (`CFieldDef`) | `just build` — C ABI changed |
 
 ## Install
 
@@ -164,9 +163,13 @@ tshark -r ./assets/sample-data.pcap
 
 ![demo-pubsub](./assets/demo-pubsub.png)
 
+### Session and compression fields
+
+Every packet is annotated with the session peers' ZIDs (`zenoh.session.src_zid`, `zenoh.session.dst_zid`), taken from the Init and Join messages of the conversation. Push, Request and Response messages that refer to a key expression by integer scope show the resolved key expression as `zenoh.key_expr_resolved`, using the DeclareKeyExpr mappings seen earlier in the capture, including on another TCP connection of the same peer. When compression is negotiated, batches are decompressed transparently and marked with `zenoh.batch.compressed`.
+
 ### Heuristic dissector
 
-By default the dissector only decodes traffic on port 7447. To decode Zenoh on any port, enable the heuristic dissectors via `Analyze > Enabled Protocols > Zenoh`:
+By default the dissector decodes TCP traffic on port 7447 and UDP scouting (Scout/Hello) on port 7446. To decode Zenoh on any port, enable the heuristic dissectors via `Analyze > Enabled Protocols > Zenoh`:
 
 - `zenoh_tcp_heur` — Zenoh over TCP
 - `zenoh_udp_heur` — Zenoh over UDP
