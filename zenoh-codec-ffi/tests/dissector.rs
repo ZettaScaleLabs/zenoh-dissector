@@ -467,8 +467,22 @@ fn attr(line: &str, name: &str) -> Option<usize> {
     line[start..end].parse().ok()
 }
 
+/// Whether tshark can run. A missing tshark skips the test locally, but fails it when
+/// `CI` or `ZENOH_REQUIRE_TSHARK` is set: a skip counts as a pass in `cargo test`, so a
+/// machine without tshark would otherwise report green having run nothing.
 fn tshark_available() -> bool {
-    Command::new("tshark").arg("--version").output().is_ok()
+    if Command::new("tshark").arg("--version").output().is_ok() {
+        return true;
+    }
+    let required = ["CI", "ZENOH_REQUIRE_TSHARK"]
+        .iter()
+        .any(|v| std::env::var_os(v).is_some());
+    assert!(
+        !required,
+        "tshark not found but required (CI or ZENOH_REQUIRE_TSHARK is set)"
+    );
+    eprintln!("Skipping: tshark not found");
+    false
 }
 
 fn unclaimed_fields(pdml: &str) -> Vec<String> {

@@ -38,7 +38,7 @@ test-unit:
 test-integration:
     cargo test -p zenoh-codec-ffi --test dissector -- --test-threads=1
 
-# Run all tests
+# Run all tests (integration tests are skipped without tshark; set ZENOH_REQUIRE_TSHARK=1 to fail instead)
 test: test-unit test-integration
 
 # Check formatting and lints

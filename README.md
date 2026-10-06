@@ -81,7 +81,7 @@ just build-release  # build everything (release)
 just build-codec    # Rust cdylib only
 just build-plugin   # C plugin only (cmake already configured)
 just install        # build + install to Wireshark plugin dir (Linux/macOS)
-just test           # unit + integration tests
+just test           # unit + integration tests (integration tests need tshark; without it they are skipped, or fail if ZENOH_REQUIRE_TSHARK is set)
 just check          # fmt + clippy
 just clean          # remove all build artifacts
 ```
