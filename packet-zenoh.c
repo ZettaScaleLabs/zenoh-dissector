@@ -601,11 +601,13 @@ static int dissect_zenoh_udp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree
 
     uint32_t span_count = 0;
 
-    /* Try scouting first (Scout/Hello have a distinct header byte) */
-    CSpanEntry *spans = zenoh_codec_ffi_decode_scouting(payload, (uint32_t)payload_len, &span_count);
+    /* Transport first: Scout/Hello share header bytes 0x01/0x02 with Init/Open, so a
+     * transport message also parses as scouting and would be shown as the wrong message.
+     * Scouting proper arrives on port 7446, which has its own scouting-only handler. */
+    CSpanEntry *spans = zenoh_codec_ffi_decode_transport(payload, (uint32_t)payload_len, &span_count);
     if (spans == NULL) {
-        /* Fallback: try transport message */
-        spans = zenoh_codec_ffi_decode_transport(payload, (uint32_t)payload_len, &span_count);
+        /* Fallback: try scouting message */
+        spans = zenoh_codec_ffi_decode_scouting(payload, (uint32_t)payload_len, &span_count);
     }
 
     if (spans != NULL) {

@@ -1161,13 +1161,19 @@ fn heuristic_udp_dissector_claims_only_decodable_zenoh() {
         String::from_utf8_lossy(&out.stdout).into_owned()
     };
 
-    let valid = run("heuristic_udp_valid.pcap", &encode_transport(&make_init_syn()));
+    let valid = run(
+        "heuristic_udp_valid.pcap",
+        &encode_transport(&make_init_syn()),
+    );
     assert!(
         valid.contains("zenoh.transport.init_syn"),
         "UDP heuristic did not claim a valid Zenoh datagram on port 12345:\n{valid}"
     );
 
-    let garbage = run("heuristic_udp_garbage.pcap", b"GET / HTTP/1.1\r\nHost: x\r\n\r\n");
+    let garbage = run(
+        "heuristic_udp_garbage.pcap",
+        b"GET / HTTP/1.1\r\nHost: x\r\n\r\n",
+    );
     assert!(
         !garbage.contains("proto name=\"zenoh\""),
         "UDP heuristic claimed a non-Zenoh datagram:\n{garbage}"
