@@ -142,7 +142,7 @@ jobs:
           case "${{ matrix.build.platform }}" in
             linux)   FFI_LIB="$(pwd)/target/release/libzenoh_codec_ffi.so" ;;
             macos)   FFI_LIB="$(pwd)/target/release/libzenoh_codec_ffi.dylib" ;;
-            windows) FFI_LIB="$(pwd)/target/release/zenoh_codec_ffi.dll" ;;
+            windows) FFI_LIB="$(pwd)/target/release/zenoh_codec_ffi.dll.lib" ;;
           esac
           cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
           cmake --build _tmp/cmake-build --config Release -j4
