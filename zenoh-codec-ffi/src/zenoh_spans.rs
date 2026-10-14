@@ -32,16 +32,17 @@ use crate::span::{ByteSpan, RecordSpans, SpanCursor, SpanMap};
 //   ENC_ZBUF (0x40 in bits 6:5): VLE-length + data bytes
 // ---------------------------------------------------------------------------
 
-/// Walk extensions, recording spans for known extension headers.
-/// `hdr_to_field` maps `ext_byte & !FLAG_Z` (id + encoding bits) to field name suffix.
-/// This allows disambiguation when two extensions share the same ID but differ in encoding.
-/// Unknown extensions are consumed and skipped without recording.
-fn record_extension_spans(
+/// Walk the extensions that follow a message body, calling `on_ext` with each one's identity
+/// and byte span.
+///
+/// The identity is the extension header byte without the Z (more follows) and M (mandatory) flags,
+/// so it is the encoding bits plus the id. A mandatory extension has the same identity as an
+/// optional one of that encoding and id: `zextz64!(0x1, true)` and `zextz64!(0x1, false)` differ
+/// only in M, which a table of known extensions must not have to repeat.
+fn walk_extensions(
     cursor: &mut SpanCursor,
     has_ext: bool,
-    prefix: &str,
-    hdr_to_field: &[(u8, &str)],
-    map: &mut SpanMap,
+    mut on_ext: impl FnMut(u8, ByteSpan),
 ) -> Result<()> {
     let mut remaining = has_ext;
     while remaining {
@@ -58,18 +59,42 @@ fn record_extension_spans(
             }
             _ => return Err(anyhow::anyhow!("unknown extension encoding")),
         }
-        // Match on (enc | id) ignoring FLAG_Z
-        let key = ext_byte & !iext::FLAG_Z;
-        if let Some(&(_, fname)) = hdr_to_field.iter().find(|&&(k, _)| k == key) {
-            map.insert(format!("{prefix}.{fname}"), cursor.span_since(start));
-        }
+        on_ext(
+            ext_byte & !(iext::FLAG_Z | iext::FLAG_M),
+            cursor.span_since(start),
+        );
         remaining = (ext_byte & iext::FLAG_Z) != 0;
     }
     Ok(())
 }
 
+/// Walk extensions, recording spans for known extension headers.
+/// `hdr_to_field` maps an extension identity (encoding bits and id, see `walk_extensions`) to a
+/// field name suffix. This allows disambiguation when two extensions share the same id but differ
+/// in encoding. Unknown extensions are consumed and skipped without recording.
+fn record_extension_spans(
+    cursor: &mut SpanCursor,
+    has_ext: bool,
+    prefix: &str,
+    hdr_to_field: &[(u8, &str)],
+    map: &mut SpanMap,
+) -> Result<()> {
+    walk_extensions(cursor, has_ext, |identity, span| {
+        if let Some(&(_, fname)) = hdr_to_field.iter().find(|&&(k, _)| k == identity) {
+            map.insert(format!("{prefix}.{fname}"), span);
+        }
+    })
+}
+
 fn skip_extensions(cursor: &mut SpanCursor, has_ext: bool) -> Result<()> {
-    record_extension_spans(cursor, has_ext, "", &[], &mut SpanMap::new())
+    walk_extensions(cursor, has_ext, |_, _| {})
+}
+
+/// Walk extensions and return the identity of each one, in order.
+fn scan_extensions(cursor: &mut SpanCursor, has_ext: bool) -> Result<Vec<u8>> {
+    let mut seen = Vec::new();
+    walk_extensions(cursor, has_ext, |identity, _| seen.push(identity))?;
+    Ok(seen)
 }
 
 // ---------------------------------------------------------------------------
@@ -393,7 +418,7 @@ impl RecordSpansWithHeader for Frame {
             cursor,
             imsg::has_flag(header, 0x80),
             prefix,
-            &[(iext::ENC_UNIT | 0x1, "ext_qos")],
+            &[(iext::ENC_Z64 | 0x1, "ext_qos")],
             map,
         )?;
 
@@ -432,7 +457,14 @@ impl RecordSpansWithHeader for Fragment {
         let _: TransportSn = cursor.decode()?;
         map.insert(format!("{prefix}.sn"), cursor.span_since(b));
 
-        skip_extensions(cursor, imsg::has_flag(header, 0x80))
+        // Fragment extensions: QoS (mandatory Z64), First and Drop (units, not registered)
+        record_extension_spans(
+            cursor,
+            imsg::has_flag(header, 0x80),
+            prefix,
+            &[(iext::ENC_Z64 | 0x1, "ext_qos")],
+            map,
+        )
     }
 }
 impl RecordSpans for Fragment {
@@ -540,6 +572,20 @@ impl RecordSpans for Join {
     }
 }
 
+/// Record the header byte that holds the mapping flag (M, bit 6) of a message's wire
+/// expression, under `{message}.wire_expr.mapping`. M set means the key-expression ids are the
+/// ones the sender declared; M clear means the ones the receiver declared. A reader needs this
+/// to know whose declarations to look the scope up in.
+fn record_mapping_span(msg_start: usize, message: &str, map: &mut SpanMap) {
+    map.insert(
+        format!("{message}.wire_expr.mapping"),
+        ByteSpan {
+            start: msg_start,
+            end: msg_start + 1,
+        },
+    );
+}
+
 // ---------------------------------------------------------------------------
 // NetworkMessage span recording
 // Cursor must be positioned at the header byte of the NetworkMessage.
@@ -556,36 +602,50 @@ fn record_network_message_spans(
     let header: u8 = cursor.decode()?;
     let mid = imsg::mid(header);
 
+    // Where this message ends, according to the codec. The recorders below walk fields and stop
+    // where their knowledge of the format ends: a Request's query, a Response's reply and an
+    // unsupported message are not walked at all. The codec is the authority on length, so the
+    // next message starts where it says this one ends, and the parent span covers all of it.
+    let body_start = cursor.checkpoint();
+    cursor.seek(msg_start)?;
+    let _: zenoh_protocol::network::NetworkMessage = cursor.decode()?;
+    let msg_end = cursor.checkpoint();
+    cursor.seek(body_start)?;
+    let whole = ByteSpan {
+        start: msg_start,
+        end: msg_end,
+    };
+
     // Each branch: record child spans (errors ignored), then insert the parent span.
     match &msg.body {
         NetworkBody::Push(_) if mid == net_id::PUSH => {
             let _ = record_push_spans(header, cursor, prefix, map);
-            map.insert(format!("{prefix}.push"), cursor.span_since(msg_start));
+            record_mapping_span(msg_start, &format!("{prefix}.push"), map);
+            map.insert(format!("{prefix}.push"), whole);
         }
         NetworkBody::Request(_) if mid == net_id::REQUEST => {
             let _ = record_request_spans(header, cursor, prefix, map);
-            map.insert(format!("{prefix}.request"), cursor.span_since(msg_start));
+            record_mapping_span(msg_start, &format!("{prefix}.request"), map);
+            map.insert(format!("{prefix}.request"), whole);
         }
         NetworkBody::Response(_) if mid == net_id::RESPONSE => {
             let _ = record_response_spans(header, cursor, prefix, map);
-            map.insert(format!("{prefix}.response"), cursor.span_since(msg_start));
+            record_mapping_span(msg_start, &format!("{prefix}.response"), map);
+            map.insert(format!("{prefix}.response"), whole);
         }
         NetworkBody::ResponseFinal(_) if mid == net_id::RESPONSE_FINAL => {
             let _ = record_response_final_spans(header, cursor, prefix, map);
-            map.insert(
-                format!("{prefix}.response_final"),
-                cursor.span_since(msg_start),
-            );
+            map.insert(format!("{prefix}.response_final"), whole);
         }
         NetworkBody::Declare(_) if mid == net_id::DECLARE => {
             let _ = record_declare_spans(header, cursor, prefix, map);
-            map.insert(format!("{prefix}.declare"), cursor.span_since(msg_start));
+            map.insert(format!("{prefix}.declare"), whole);
         }
-        _ => {
-            // Unknown/OAM — skip this message's bytes.
-        }
+        // Interest and network OAM have no span recorder.
+        _ => {}
     }
-    Ok(())
+
+    cursor.seek(msg_end)
 }
 
 // Extension header (enc|id, without FLAG_Z) → field name for network messages.
@@ -594,6 +654,16 @@ const NET_EXT: &[(u8, &str)] = &[
     (iext::ENC_Z64 | 0x1, "ext_qos"),
     (iext::ENC_ZBUF | 0x2, "ext_tstamp"),
     (iext::ENC_Z64 | 0x3, "ext_nodeid"),
+];
+
+// Request has the three above, and the query's target, budget and timeout.
+const REQUEST_EXT: &[(u8, &str)] = &[
+    (iext::ENC_Z64 | 0x1, "ext_qos"),
+    (iext::ENC_ZBUF | 0x2, "ext_tstamp"),
+    (iext::ENC_Z64 | 0x3, "ext_nodeid"),
+    (iext::ENC_Z64 | 0x4, "ext_target"),
+    (iext::ENC_Z64 | 0x5, "ext_budget"),
+    (iext::ENC_Z64 | 0x6, "ext_timeout"),
 ];
 
 // ---------------------------------------------------------------------------
@@ -618,26 +688,62 @@ fn record_push_spans(
 }
 
 // ---------------------------------------------------------------------------
-// Put body: header byte + optional timestamp + optional encoding + extensions + payload
+// Push body: a Put or a Del. The first byte is the body header; its id says which.
+// Put: header, optional timestamp and encoding, extensions, payload
+// Del: header, optional timestamp, extensions. A Del has no payload.
 // ---------------------------------------------------------------------------
 fn record_put_body_spans(
     cursor: &mut SpanCursor,
     prefix: &str, // e.g. "zenoh.body.frame.payload.body.push.payload"
     map: &mut SpanMap,
 ) -> Result<()> {
-    use zenoh_protocol::zenoh::put::flag as put_flag;
+    use zenoh_protocol::zenoh::id as zid;
 
-    let put_header: u8 = cursor.decode()?;
+    let body_header: u8 = cursor.decode()?;
+    match imsg::mid(body_header) {
+        zid::PUT => record_put_fields(cursor, body_header, prefix, map),
+        zid::DEL => record_del_fields(cursor, body_header, prefix, map),
+        // Not a body this recorder knows. The caller resyncs to the end of the message.
+        _ => Ok(()),
+    }
+}
+
+fn record_timestamp_span(cursor: &mut SpanCursor, key: String, map: &mut SpanMap) -> Result<()> {
+    // Timestamp: u64 (VLE) + u8 size + [u8; size]
+    let b = cursor.checkpoint();
+    let _: u64 = cursor.decode()?;
+    let id_size: u8 = cursor.decode()?;
+    cursor.skip(id_size as usize)?;
+    map.insert(key, cursor.span_since(b));
+    Ok(())
+}
+
+fn record_del_fields(
+    cursor: &mut SpanCursor,
+    body_header: u8,
+    prefix: &str,
+    map: &mut SpanMap,
+) -> Result<()> {
+    use zenoh_protocol::zenoh::del::flag as del_flag;
+
+    if imsg::has_flag(body_header, del_flag::T) {
+        record_timestamp_span(cursor, format!("{prefix}.del.timestamp"), map)?;
+    }
+    skip_extensions(cursor, imsg::has_flag(body_header, del_flag::Z))
+}
+
+fn record_put_fields(
+    cursor: &mut SpanCursor,
+    put_header: u8,
+    prefix: &str,
+    map: &mut SpanMap,
+) -> Result<()> {
+    use zenoh_protocol::zenoh::put::flag as put_flag;
 
     let put_prefix = format!("{prefix}.put");
 
     if imsg::has_flag(put_header, put_flag::T) {
-        // Timestamp: u64 (VLE) + u8 size + [u8; size]
-        let b = cursor.checkpoint();
-        let _: u64 = cursor.decode()?;
-        let id_size: u8 = cursor.decode()?;
-        cursor.skip(id_size as usize)?;
-        map.insert(format!("{put_prefix}.timestamp"), cursor.span_since(b));
+        record_timestamp_span(cursor, format!("{put_prefix}.timestamp"), map)?;
     }
 
     if imsg::has_flag(put_header, put_flag::E) {
@@ -652,17 +758,33 @@ fn record_put_body_spans(
         map.insert(format!("{put_prefix}.encoding"), cursor.span_since(b));
     }
 
-    // Put extensions: ext_sinfo=ZBUF|0x1=0x41, ext_attachment=ZBUF|0x5=0x45
-    skip_extensions(cursor, imsg::has_flag(put_header, put_flag::Z))?;
+    // Put extensions: ext_sinfo=ZBUF|0x1, ext_shm=UNIT|0x2 (mandatory), ext_attachment=ZBUF|0x3
+    let extensions = scan_extensions(cursor, imsg::has_flag(put_header, put_flag::Z))?;
+    let sliced = extensions.contains(&(iext::ENC_UNIT | 0x2));
 
-    // Payload = VLE(len) + bytes; record only the bytes, not the length prefix
-    if let Ok(payload_len) = cursor.decode::<u64>() {
+    let b = cursor.checkpoint();
+    if sliced {
+        // With the shared-memory extension the payload is a list of slices: a count, then for
+        // each slice a kind byte and a length-prefixed body (the bytes, or the shm descriptor).
+        let count: u64 = cursor.decode()?;
+        for _ in 0..count {
+            let _kind: u8 = cursor.decode()?;
+            let len: u64 = cursor.decode()?;
+            cursor.skip(len as usize)?;
+        }
+    } else if let Ok(payload_len) = cursor.decode::<u64>() {
+        // Payload = VLE(len) + bytes; record only the bytes, not the length prefix
         let b = cursor.checkpoint();
         let _ = cursor.skip(payload_len as usize);
         let span = cursor.span_since(b);
         if !span.is_empty() {
             map.insert(format!("{put_prefix}.payload"), span);
         }
+        return Ok(());
+    }
+    let span = cursor.span_since(b);
+    if !span.is_empty() {
+        map.insert(format!("{put_prefix}.payload"), span);
     }
 
     Ok(())
@@ -692,7 +814,7 @@ fn record_request_spans(
         cursor,
         imsg::has_flag(header, req_flag::Z),
         &format!("{prefix}.request"),
-        NET_EXT,
+        REQUEST_EXT,
         map,
     )
 }
@@ -725,6 +847,7 @@ fn record_response_spans(
         &[
             (iext::ENC_Z64 | 0x1, "ext_qos"),
             (iext::ENC_ZBUF | 0x2, "ext_tstamp"),
+            (iext::ENC_ZBUF | 0x3, "ext_respid"),
         ],
         map,
     )
@@ -814,6 +937,11 @@ fn record_declare_spans(
                 map,
                 has_suffix,
             )?;
+            record_mapping_span(
+                db_start,
+                &format!("{prefix}.declare.declare_subscriber"),
+                map,
+            );
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
             map.insert(
                 format!("{prefix}.declare.declare_subscriber"),
@@ -834,6 +962,11 @@ fn record_declare_spans(
                 map,
                 has_suffix,
             )?;
+            record_mapping_span(
+                db_start,
+                &format!("{prefix}.declare.declare_queryable"),
+                map,
+            );
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
             map.insert(
                 format!("{prefix}.declare.declare_queryable"),
@@ -854,6 +987,7 @@ fn record_declare_spans(
                 map,
                 has_suffix,
             )?;
+            record_mapping_span(db_start, &format!("{prefix}.declare.declare_token"), map);
             skip_extensions(cursor, imsg::has_flag(db_header, 0x80))?;
             map.insert(
                 format!("{prefix}.declare.declare_token"),

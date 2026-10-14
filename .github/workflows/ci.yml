@@ -147,7 +147,8 @@ jobs:
         if: matrix.platform == 'macos'
         run: |
           WS_PREFIX="$(brew --prefix wireshark)"
-          export PKG_CONFIG_PATH="${WS_PREFIX}/lib/pkgconfig:$(brew --prefix)/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          PKG_CONFIG_PATH="${WS_PREFIX}/lib/pkgconfig:$(brew --prefix)/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          export PKG_CONFIG_PATH
           cmake -B _tmp/cmake-build -S . \
             -DZENOH_CODEC_FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.dylib" \
             -DCMAKE_PREFIX_PATH="${WS_PREFIX}"

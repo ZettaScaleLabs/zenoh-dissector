@@ -217,19 +217,33 @@ endif()
 
 # ---------------------------------------------------------------------------
 # Rust cdylib path (built separately with: cargo build -p zenoh-codec-ffi)
-# Default to debug build; override with -DZENOH_CODEC_FFI_LIB=...
+# The Cargo profile follows CMAKE_BUILD_TYPE: Release, RelWithDebInfo and MinSizeRel link
+# target/release, anything else links target/debug. Override with -DZENOH_CODEC_FFI_LIB=...
 # ---------------------------------------------------------------------------
 
 if(NOT DEFINED ZENOH_CODEC_FFI_LIB)
+    if(CMAKE_BUILD_TYPE MATCHES "^(Release|RelWithDebInfo|MinSizeRel)$")
+        set(_FFI_PROFILE release)
+    else()
+        set(_FFI_PROFILE debug)
+    endif()
     if(WIN32)
         # MSVC linker needs the import lib (.dll.lib), not the DLL itself.
         # Cargo produces zenoh_codec_ffi.dll.lib alongside zenoh_codec_ffi.dll.
-        set(ZENOH_CODEC_FFI_LIB "${CMAKE_SOURCE_DIR}/target/debug/zenoh_codec_ffi.dll.lib")
+        set(ZENOH_CODEC_FFI_LIB "${CMAKE_SOURCE_DIR}/target/${_FFI_PROFILE}/zenoh_codec_ffi.dll.lib")
     elseif(APPLE)
-        set(ZENOH_CODEC_FFI_LIB "${CMAKE_SOURCE_DIR}/target/debug/libzenoh_codec_ffi.dylib")
+        set(ZENOH_CODEC_FFI_LIB "${CMAKE_SOURCE_DIR}/target/${_FFI_PROFILE}/libzenoh_codec_ffi.dylib")
     else()
-        set(ZENOH_CODEC_FFI_LIB "${CMAKE_SOURCE_DIR}/target/debug/libzenoh_codec_ffi.so")
+        set(ZENOH_CODEC_FFI_LIB "${CMAKE_SOURCE_DIR}/target/${_FFI_PROFILE}/libzenoh_codec_ffi.so")
     endif()
+endif()
+
+# The file the plugin loads at run time. It is the library itself, except on Windows, where
+# the linker input is the .dll.lib import library and the loader needs the DLL beside it.
+if(WIN32 AND ZENOH_CODEC_FFI_LIB MATCHES "\\.dll\\.lib$")
+    string(REGEX REPLACE "\\.lib$" "" ZENOH_CODEC_FFI_RUNTIME "${ZENOH_CODEC_FFI_LIB}")
+else()
+    set(ZENOH_CODEC_FFI_RUNTIME "${ZENOH_CODEC_FFI_LIB}")
 endif()
 
 # ---------------------------------------------------------------------------
@@ -310,3 +324,18 @@ endif()
 install(TARGETS packet-zenoh
         LIBRARY DESTINATION "${WIRESHARK_PLUGIN_DIR}"
         RUNTIME DESTINATION "${WIRESHARK_PLUGIN_DIR}")
+
+# The plugin cannot load without the Rust library, so install it beside the plugin. On Linux and
+# macOS the plugin's rpath ($ORIGIN, @loader_path) finds it there.
+install(FILES "${ZENOH_CODEC_FFI_RUNTIME}" DESTINATION "${WIRESHARK_PLUGIN_DIR}")
+
+if(WIN32)
+    # LoadLibrary does not search the plugin's own directory for its dependencies. The DLL must
+    # also sit in the Wireshark program directory, next to tshark.exe.
+    if(DEFINED WIRESHARK_PROGRAM_DIR)
+        install(FILES "${ZENOH_CODEC_FFI_RUNTIME}" DESTINATION "${WIRESHARK_PROGRAM_DIR}")
+    else()
+        message(STATUS "Set -DWIRESHARK_PROGRAM_DIR=<dir with tshark.exe> so install also copies "
+                       "the codec DLL where Windows looks for it")
+    endif()
+endif()

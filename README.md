@@ -80,7 +80,7 @@ just build          # build everything (debug)
 just build-release  # build everything (release)
 just build-codec    # Rust cdylib only
 just build-plugin   # C plugin only (cmake already configured)
-just install        # build + install to Wireshark plugin dir (Linux/macOS)
+just install        # debug build + symlink into the Wireshark plugin dir (Linux/macOS)
 just test           # unit + integration tests (integration tests need tshark; without it they are skipped, or fail if ZENOH_REQUIRE_TSHARK is set)
 just check          # fmt + clippy
 just clean          # remove all build artifacts
@@ -92,6 +92,17 @@ Or step by step:
 cargo build -p zenoh-codec-ffi -j4   # Rust cdylib
 cmake -B _tmp/cmake-build -S .        # C plugin configure
 cmake --build _tmp/cmake-build -j4   # C plugin build
+```
+
+The `just` recipes need a Unix shell. On Windows, build in a Visual Studio developer shell after the prerequisites above. This is the release build that the release workflow runs; it needs MSYS2's `pkg-config`, which the helper script installs:
+
+```powershell
+cargo build -p zenoh-codec-ffi --release -j4
+cmake -B _tmp/cmake-build -S . `
+  -DZENOH_CODEC_FFI_LIB="$PWD\target\release\zenoh_codec_ffi.dll.lib" `
+  -DWIRESHARK_VERSION=4.6.4 `
+  -DPKG_CONFIG_EXECUTABLE=C:/msys64/mingw64/bin/pkg-config.exe
+cmake --build _tmp/cmake-build --config Release -j4
 ```
 
 **When to rebuild each component:**
@@ -110,9 +121,7 @@ On Linux and macOS:
 just install
 ```
 
-This builds both components and copies them to the Wireshark personal plugin directory automatically.
-
-On Windows, or to install manually:
+This builds the debug version of both components and links them into the Wireshark personal plugin directory. The links point at your build tree, so a rebuild is enough to update the plugin, and `just clean` removes what they point at. To install a release build, or a copy that does not depend on the build tree, install manually:
 
 - **Linux**
 
@@ -138,9 +147,9 @@ On Windows, or to install manually:
     $plugin_dir = "$Env:APPDATA\Wireshark\plugins\4.6\epan"
     New-Item -ItemType Directory -Force -Path $plugin_dir | Out-Null
     Copy-Item _tmp\cmake-build\Release\packet-zenoh.dll $plugin_dir
-    Copy-Item target\debug\zenoh_codec_ffi.dll $plugin_dir
+    Copy-Item target\release\zenoh_codec_ffi.dll $plugin_dir
     # Also place the FFI DLL next to tshark.exe so LoadLibrary can find it
-    Copy-Item target\debug\zenoh_codec_ffi.dll "C:\Program Files\Wireshark\"
+    Copy-Item target\release\zenoh_codec_ffi.dll "C:\Program Files\Wireshark\"
     ```
 
 ## Usage
@@ -165,7 +174,7 @@ tshark -r ./assets/sample-data.pcap
 
 ### Session and compression fields
 
-Every packet is annotated with the session peers' ZIDs (`zenoh.session.src_zid`, `zenoh.session.dst_zid`), taken from the Init and Join messages of the conversation. Push, Request and Response messages that refer to a key expression by integer scope show the resolved key expression as `zenoh.key_expr_resolved`, using the DeclareKeyExpr mappings seen earlier in the capture, including on another TCP connection of the same peer. When compression is negotiated, batches are decompressed transparently and marked with `zenoh.batch.compressed`.
+Every packet is annotated with the session peers' ZIDs (`zenoh.session.src_zid`, `zenoh.session.dst_zid`), taken from the Init and Join messages of the conversation. Push, Request and Response messages that refer to a key expression by integer scope show the resolved key expression as `zenoh.key_expr_resolved`, using the DeclareKeyExpr mappings seen earlier in the capture, including on another TCP connection, as long as both connections announced the same ZID. When compression is negotiated, batches are decompressed transparently and marked with `zenoh.batch.compressed`.
 
 ### Heuristic dissector
 

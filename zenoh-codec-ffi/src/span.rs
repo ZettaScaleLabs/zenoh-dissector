@@ -68,6 +68,15 @@ impl<'a> SpanCursor<'a> {
         self.remaining = &self.remaining[self.remaining.len()..];
     }
 
+    /// Move to the absolute byte `offset` from the start of the buffer.
+    pub fn seek(&mut self, offset: usize) -> Result<()> {
+        if offset > self.full.len() {
+            return Err(anyhow!("SpanCursor: seek past the end of the buffer"));
+        }
+        self.remaining = &self.full[offset..];
+        Ok(())
+    }
+
     /// Skip `n` bytes without recording a span.
     pub fn skip(&mut self, n: usize) -> Result<()> {
         if self.remaining.len() < n {

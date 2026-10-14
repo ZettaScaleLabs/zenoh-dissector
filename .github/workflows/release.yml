@@ -116,13 +116,9 @@ jobs:
       - name: Install dependencies (macOS)
         if: matrix.build.platform == 'macos'
         run: |
-          brew install --cask wireshark
-          brew install cmake
-          WS_FW=/Applications/Wireshark.app/Contents/Frameworks
-          ln -sf "$(find $WS_FW -name 'libwireshark.*.dylib' | sort | tail -1)" libwireshark.dylib
-          ln -sf "$(find $WS_FW -name 'libwiretap.*.dylib'   | sort | tail -1)" libwiretap.dylib
-          ln -sf "$(find $WS_FW -name 'libwsutil.*.dylib'    | sort | tail -1)" libwsutil.dylib
-          echo "WIRESHARK_LIB_DIR=${{ github.workspace }}" >> "$GITHUB_ENV"
+          # The formula, not the cask: the plugin build needs the development headers and the
+          # GLib pkg-config metadata, as in ci.yml.
+          brew install wireshark cmake
 
       - name: Build Wireshark from source (Windows)
         if: matrix.build.platform == 'windows'
@@ -139,12 +135,25 @@ jobs:
       - name: Build C plugin (cmake)
         shell: bash
         run: |
+          # Same configure arguments as the matching job in ci.yml.
+          EXTRA=()
           case "${{ matrix.build.platform }}" in
             linux)   FFI_LIB="$(pwd)/target/release/libzenoh_codec_ffi.so" ;;
-            macos)   FFI_LIB="$(pwd)/target/release/libzenoh_codec_ffi.dylib" ;;
-            windows) FFI_LIB="$(pwd)/target/release/zenoh_codec_ffi.dll.lib" ;;
+            macos)
+              FFI_LIB="$(pwd)/target/release/libzenoh_codec_ffi.dylib"
+              WS_PREFIX="$(brew --prefix wireshark)"
+              PKG_CONFIG_PATH="${WS_PREFIX}/lib/pkgconfig:$(brew --prefix)/lib/pkgconfig:${PKG_CONFIG_PATH}"
+              export PKG_CONFIG_PATH
+              EXTRA+=("-DCMAKE_PREFIX_PATH=${WS_PREFIX}")
+              ;;
+            windows)
+              FFI_LIB="$(pwd)/target/release/zenoh_codec_ffi.dll.lib"
+              EXTRA+=("-DWIRESHARK_VERSION=${{ steps.wireshark-version.outputs.version }}")
+              EXTRA+=("-DPKG_CONFIG_EXECUTABLE=C:/msys64/mingw64/bin/pkg-config.exe")
+              ;;
           esac
-          cmake -B _tmp/cmake-build -S . -DZENOH_CODEC_FFI_LIB="$FFI_LIB"
+          cmake -B _tmp/cmake-build -S . -DCMAKE_BUILD_TYPE=Release \
+            -DZENOH_CODEC_FFI_LIB="$FFI_LIB" "${EXTRA[@]}"
           cmake --build _tmp/cmake-build --config Release -j4
 
       - name: Package
@@ -165,9 +174,11 @@ jobs:
                 target/release/libzenoh_codec_ffi.dylib
               ;;
             windows)
-              7z a "${PKG_PATH}" \
-                _tmp/cmake-build/Release/packet-zenoh.dll \
-                target/release/zenoh_codec_ffi.dll
+              # Stage the files flat: 7z stores the paths it is given, and the release note
+              # tells users to copy the two files from the top of the zip.
+              mkdir -p _tmp/stage
+              cp _tmp/cmake-build/Release/packet-zenoh.dll target/release/zenoh_codec_ffi.dll _tmp/stage/
+              (cd _tmp/stage && 7z a "${PKG_PATH}" packet-zenoh.dll zenoh_codec_ffi.dll)
               ;;
           esac
           echo "name=${PKG_NAME}" >> "$GITHUB_OUTPUT"
@@ -216,16 +227,19 @@ jobs:
           let pkg_ver = ($metadata.packages | where name == "zenoh-codec-ffi" | get version | first)
           let zenoh_ver = ($metadata.packages | where name == "zenoh-protocol" | get version | first)
           let wireshark_ver = (open Cargo.toml | get workspace.metadata.wireshark_version)
+          # Wireshark names its plugin directory by major.minor, for example 4.6
+          let wireshark_mm = ($wireshark_ver | split row "." | first 2 | str join ".")
 
           print $"Package version: ($pkg_ver)"
           print $"Zenoh version: ($zenoh_ver)"
           print $"Wireshark version: ($wireshark_ver)"
 
-          let template = (open .github/workflows/release-note.md)
+          let template = (open --raw .github/workflows/release-note.md)
           let note = ($template
             | str replace -a '${PKG_VER}' $pkg_ver
             | str replace -a '${ZENOH_VER}' $zenoh_ver
             | str replace -a '${WIRESHARK_VER}' $wireshark_ver
+            | str replace -a '${WIRESHARK_MM}' $wireshark_mm
             | str replace -a '${SHA256SUM}' $sha256sum)
 
           $note | save release-note.md

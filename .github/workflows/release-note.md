@@ -6,42 +6,38 @@
 
 ## Installation
 
-Download and extract the corresponding zip file for your platform. The plugin path uses the Wireshark major.minor version format.
+Download and extract the zip file for your platform. It holds two files that work together: the Wireshark plugin `packet-zenoh` and the codec library `zenoh_codec_ffi`. Put both in the Wireshark plugin directory. The directory name uses the major and minor Wireshark version, `${WIRESHARK_MM}`. The plugin only loads in that Wireshark version.
 
 ### Linux
 
-For Wireshark ${WIRESHARK_VER}:
-
 ```bash
-mkdir -p ~/.local/lib/wireshark/plugins/${WIRESHARK_VER}/epan
-cp libzenoh_dissector.so ~/.local/lib/wireshark/plugins/${WIRESHARK_VER}/epan/libzenoh_dissector.so
+mkdir -p ~/.local/lib/wireshark/plugins/${WIRESHARK_MM}/epan
+cp packet-zenoh.so libzenoh_codec_ffi.so ~/.local/lib/wireshark/plugins/${WIRESHARK_MM}/epan/
 ```
 
 ### macOS
 
-For Wireshark ${WIRESHARK_VER} (macOS uses dash format):
+macOS uses a dash in the directory name. Ask tshark for the directory:
 
 ```bash
-WIRESHARK_VER_MACOS=$(echo "${WIRESHARK_VER}" | tr '.' '-')
-mkdir -p ~/.local/lib/wireshark/plugins/$WIRESHARK_VER_MACOS/epan
-cp libzenoh_dissector.so ~/.local/lib/wireshark/plugins/$WIRESHARK_VER_MACOS/epan/libzenoh_dissector.so
+PLUGIN_DIR=$(tshark -G folders | awk -F'\t' '/Personal Plugins/{print $NF}')/epan
+mkdir -p "$PLUGIN_DIR"
+cp packet-zenoh.so libzenoh_codec_ffi.dylib "$PLUGIN_DIR/"
 ```
 
 ### Windows
 
-For Wireshark ${WIRESHARK_VER}:
+Windows does not search the plugin directory for the plugin's own libraries. Copy `zenoh_codec_ffi.dll` to the plugin directory and also next to `tshark.exe`:
 
 ```powershell
-$${empty}wireshark_ver = "${WIRESHARK_VER}"
-$${empty}epan_dir = "$${empty}Env:APPDATA\Wireshark\plugins\$${empty}wireshark_ver\epan"
-if (-Not (Test-Path $${empty}epan_dir)) {
-    mkdir -p $${empty}epan_dir
-}
-cp zenoh_dissector.dll $${empty}epan_dir
+$epan_dir = "$Env:APPDATA\Wireshark\plugins\${WIRESHARK_MM}\epan"
+New-Item -ItemType Directory -Force -Path $epan_dir | Out-Null
+Copy-Item packet-zenoh.dll, zenoh_codec_ffi.dll $epan_dir
+Copy-Item zenoh_codec_ffi.dll "C:\Program Files\Wireshark\"
 ```
 
 ## SHA256 Checksums
 
 ```txt
-$SHA256SUM
+${SHA256SUM}
 ```

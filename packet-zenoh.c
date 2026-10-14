@@ -15,6 +15,7 @@
 #include <epan/address.h>
 #include <epan/to_str.h>
 #include <epan/conversation.h>
+#include <epan/proto_data.h>
 #include <epan/dissectors/packet-tcp.h>
 #include <glib.h>
 #include <string.h>
@@ -54,12 +55,22 @@ static GHashTable *g_hf_by_key = NULL;
 static GHashTable *g_name_by_key = NULL;
 
 /* ---------------------------------------------------------------------------
- * Cross-link key-expr map: (src_ip_str "/" scope_id) → gchar* suffix
- * Populated from DeclareKeyExpr on any link; used to resolve wire_expr scopes
- * on other links from the same peer (multi-link sessions).
- * Reinitialized per capture file via register_init_routine.
+ * Capture-wide peer state, reinitialised per capture file (register_init_routine).
+ *
+ * An IP address does not identify a Zenoh peer: two processes on one host share it, and both
+ * ends of a loopback connection do. A peer is identified by its ZID, which it announces in Init
+ * and Join. Until a ZID is known for an endpoint, nothing is shared with other links.
  * --------------------------------------------------------------------------- */
-static wmem_map_t *g_cross_link_key_expr = NULL;
+
+/* "<addr>:<port>" -> ZID entry (byte 0 = length, then the ZID bytes) */
+static wmem_map_t *g_zid_by_endpoint = NULL;
+/* "<zid hex>/<key-expr id>" -> resolved key expression, shared by every link of that peer */
+static wmem_map_t *g_decl_by_zid = NULL;
+
+/* Subtree handles: field key -> gint* (into g_ett_handles); keys of fields that open a subtree */
+static GHashTable *g_ett_by_key = NULL;
+static GHashTable *g_branch_by_key = NULL;
+static gint ett_zenoh = -1;
 
 /* ---------------------------------------------------------------------------
  * Static synthetic fields: session ZID and resolved key-expr
@@ -91,16 +102,17 @@ static hf_register_info g_static_hf[] = {
  * --------------------------------------------------------------------------- */
 
 typedef struct {
-    /* ZID per source address: gchar* addr_str → uint8_t* (byte[0]=len, bytes[1..n]=ZID) */
-    wmem_map_t *zid_map;
-    /* Key-expr mapping, per sender: "<src_addr>:<src_port>/<id>" → gchar* suffix string.
-     * An id is only meaningful to the peer that declared it, so both directions of one
-     * connection need separate tables. */
+    /* Key-expr declarations of this connection, per declaring endpoint:
+     * "<addr>:<port>/<id>" -> resolved key expression. An id is only meaningful to the peer
+     * that declared it, so the two directions of one connection keep separate tables. */
     wmem_map_t *key_expr_map;
-    /* True once compression is negotiated (InitAck/OpenSyn/OpenAck with ext_compression seen).
-     * When true, every batch from the initiator direction (and both directions after OpenAck)
-     * carries a one-byte BatchHeader prefix before the zenoh payload. */
+    /* True once compression is negotiated (an InitAck, OpenSyn or OpenAck with ext_compression
+     * was seen). */
     bool is_compression;
+    /* True once the OpenAck has been seen. Zenoh runs the whole Init and Open exchange with
+     * compression off; only after the OpenAck does a connection with compression negotiated
+     * start every batch with a one-byte BatchHeader. */
+    bool handshake_done;
 } zenoh_conv_data_t;
 
 static zenoh_conv_data_t *get_conv_data(packet_info *pinfo)
@@ -109,7 +121,6 @@ static zenoh_conv_data_t *get_conv_data(packet_info *pinfo)
     zenoh_conv_data_t *data = (zenoh_conv_data_t *)conversation_get_proto_data(conv, proto_zenoh);
     if (!data) {
         data = wmem_new0(wmem_file_scope(), zenoh_conv_data_t);
-        data->zid_map = wmem_map_new(wmem_file_scope(), g_str_hash, g_str_equal);
         data->key_expr_map = wmem_map_new(wmem_file_scope(), g_str_hash, g_str_equal);
         conversation_add_proto_data(conv, proto_zenoh, data);
     }
@@ -240,9 +251,278 @@ static void build_info_col(packet_info *pinfo, const CSpanEntry *spans, uint32_t
 }
 
 /* ---------------------------------------------------------------------------
- * update_conv_and_annotate: extract ZID / DeclareKeyExpr from spans,
- * update conversation state, then annotate the tree with session ZID fields
- * and resolved key-expr strings.
+ * Per-PDU results
+ *
+ * Everything that depends on the capture so far is decided once, the first time a PDU is
+ * dissected, and kept with the PDU. Dissecting the packet again (clicking it, tshark -2, a
+ * filter) then shows what was true when it arrived, not what the conversation state became by
+ * the end of the capture.
+ * --------------------------------------------------------------------------- */
+
+typedef struct {
+    bool decided;           /* has_batch_header is settled */
+    bool has_batch_header;  /* the batch starts with a one-byte BatchHeader */
+    bool analyzed;          /* conversation state is updated and the fields below are final */
+    uint8_t *src_zid;       /* ZID entry of the sender, or NULL */
+    uint8_t *dst_zid;       /* ZID entry of the destination, or NULL */
+    /* position in the decoded buffer + 1 (as a pointer) -> resolved key expression */
+    wmem_map_t *resolved;
+} zenoh_pdu_t;
+
+static zenoh_pdu_t *get_pdu(packet_info *pinfo, tvbuff_t *tvb)
+{
+    /* A frame can hold several PDUs. They differ in their place in the frame's data and length. */
+    uint32_t key = (uint32_t)tvb_raw_offset(tvb) * 31u + (uint32_t)tvb_captured_length(tvb);
+    zenoh_pdu_t *pdu = (zenoh_pdu_t *)p_get_proto_data(wmem_file_scope(), pinfo, proto_zenoh, key);
+    if (!pdu) {
+        pdu = wmem_new0(wmem_file_scope(), zenoh_pdu_t);
+        pdu->resolved = wmem_map_new(wmem_file_scope(), g_direct_hash, g_direct_equal);
+        p_add_proto_data(wmem_file_scope(), pinfo, proto_zenoh, key, pdu);
+    }
+    return pdu;
+}
+
+/* "<addr>:<port>": the address alone does not tell two peers on one host apart. */
+static char *endpoint_str(wmem_allocator_t *scope, const address *addr, uint32_t port)
+{
+    return wmem_strdup_printf(scope, "%s:%u", address_to_str(scope, addr), (unsigned)port);
+}
+
+static char *zid_hex(wmem_allocator_t *scope, const uint8_t *entry)
+{
+    wmem_strbuf_t *buf = wmem_strbuf_new(scope, "");
+    for (uint8_t i = 0; i < entry[0]; i++)
+        wmem_strbuf_append_printf(buf, "%02x", entry[1 + i]);
+    return wmem_strbuf_finalize(buf);
+}
+
+static const uint8_t *zid_of(const char *endpoint)
+{
+    return g_zid_by_endpoint ? (const uint8_t *)wmem_map_lookup(g_zid_by_endpoint, endpoint) : NULL;
+}
+
+/* Key expression `id` as declared by the endpoint `ep`. The connection's own table answers
+ * first. Another link answers only if it belongs to the same peer, which the ZID confirms. */
+static const char *lookup_decl(zenoh_conv_data_t *conv, const char *ep, uint64_t id,
+                               wmem_allocator_t *tmp)
+{
+    char *key = wmem_strdup_printf(tmp, "%s/%u", ep, (unsigned)id);
+    const char *found = (const char *)wmem_map_lookup(conv->key_expr_map, key);
+    if (found)
+        return found;
+    const uint8_t *zid = zid_of(ep);
+    if (zid && g_decl_by_zid) {
+        char *zkey = wmem_strdup_printf(tmp, "%s/%u", zid_hex(tmp, zid), (unsigned)id);
+        found = (const char *)wmem_map_lookup(g_decl_by_zid, zkey);
+    }
+    return found;
+}
+
+/* One DeclareKeyExpr, gathered from its id, scope and suffix spans. */
+typedef struct {
+    bool     have;
+    uint64_t id;
+    uint64_t scope;
+    const char *suffix; /* NULL when the wire expression has none */
+} decl_t;
+
+/* The endpoint no longer has this id: it undeclared it, or declared it again in terms the
+ * capture cannot resolve. A later Push must not resolve to what the id used to mean. */
+static void forget_decl(zenoh_conv_data_t *conv, packet_info *pinfo, const char *ep, uint64_t id)
+{
+    wmem_map_remove(conv->key_expr_map,
+                    wmem_strdup_printf(pinfo->pool, "%s/%u", ep, (unsigned)id));
+    const uint8_t *zid = zid_of(ep);
+    if (zid && g_decl_by_zid) {
+        wmem_map_remove(g_decl_by_zid,
+                        wmem_strdup_printf(pinfo->pool, "%s/%u", zid_hex(pinfo->pool, zid),
+                                           (unsigned)id));
+    }
+}
+
+static void commit_decl(zenoh_conv_data_t *conv, packet_info *pinfo, const char *src_ep,
+                        const decl_t *d)
+{
+    if (!d->have)
+        return;
+    /* A declaration may build on an earlier one: scope names the id it extends. */
+    const char *base = "";
+    if (d->scope != 0) {
+        base = lookup_decl(conv, src_ep, d->scope, pinfo->pool);
+        if (!base) {
+            forget_decl(conv, pinfo, src_ep, d->id);
+            return;
+        }
+    }
+    char *full = wmem_strdup_printf(wmem_file_scope(), "%s%s", base, d->suffix ? d->suffix : "");
+    wmem_map_insert(conv->key_expr_map,
+                    wmem_strdup_printf(wmem_file_scope(), "%s/%u", src_ep, (unsigned)d->id),
+                    full);
+    const uint8_t *zid = zid_of(src_ep);
+    if (zid && g_decl_by_zid) {
+        wmem_map_insert(g_decl_by_zid,
+                        wmem_strdup_printf(wmem_file_scope(), "%s/%u",
+                                           zid_hex(wmem_file_scope(), zid), (unsigned)d->id),
+                        full);
+    }
+}
+
+/* The string a suffix span holds: a VLE length, then that many bytes. */
+static const char *suffix_str(const uint8_t *payload, uint32_t payload_len, uint32_t off)
+{
+    if (off >= payload_len)
+        return NULL;
+    int vle_bytes = 0;
+    uint64_t str_len = vle_at(payload, off, payload_len, &vle_bytes);
+    uint64_t str_off = (uint64_t)off + (uint64_t)vle_bytes;
+    if (str_off + str_len > payload_len)
+        return NULL;
+    return wmem_strndup(wmem_file_scope(), (const gchar *)(payload + str_off), (gsize)str_len);
+}
+
+static bool is_wire_expr_scope(const char *key)
+{
+    return key_endswith(key, ".wire_expr.scope") && !strstr(key, "declare_key_expr");
+}
+
+/* Header flag M of a Push, Request or Response: set means the key-expression ids are the ones
+ * the sender declared, clear means the ones the receiver declared. */
+#define ZENOH_FLAG_MAPPING_SENDER 0x40
+
+/* Work out, once per PDU, what the capture so far says about it: update the peer and
+ * declaration tables, and resolve the wire expressions this PDU carries. */
+static void analyze_pdu(zenoh_pdu_t *pdu, zenoh_conv_data_t *conv, const CSpanEntry *spans,
+                        uint32_t count, const uint8_t *payload, uint32_t payload_len,
+                        int payload_offset, packet_info *pinfo)
+{
+    char *src_ep = endpoint_str(wmem_file_scope(), &pinfo->src, pinfo->srcport);
+    char *dst_ep = endpoint_str(wmem_file_scope(), &pinfo->dst, pinfo->destport);
+
+    /* --- ZID: the sender of an InitSyn, InitAck or Join announces its own --- */
+    for (uint32_t i = 0; i < count; i++) {
+        const char *k = spans[i].key;
+        if (!key_endswith(k, ".zid"))
+            continue;
+        if (!strstr(k, "init_syn") && !strstr(k, "init_ack") && !strstr(k, ".join."))
+            continue;
+        uint32_t off = spans[i].start, len = spans[i].length;
+        if (len == 0 || off + len > payload_len)
+            continue;
+        uint8_t *entry = (uint8_t *)wmem_alloc(wmem_file_scope(), 1 + len);
+        entry[0] = (uint8_t)len;
+        memcpy(entry + 1, payload + off, len);
+        wmem_map_insert(g_zid_by_endpoint, src_ep, entry);
+    }
+    pdu->src_zid = (uint8_t *)wmem_map_lookup(g_zid_by_endpoint, src_ep);
+    pdu->dst_zid = (uint8_t *)wmem_map_lookup(g_zid_by_endpoint, dst_ep);
+
+    /* --- DeclareKeyExpr. Spans arrive in wire order, so a declaration's id comes first and
+     * its scope and suffix follow before the next id. A declaration with no suffix still
+     * pairs with its own id. --- */
+    decl_t cur = { 0 };
+    for (uint32_t i = 0; i < count; i++) {
+        const char *k = spans[i].key;
+        uint32_t off = spans[i].start;
+        if (key_endswith(k, ".declare_key_expr.id")) {
+            commit_decl(conv, pinfo, src_ep, &cur);
+            memset(&cur, 0, sizeof cur);
+            if (off < payload_len) {
+                cur.have = true;
+                cur.id = (uint16_t)vle_at(payload, off, payload_len, NULL);
+            }
+        } else if (cur.have && key_endswith(k, ".declare_key_expr.wire_expr.scope")) {
+            if (off < payload_len)
+                cur.scope = vle_at(payload, off, payload_len, NULL);
+        } else if (cur.have && key_endswith(k, ".declare_key_expr.wire_expr.suffix")) {
+            cur.suffix = suffix_str(payload, payload_len, off);
+        } else if (key_endswith(k, ".undeclare_key_expr.id")) {
+            /* Keep the order of the wire: finish the declaration before it, then forget. */
+            commit_decl(conv, pinfo, src_ep, &cur);
+            memset(&cur, 0, sizeof cur);
+            if (off < payload_len)
+                forget_decl(conv, pinfo, src_ep,
+                            (uint16_t)vle_at(payload, off, payload_len, NULL));
+        }
+    }
+    commit_decl(conv, pinfo, src_ep, &cur);
+
+    /* --- Wire expressions that name a declared id --- */
+    for (uint32_t i = 0; i < count; i++) {
+        const char *k = spans[i].key;
+        uint32_t off = spans[i].start;
+        if (!is_wire_expr_scope(k) || off >= payload_len)
+            continue;
+        uint64_t scope = vle_at(payload, off, payload_len, NULL);
+        if (scope == 0)
+            continue; /* the wire expression is a plain string */
+
+        /* The suffix of this wire expression follows its scope, before the next one. */
+        size_t base_len = strlen(k) - strlen(".scope");
+        const char *suffix = "";
+        for (uint32_t j = i + 1; j < count; j++) {
+            const char *kj = spans[j].key;
+            if (key_endswith(kj, ".wire_expr.scope"))
+                break;
+            if (strlen(kj) == base_len + strlen(".suffix") && strncmp(kj, k, base_len) == 0 &&
+                strcmp(kj + base_len, ".suffix") == 0) {
+                const char *sfx = suffix_str(payload, payload_len, spans[j].start);
+                if (sfx)
+                    suffix = sfx;
+                break;
+            }
+        }
+
+        /* The mapping flag sits in the header byte of the message that holds this wire
+         * expression, which precedes it. Without one, assume the sender's mapping. */
+        bool sender_mapping = true;
+        char *mapping_key = wmem_strdup_printf(pinfo->pool, "%.*s.mapping", (int)base_len, k);
+        for (uint32_t j = i; j-- > 0;) {
+            if (strcmp(spans[j].key, mapping_key) == 0) {
+                if (spans[j].start < payload_len)
+                    sender_mapping =
+                        (payload[spans[j].start] & ZENOH_FLAG_MAPPING_SENDER) != 0;
+                break;
+            }
+        }
+
+        const char *base = lookup_decl(conv, sender_mapping ? src_ep : dst_ep, scope, pinfo->pool);
+        if (!base)
+            continue;
+        wmem_map_insert(pdu->resolved, GUINT_TO_POINTER((guint)(payload_offset + (int)off) + 1),
+                        wmem_strdup_printf(wmem_file_scope(), "%s%s", base, suffix));
+    }
+
+    /* --- Compression negotiation: set after InitAck/OpenSyn/OpenAck with ext_compression.
+     * Setting it after InitAck (not InitSyn) keeps the InitAck batch itself undecorated. --- */
+    if (!conv->is_compression) {
+        for (uint32_t i = 0; i < count; i++) {
+            const char *k = spans[i].key;
+            if (!key_endswith(k, ".ext_compression"))
+                continue;
+            if (strstr(k, "init_ack") || strstr(k, "open_syn") || strstr(k, "open_ack")) {
+                conv->is_compression = true;
+                break;
+            }
+        }
+    }
+
+    /* The OpenAck ends the handshake. Batches after it carry a BatchHeader if compression was
+     * negotiated. */
+    if (!conv->handshake_done) {
+        for (uint32_t i = 0; i < count; i++) {
+            if (key_endswith(spans[i].key, ".open_ack")) {
+                conv->handshake_done = true;
+                break;
+            }
+        }
+    }
+
+    pdu->analyzed = true;
+}
+
+/* ---------------------------------------------------------------------------
+ * update_conv_and_annotate: analyse the PDU once, then annotate the tree with the session ZIDs
+ * and the resolved key expressions that analysis settled.
  * --------------------------------------------------------------------------- */
 
 static void update_conv_and_annotate(
@@ -253,149 +533,35 @@ static void update_conv_and_annotate(
     uint32_t         count,
     const uint8_t   *payload,
     uint32_t         payload_len,
-    packet_info     *pinfo)
+    packet_info     *pinfo,
+    zenoh_pdu_t     *pdu)
 {
-    zenoh_conv_data_t *conv = get_conv_data(pinfo);
-
-    if (!pinfo->fd->visited) {
-        /* --- ZID: store per source address from Init / Join messages --- */
-        for (uint32_t i = 0; i < count; i++) {
-            const char *k = spans[i].key;
-            if (!key_endswith(k, ".zid"))
-                continue;
-            /* Only transport-level ZIDs (InitSyn, InitAck, Join) */
-            if (!strstr(k, "init_syn") && !strstr(k, "init_ack") && !strstr(k, ".join."))
-                continue;
-            uint32_t off = spans[i].start, len = spans[i].length;
-            if (len == 0 || off + len > payload_len)
-                continue;
-            gchar *addr_key = address_to_str(wmem_file_scope(), &pinfo->src);
-            uint8_t *entry = (uint8_t *)wmem_alloc(wmem_file_scope(), 1 + len);
-            entry[0] = (uint8_t)len;
-            memcpy(entry + 1, payload + off, len);
-            wmem_map_insert(conv->zid_map, addr_key, entry);
-        }
-
-        /* --- DeclareKeyExpr: collect (id, suffix) pairs and store in map --- */
-        /* Collect all .declare_key_expr.id span positions */
-        uint16_t id_vals[16];
-        uint32_t n_ids = 0;
-        for (uint32_t i = 0; i < count && n_ids < 16; i++) {
-            if (!key_endswith(spans[i].key, ".declare_key_expr.id"))
-                continue;
-            uint32_t off = spans[i].start;
-            if (off >= payload_len)
-                continue;
-            int nb = 0;
-            uint64_t id = vle_at(payload, off, payload_len, &nb);
-            id_vals[n_ids] = (uint16_t)id;
-            n_ids++;
-        }
-
-        /* Collect all .declare_key_expr.wire_expr.suffix span positions */
-        uint32_t suf_offs[16];
-        uint32_t n_sufs = 0;
-        for (uint32_t i = 0; i < count && n_sufs < 16; i++) {
-            if (!key_endswith(spans[i].key, ".declare_key_expr.wire_expr.suffix"))
-                continue;
-            suf_offs[n_sufs] = spans[i].start;
-            n_sufs++;
-        }
-
-        /* Pair id[p] with suffix[p] — ordering is best-effort for multi-Declare frames */
-        uint32_t pairs = n_ids < n_sufs ? n_ids : n_sufs;
-        gchar *src_addr_file = address_to_str(wmem_file_scope(), &pinfo->src);
-        for (uint32_t p = 0; p < pairs; p++) {
-            uint32_t off = suf_offs[p];
-            if (off >= payload_len)
-                continue;
-            /* The suffix span is: VLE-length-prefix + string bytes */
-            int vle_bytes = 0;
-            uint64_t str_len = vle_at(payload, off, payload_len, &vle_bytes);
-            uint32_t str_off = off + (uint32_t)vle_bytes;
-            if (str_off + str_len > payload_len)
-                continue;
-            gchar *suffix_str = wmem_strndup(wmem_file_scope(),
-                                             (const gchar *)(payload + str_off),
-                                             (gsize)str_len);
-            wmem_map_insert(conv->key_expr_map,
-                            wmem_strdup_printf(wmem_file_scope(), "%s:%u/%u", src_addr_file,
-                                               (unsigned)pinfo->srcport, (unsigned)id_vals[p]),
-                            suffix_str);
-            /* Also store in the cross-link map so other conversations from the same
-             * source IP can resolve this key expression (multi-link sessions). */
-            if (g_cross_link_key_expr) {
-                gchar *xkey = wmem_strdup_printf(wmem_file_scope(), "%s/%u",
-                                                  src_addr_file, (unsigned)id_vals[p]);
-                wmem_map_insert(g_cross_link_key_expr, xkey, suffix_str);
-            }
-        }
-
-        /* --- Compression negotiation: set after InitAck/OpenSyn/OpenAck with ext_compression.
-         * Setting after InitAck (not InitSyn) ensures the InitAck batch itself is decoded
-         * without a BatchHeader, which is correct — the initiator only enables BatchHeader
-         * starting from OpenSyn onward. --- */
-        if (!conv->is_compression) {
-            for (uint32_t i = 0; i < count; i++) {
-                const char *k = spans[i].key;
-                if (!key_endswith(k, ".ext_compression"))
-                    continue;
-                if (strstr(k, "init_ack") || strstr(k, "open_syn") || strstr(k, "open_ack")) {
-                    conv->is_compression = true;
-                    break;
-                }
-            }
-        }
-    }
+    if (!pdu->analyzed)
+        analyze_pdu(pdu, get_conv_data(pinfo), spans, count, payload, payload_len,
+                    payload_offset, pinfo);
 
     /* --- Annotate tree with session ZID (every packet) --- */
-    gchar *src_addr = address_to_str(pinfo->pool, &pinfo->src);
-    gchar *dst_addr = address_to_str(pinfo->pool, &pinfo->dst);
-
-    uint8_t *src_entry = (uint8_t *)wmem_map_lookup(conv->zid_map, src_addr);
-    if (src_entry && src_entry[0] > 0) {
+    if (pdu->src_zid && pdu->src_zid[0] > 0) {
         proto_item *it = proto_tree_add_bytes_with_length(tree, hf_session_src_zid,
                                                           tvb, 0, 0,
-                                                          src_entry + 1, src_entry[0]);
+                                                          pdu->src_zid + 1, pdu->src_zid[0]);
         proto_item_set_len(it, 0);
         PROTO_ITEM_SET_GENERATED(it);
     }
-
-    uint8_t *dst_entry = (uint8_t *)wmem_map_lookup(conv->zid_map, dst_addr);
-    if (dst_entry && dst_entry[0] > 0) {
+    if (pdu->dst_zid && pdu->dst_zid[0] > 0) {
         proto_item *it = proto_tree_add_bytes_with_length(tree, hf_session_dst_zid,
                                                           tvb, 0, 0,
-                                                          dst_entry + 1, dst_entry[0]);
+                                                          pdu->dst_zid + 1, pdu->dst_zid[0]);
         proto_item_set_len(it, 0);
         PROTO_ITEM_SET_GENERATED(it);
     }
 
-    /* --- Resolved wire-expr: Push / Request / Response with non-zero scope --- */
+    /* --- Resolved wire expressions --- */
     for (uint32_t i = 0; i < count; i++) {
-        const char *k = spans[i].key;
-        if (!key_endswith(k, ".wire_expr.scope"))
+        if (!is_wire_expr_scope(spans[i].key))
             continue;
-        /* Skip DeclareKeyExpr's own wire_expr */
-        if (strstr(k, "declare_key_expr"))
-            continue;
-        uint32_t off = spans[i].start;
-        if (off >= payload_len)
-            continue;
-        uint64_t scope = vle_at(payload, off, payload_len, NULL);
-        if (scope == 0)
-            continue; /* full string wire-expr — no resolution needed */
-        gchar *sender_key = wmem_strdup_printf(pinfo->pool, "%s:%u/%u",
-                                               address_to_str(pinfo->pool, &pinfo->src),
-                                               (unsigned)pinfo->srcport, (unsigned)scope);
-        gchar *resolved = (gchar *)wmem_map_lookup(conv->key_expr_map, sender_key);
-        if (!resolved && g_cross_link_key_expr) {
-            /* Cross-link fallback: publisher may have declared the key expr on a
-             * different TCP connection. Key = "<src_ip>/<scope_id>". */
-            gchar *xkey = wmem_strdup_printf(pinfo->pool, "%s/%u",
-                                              address_to_str(pinfo->pool, &pinfo->src),
-                                              (unsigned)scope);
-            resolved = (gchar *)wmem_map_lookup(g_cross_link_key_expr, xkey);
-        }
+        const char *resolved = (const char *)wmem_map_lookup(
+            pdu->resolved, GUINT_TO_POINTER((guint)(payload_offset + (int)spans[i].start) + 1));
         if (!resolved)
             continue;
         proto_item *it = proto_tree_add_string(tree, hf_key_expr_resolved,
@@ -409,19 +575,42 @@ static void update_conv_and_annotate(
 
 /* ---------------------------------------------------------------------------
  * Helper: add all spans from Rust as items in the proto_tree
+ *
+ * Spans arrive in wire order with an enclosing span before the spans it contains. A branch field
+ * (a message or a group of fields) opens a subtree, and the spans that fall inside its byte range
+ * go under it. A repeated message has its own span, so it gets its own subtree.
  * --------------------------------------------------------------------------- */
+
+#define ZENOH_MAX_NEST 32
+
+typedef struct {
+    uint32_t    start;
+    uint32_t    end;
+    proto_tree *tree;
+} nest_t;
 
 static void add_spans_to_tree(proto_tree *tree, tvbuff_t *tvb, int payload_offset,
                                const CSpanEntry *spans, uint32_t count)
 {
+    nest_t stack[ZENOH_MAX_NEST];
+    int depth = 0;
+
     for (uint32_t i = 0; i < count; i++) {
         int *hf_ptr = (int *)g_hash_table_lookup(g_hf_by_key, spans[i].key);
         if (hf_ptr == NULL || *hf_ptr == -1) {
             continue;
         }
-        int start = payload_offset + (int)spans[i].start;
-        int length = (int)spans[i].length;
-        proto_item *it = proto_tree_add_item(tree, *hf_ptr, tvb, start, length, ENC_NA);
+        uint32_t start = spans[i].start;
+        uint32_t end = start + spans[i].length;
+
+        /* Leave every subtree whose byte range does not hold this span. */
+        while (depth > 0 && !(start >= stack[depth - 1].start && end <= stack[depth - 1].end))
+            depth--;
+        proto_tree *parent = depth > 0 ? stack[depth - 1].tree : tree;
+
+        proto_item *it = proto_tree_add_item(parent, *hf_ptr, tvb,
+                                             payload_offset + (int)start,
+                                             (int)spans[i].length, ENC_NA);
         if (spans[i].display[0] != '\0') {
             if (spans[i].replace_display) {
                 const char *fname = (const char *)g_hash_table_lookup(
@@ -432,6 +621,15 @@ static void add_spans_to_tree(proto_tree *tree, tvbuff_t *tvb, int payload_offse
             } else {
                 proto_item_append_text(it, " (%s)", spans[i].display);
             }
+        }
+
+        if (g_hash_table_lookup(g_branch_by_key, spans[i].key) != NULL &&
+            depth < ZENOH_MAX_NEST) {
+            gint *ett = (gint *)g_hash_table_lookup(g_ett_by_key, spans[i].key);
+            stack[depth].start = start;
+            stack[depth].end = end;
+            stack[depth].tree = proto_item_add_subtree(it, ett ? *ett : ett_zenoh);
+            depth++;
         }
     }
 }
@@ -452,6 +650,83 @@ static guint get_zenoh_pdu_len(packet_info *pinfo _U_, tvbuff_t *tvb, int offset
 }
 
 /* ---------------------------------------------------------------------------
+ * Decode one transport batch, with or without a BatchHeader.
+ *
+ * Whether the batch starts with a BatchHeader is decided once, from what the conversation knew
+ * when the PDU arrived: only after the handshake is done, and only if compression was negotiated.
+ * Nothing is guessed by trying to decode both ways.
+ *
+ * `base` is where the batch starts in `tvb` (after the length prefix on TCP, 0 on UDP).
+ * --------------------------------------------------------------------------- */
+
+typedef struct {
+    CSpanEntry   *spans;      /* NULL when nothing decoded */
+    uint32_t      count;
+    tvbuff_t     *tvb;        /* the tvb the span offsets refer to */
+    int           offset;     /* where the decoded bytes start in that tvb */
+    const guint8 *payload;    /* the decoded bytes */
+    uint32_t      len;
+    bool          has_header; /* a BatchHeader was read */
+    bool          compressed; /* and it said the batch was lz4-compressed */
+} batch_t;
+
+static void decode_batch(packet_info *pinfo, tvbuff_t *tvb, int base, const guint8 *payload,
+                         uint32_t len, zenoh_pdu_t *pdu, batch_t *out)
+{
+    zenoh_conv_data_t *conv = get_conv_data(pinfo);
+
+    memset(out, 0, sizeof *out);
+    out->tvb = tvb;
+    out->offset = base;
+    out->payload = payload;
+    out->len = len;
+
+    if (!pdu->decided) {
+        pdu->has_batch_header = conv->is_compression && conv->handshake_done && len >= 1;
+        pdu->decided = true;
+    }
+
+    if (!pdu->has_batch_header) {
+        out->spans = zenoh_codec_ffi_decode_transport(payload, len, &out->count);
+        return;
+    }
+    if (len < 2)
+        return; /* a header and nothing after it */
+
+    if (payload[0] & 0x01) {
+        /* BatchHeader bit 0 set: payload is lz4-compressed.
+         * Decompress to a new tvb so span offsets map correctly. */
+        uint32_t decomp_len = 0;
+        uint8_t *decomp = zenoh_codec_ffi_decompress(payload + 1, len - 1, &decomp_len);
+        if (decomp != NULL) {
+            out->spans = zenoh_codec_ffi_decode_transport(decomp, decomp_len, &out->count);
+            if (out->spans != NULL) {
+                /* Copy into a wmem allocation so Wireshark owns the lifetime */
+                guint8 *buf = (guint8 *)wmem_memdup(pinfo->pool, decomp, decomp_len);
+                out->tvb = tvb_new_child_real_data(tvb, buf, decomp_len, decomp_len);
+                /* Without this the bytes pane cannot show what the fields highlight. */
+                add_new_data_source(pinfo, out->tvb, "Decompressed Zenoh batch");
+                out->payload = buf;
+                out->len = decomp_len;
+                out->offset = 0;
+                out->has_header = true;
+                out->compressed = true;
+            }
+            zenoh_codec_ffi_free_buf(decomp, decomp_len);
+        }
+    } else {
+        /* BatchHeader bit 0 clear: header present, payload uncompressed */
+        out->spans = zenoh_codec_ffi_decode_transport(payload + 1, len - 1, &out->count);
+        if (out->spans != NULL) {
+            out->payload = payload + 1;
+            out->len = len - 1;
+            out->offset = base + 1;
+            out->has_header = true;
+        }
+    }
+}
+
+/* ---------------------------------------------------------------------------
  * TCP: dissect a single reassembled PDU
  * TVB covers exactly one batch: [2-byte length][payload…]
  * --------------------------------------------------------------------------- */
@@ -469,7 +744,7 @@ static int dissect_zenoh_tcp_pdu(tvbuff_t *tvb, packet_info *pinfo, proto_tree *
     proto_item *ti = proto_tree_add_protocol_format(
         tree, proto_zenoh, tvb, 0, ZENOH_BATCH_HEADER_LEN + batch_len,
         "Zenoh Protocol, batch length: %u", batch_len);
-    proto_tree *zenoh_tree = proto_item_add_subtree(ti, 0);
+    proto_tree *zenoh_tree = proto_item_add_subtree(ti, ett_zenoh);
 
     if (batch_len == 0) {
         return ZENOH_BATCH_HEADER_LEN;
@@ -481,77 +756,25 @@ static int dissect_zenoh_tcp_pdu(tvbuff_t *tvb, packet_info *pinfo, proto_tree *
         return ZENOH_BATCH_HEADER_LEN;
     }
 
-    zenoh_conv_data_t *conv_data = get_conv_data(pinfo);
+    zenoh_pdu_t *pdu = get_pdu(pinfo, tvb);
 
-    uint32_t span_count = 0;
-    CSpanEntry *spans = NULL;
-    /* tvb used for span highlighting (may be a child tvb of decompressed bytes) */
-    tvbuff_t *decode_tvb = tvb;
-    /* tvb offset where the decoded payload starts (after TCP len prefix + optional BatchHeader) */
-    int payload_offset = ZENOH_BATCH_HEADER_LEN;
-    const guint8 *decode_payload = payload;
-    guint16 decode_len = batch_len;
-    bool batch_compressed = false;
-    bool used_batch_header = false;
+    batch_t batch;
+    decode_batch(pinfo, tvb, ZENOH_BATCH_HEADER_LEN, payload, batch_len, pdu, &batch);
 
-    if (conv_data->is_compression && batch_len >= 1) {
-        uint8_t batch_hdr = payload[0];
-
-        if (batch_hdr & 0x01) {
-            /* BatchHeader bit 0 set: payload is lz4-compressed.
-             * Decompress to a new tvb so span offsets map correctly. */
-            uint32_t decomp_len = 0;
-            uint8_t *decomp = zenoh_codec_ffi_decompress(payload + 1, batch_len - 1, &decomp_len);
-            if (decomp != NULL) {
-                spans = zenoh_codec_ffi_decode_transport(decomp, decomp_len, &span_count);
-                if (spans != NULL) {
-                    batch_compressed = true;
-                    used_batch_header = true;
-                    /* Copy into a wmem allocation so Wireshark owns the lifetime */
-                    guint8 *wmem_buf = (guint8 *)wmem_memdup(pinfo->pool, decomp, decomp_len);
-                    decode_tvb = tvb_new_child_real_data(tvb, wmem_buf, decomp_len, decomp_len);
-                    decode_payload = wmem_buf;
-                    decode_len = (guint16)decomp_len;
-                    payload_offset = 0;
-                }
-                zenoh_codec_ffi_free_buf(decomp, decomp_len);
-            }
-        }
-
-        if (spans == NULL) {
-            /* BatchHeader bit 0 clear: batch header present but payload uncompressed */
-            spans = zenoh_codec_ffi_decode_transport(
-                payload + 1, batch_len - 1, &span_count);
-            if (spans != NULL) {
-                used_batch_header = true;
-                payload_offset = ZENOH_BATCH_HEADER_LEN + 1;
-                decode_payload = payload + 1;
-                decode_len = batch_len - 1;
-            }
-        }
-
-        if (spans == NULL) {
-            /* Fallback: no BatchHeader byte present (e.g. OpenAck is sent without one) */
-            spans = zenoh_codec_ffi_decode_transport(payload, batch_len, &span_count);
-        }
-    } else {
-        spans = zenoh_codec_ffi_decode_transport(payload, batch_len, &span_count);
-    }
-
-    if (spans != NULL) {
-        if (conv_data->is_compression && used_batch_header) {
+    if (batch.spans != NULL) {
+        if (batch.has_header) {
             proto_item *hdr_it = proto_tree_add_boolean(
                 zenoh_tree, hf_batch_compressed,
                 tvb, ZENOH_BATCH_HEADER_LEN, 1,
-                batch_compressed ? TRUE : FALSE);
+                batch.compressed ? TRUE : FALSE);
             PROTO_ITEM_SET_GENERATED(hdr_it);
         }
-        build_info_col(pinfo, spans, span_count);
-        add_spans_to_tree(zenoh_tree, decode_tvb, payload_offset, spans, span_count);
-        update_conv_and_annotate(zenoh_tree, decode_tvb, payload_offset,
-                                 spans, span_count,
-                                 decode_payload, decode_len, pinfo);
-        zenoh_codec_ffi_free_spans(spans, span_count);
+        build_info_col(pinfo, batch.spans, batch.count);
+        add_spans_to_tree(zenoh_tree, batch.tvb, batch.offset, batch.spans, batch.count);
+        update_conv_and_annotate(zenoh_tree, batch.tvb, batch.offset,
+                                 batch.spans, batch.count,
+                                 batch.payload, batch.len, pinfo, pdu);
+        zenoh_codec_ffi_free_spans(batch.spans, batch.count);
     }
 
     return tvb_captured_length(tvb);
@@ -592,30 +815,42 @@ static int dissect_zenoh_udp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree
 
     proto_item *ti = proto_tree_add_protocol_format(
         tree, proto_zenoh, tvb, 0, payload_len, "Zenoh Protocol");
-    proto_tree *zenoh_tree = proto_item_add_subtree(ti, 0);
+    proto_tree *zenoh_tree = proto_item_add_subtree(ti, ett_zenoh);
 
     const guint8 *payload = tvb_get_ptr(tvb, 0, payload_len);
     if (payload == NULL) {
         return 0;
     }
 
-    uint32_t span_count = 0;
+    zenoh_pdu_t *pdu = get_pdu(pinfo, tvb);
 
     /* Transport first: Scout/Hello share header bytes 0x01/0x02 with Init/Open, so a
      * transport message also parses as scouting and would be shown as the wrong message.
      * Scouting proper arrives on port 7446, which has its own scouting-only handler. */
-    CSpanEntry *spans = zenoh_codec_ffi_decode_transport(payload, (uint32_t)payload_len, &span_count);
-    if (spans == NULL) {
+    batch_t batch;
+    decode_batch(pinfo, tvb, 0, payload, (uint32_t)payload_len, pdu, &batch);
+    if (batch.spans == NULL) {
         /* Fallback: try scouting message */
-        spans = zenoh_codec_ffi_decode_scouting(payload, (uint32_t)payload_len, &span_count);
+        memset(&batch, 0, sizeof batch);
+        batch.tvb = tvb;
+        batch.payload = payload;
+        batch.len = (uint32_t)payload_len;
+        batch.spans = zenoh_codec_ffi_decode_scouting(payload, (uint32_t)payload_len,
+                                                      &batch.count);
     }
 
-    if (spans != NULL) {
-        add_spans_to_tree(zenoh_tree, tvb, 0, spans, span_count);
-        update_conv_and_annotate(zenoh_tree, tvb, 0,
-                                 spans, span_count,
-                                 payload, (uint32_t)payload_len, pinfo);
-        zenoh_codec_ffi_free_spans(spans, span_count);
+    if (batch.spans != NULL) {
+        if (batch.has_header) {
+            proto_item *hdr_it = proto_tree_add_boolean(
+                zenoh_tree, hf_batch_compressed, tvb, 0, 1,
+                batch.compressed ? TRUE : FALSE);
+            PROTO_ITEM_SET_GENERATED(hdr_it);
+        }
+        add_spans_to_tree(zenoh_tree, batch.tvb, batch.offset, batch.spans, batch.count);
+        update_conv_and_annotate(zenoh_tree, batch.tvb, batch.offset,
+                                 batch.spans, batch.count,
+                                 batch.payload, batch.len, pinfo, pdu);
+        zenoh_codec_ffi_free_spans(batch.spans, batch.count);
     }
 
     return payload_len;
@@ -638,7 +873,7 @@ static int dissect_zenoh_scouting_udp(tvbuff_t *tvb, packet_info *pinfo, proto_t
 
     proto_item *ti = proto_tree_add_protocol_format(
         tree, proto_zenoh, tvb, 0, payload_len, "Zenoh Scouting");
-    proto_tree *zenoh_tree = proto_item_add_subtree(ti, 0);
+    proto_tree *zenoh_tree = proto_item_add_subtree(ti, ett_zenoh);
 
     const guint8 *payload = tvb_get_ptr(tvb, 0, payload_len);
     if (payload == NULL)
@@ -651,7 +886,7 @@ static int dissect_zenoh_scouting_udp(tvbuff_t *tvb, packet_info *pinfo, proto_t
         add_spans_to_tree(zenoh_tree, tvb, 0, spans, span_count);
         update_conv_and_annotate(zenoh_tree, tvb, 0,
                                  spans, span_count,
-                                 payload, (uint32_t)payload_len, pinfo);
+                                 payload, (uint32_t)payload_len, pinfo, get_pdu(pinfo, tvb));
         zenoh_codec_ffi_free_spans(spans, span_count);
     } else {
         col_add_str(pinfo->cinfo, COL_INFO, "Unknown Zenoh Scouting");
@@ -745,7 +980,8 @@ static bool dissect_zenoh_tcp_heur(tvbuff_t *tvb, packet_info *pinfo, proto_tree
 
 static void zenoh_init(void)
 {
-    g_cross_link_key_expr = wmem_map_new(wmem_file_scope(), g_str_hash, g_str_equal);
+    g_zid_by_endpoint = wmem_map_new(wmem_file_scope(), g_str_hash, g_str_equal);
+    g_decl_by_zid = wmem_map_new(wmem_file_scope(), g_str_hash, g_str_equal);
 }
 
 void proto_register_zenoh(void)
@@ -758,6 +994,8 @@ void proto_register_zenoh(void)
                                                    g_field_count * sizeof(hf_register_info));
     g_hf_by_key   = g_hash_table_new(g_str_hash, g_str_equal);
     g_name_by_key = g_hash_table_new(g_str_hash, g_str_equal);
+    g_branch_by_key = g_hash_table_new(g_str_hash, g_str_equal);
+    g_ett_by_key = g_hash_table_new(g_str_hash, g_str_equal);
 
     for (uint32_t i = 0; i < g_field_count; i++) {
         g_hf_handles[i] = -1;
@@ -770,6 +1008,7 @@ void proto_register_zenoh(void)
         const char *name = fields[i].display_name;
 
         if (fields[i].is_branch) {
+            g_hash_table_insert(g_branch_by_key, (gpointer)abbrev, GINT_TO_POINTER(1));
             g_hf_array[i] = (hf_register_info){
                 .p_id = &g_hf_handles[i],
                 .hfinfo = {
@@ -803,7 +1042,7 @@ void proto_register_zenoh(void)
 
     /* Get subtree definitions from the Rust cdylib */
     uint32_t sub_count = 0;
-    (void)zenoh_codec_ffi_get_subtrees(&sub_count);
+    const char *const *sub_names = zenoh_codec_ffi_get_subtrees(&sub_count);
     g_subtree_count = sub_count;
 
     g_ett_handles = (gint *)wmem_alloc0(wmem_epan_scope(), g_subtree_count * sizeof(gint));
@@ -812,9 +1051,13 @@ void proto_register_zenoh(void)
     for (uint32_t i = 0; i < g_subtree_count; i++) {
         g_ett_handles[i] = -1;
         g_ett_ptrs[i] = &g_ett_handles[i];
+        g_hash_table_insert(g_ett_by_key, (gpointer)sub_names[i], &g_ett_handles[i]);
     }
 
     proto_register_subtree_array((gint *const *)g_ett_ptrs, (int)g_subtree_count);
+
+    static gint *ett_root[] = { &ett_zenoh };
+    proto_register_subtree_array(ett_root, 1);
 }
 
 void proto_reg_handoff_zenoh(void)
@@ -830,9 +1073,9 @@ void proto_reg_handoff_zenoh(void)
     dissector_add_uint("udp.port", ZENOH_SCOUTING_PORT, zenoh_udp_scouting_handle);
 
     heur_dissector_add("tcp", dissect_zenoh_tcp_heur, "Zenoh over TCP heuristic",
-                       "zenoh_tcp_heur", proto_zenoh, HEURISTIC_ENABLE);
+                       "zenoh_tcp_heur", proto_zenoh, HEURISTIC_DISABLE);
     heur_dissector_add("udp", dissect_zenoh_udp_heur, "Zenoh over UDP heuristic",
-                       "zenoh_udp_heur", proto_zenoh, HEURISTIC_ENABLE);
+                       "zenoh_udp_heur", proto_zenoh, HEURISTIC_DISABLE);
 }
 
 /* ---------------------------------------------------------------------------

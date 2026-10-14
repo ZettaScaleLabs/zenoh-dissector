@@ -165,12 +165,20 @@ fn build_display(key: &str, bytes: &[u8]) -> (String, bool) {
     let suffix = key.rsplit('.').next().unwrap_or("");
     let s = match suffix {
         "whatami" => {
-            let b = bytes[0];
-            match b & 0x0f {
-                1 => "Router".to_string(),
-                2 => "Peer".to_string(),
-                4 => "Client".to_string(),
+            // Packed wire value, not a WhatAmI bitmask: the low two bits hold
+            // Router=0, Peer=1, Client=2 (see the Init, Join and Hello codecs).
+            match bytes[0] & 0b11 {
+                0 => "Router".to_string(),
+                1 => "Peer".to_string(),
+                2 => "Client".to_string(),
                 v => format!("0x{v:02x}"),
+            }
+        }
+        "batch_size" => {
+            // Two bytes, little-endian. Not a VLE integer.
+            match bytes {
+                [lo, hi] => u16::from_le_bytes([*lo, *hi]).to_string(),
+                _ => String::new(),
             }
         }
         "reliability" => {
@@ -260,7 +268,7 @@ fn build_display(key: &str, bytes: &[u8]) -> (String, bool) {
             };
             return (decoded, true);
         }
-        "scope" | "id" | "batch_size" | "initial_sn" | "lease" | "sn" => {
+        "scope" | "id" | "initial_sn" | "lease" | "sn" => {
             if let Some((v, _)) = decode_vle(bytes) {
                 format!("{v}")
             } else {
@@ -363,6 +371,21 @@ fn strip_indices(key: &str) -> std::borrow::Cow<'_, str> {
     std::borrow::Cow::Owned(out)
 }
 
+/// Order spans as they appear on the wire: by start offset, and an enclosing span before the
+/// spans it contains. `SpanMap` is a `HashMap`, so without this the order is arbitrary and a
+/// reader cannot pair a declaration's id with its own suffix.
+fn sort_wire_order(entries: &mut [CSpanEntry]) {
+    // Equal ranges happen when a parent holds a single child. The parent's key is the prefix of
+    // the child's, so the shorter key goes first.
+    let key_len = |e: &CSpanEntry| e.key.iter().position(|&c| c == 0).unwrap_or(e.key.len());
+    entries.sort_by(|a, b| {
+        a.start
+            .cmp(&b.start)
+            .then(b.length.cmp(&a.length))
+            .then(key_len(a).cmp(&key_len(b)))
+    });
+}
+
 fn span_map_to_box(map: &SpanMap, raw: &[u8]) -> Box<[CSpanEntry]> {
     let entries: Vec<CSpanEntry> = map
         .iter()
@@ -378,9 +401,8 @@ fn span_map_to_box(map: &SpanMap, raw: &[u8]) -> Box<[CSpanEntry]> {
 
 /// Shared inner transport decode: takes a plain byte slice, returns heap-allocated spans.
 fn decode_transport_bytes(bytes: &[u8], out_count: *mut u32) -> *mut CSpanEntry {
-    use zenoh_buffers::reader::HasReader;
     use zenoh_codec::{RCodec, Zenoh080};
-    use zenoh_protocol::transport::TransportMessage;
+    use zenoh_protocol::transport::{TransportBody, TransportMessage};
 
     macro_rules! fail {
         () => {{
@@ -391,22 +413,54 @@ fn decode_transport_bytes(bytes: &[u8], out_count: *mut u32) -> *mut CSpanEntry 
         }};
     }
 
+    // A batch holds one or more transport messages back to back. Decode them all, so a
+    // KeepAlive followed by a Frame keeps the Frame. Offsets stay relative to the batch.
+    //
     // Use slice reader instead of ZBuf reader: ZBuf's reader is stricter about buffer
     // boundaries and returns DidntRead on exact-length messages where no trailing bytes
     // remain (e.g. a 4-byte empty-cookie OpenSyn from zenoh-pico).
-    let mut reader = bytes.reader();
-    let msg: TransportMessage = match Zenoh080::new().read(&mut reader) {
-        Ok(m) => m,
-        Err(_) => fail!(),
-    };
+    let mut entries: Vec<CSpanEntry> = Vec::new();
+    let mut start = 0usize;
+    while start < bytes.len() {
+        let mut reader: &[u8] = &bytes[start..];
+        let msg: TransportMessage = match Zenoh080::new().read(&mut reader) {
+            Ok(m) => m,
+            // The first message must decode, or this is not a Zenoh batch. A later failure
+            // keeps what was decoded so far.
+            Err(_) if start > 0 => break,
+            Err(_) => fail!(),
+        };
+        let consumed = bytes.len() - start - reader.len();
+        if consumed == 0 {
+            break;
+        }
 
-    let mut cursor = SpanCursor::new(bytes);
-    let mut map = SpanMap::new();
-    if record_transport_message_spans(&msg, &mut cursor, "zenoh", &mut map).is_err() {
-        fail!();
+        // One map per message: repeated messages record the same keys.
+        let mut cursor = SpanCursor::new(bytes);
+        let mut map = SpanMap::new();
+        if cursor.seek(start).is_err()
+            || record_transport_message_spans(&msg, &mut cursor, "zenoh", &mut map).is_err()
+        {
+            if start == 0 {
+                fail!();
+            }
+            break;
+        }
+        entries.extend(span_map_to_box(&map, bytes).into_vec());
+        // A Frame or a Fragment runs to the end of the batch. The Frame codec stops at the first
+        // network message it cannot decode and reports success, so bytes can be left over. They
+        // are that message's tail, not a new transport message.
+        if matches!(
+            msg.body,
+            TransportBody::Frame(_) | TransportBody::Fragment(_)
+        ) {
+            break;
+        }
+        start += consumed;
     }
+    sort_wire_order(&mut entries);
 
-    let boxed = span_map_to_box(&map, bytes);
+    let boxed = entries.into_boxed_slice();
     let count = boxed.len() as u32;
     if !out_count.is_null() {
         unsafe { *out_count = count };
@@ -620,5 +674,491 @@ mod tests {
         assert!(!ptr.is_null());
         assert_eq!(out_len as usize, batch.len());
         zenoh_codec_ffi_free_buf(ptr, out_len);
+    }
+
+    #[test]
+    fn whatami_uses_the_packed_wire_values() {
+        // Router=0, Peer=1, Client=2 in the low two bits; the zid size sits in bits 7:4.
+        let key = "zenoh.transport.init_syn.whatami";
+        assert_eq!(build_display(key, &[0x00]).0, "Router");
+        assert_eq!(build_display(key, &[0x01]).0, "Peer");
+        assert_eq!(build_display(key, &[0x02]).0, "Client");
+        assert_eq!(build_display(key, &[0x71]).0, "Peer");
+    }
+
+    #[test]
+    fn batch_size_is_two_little_endian_bytes() {
+        let key = "zenoh.transport.init_syn.batch_size";
+        assert_eq!(build_display(key, &[0x00, 0x04]).0, "1024");
+        assert_eq!(build_display(key, &[0xff, 0xff]).0, "65535");
+    }
+
+    mod batch {
+        use super::*;
+        use zenoh_codec::{WCodec, Zenoh080};
+        use zenoh_protocol::{
+            core::{Reliability, WireExpr},
+            network::{
+                interest::{self, InterestMode, InterestOptions},
+                push::ext as push_ext,
+                Interest, NetworkBody, NetworkMessage, Push,
+            },
+            transport::{
+                frame::ext::QoSType as FrameQoS, Frame, KeepAlive, TransportBody, TransportMessage,
+            },
+            zenoh::{PushBody, Put},
+        };
+
+        fn encode(msg: &TransportMessage) -> Vec<u8> {
+            let mut buf = Vec::new();
+            Zenoh080::new().write(&mut buf, msg).unwrap();
+            buf
+        }
+
+        fn push(key: &str) -> NetworkMessage {
+            NetworkMessage {
+                reliability: Reliability::BestEffort,
+                body: NetworkBody::Push(Push {
+                    wire_expr: WireExpr::from(key).to_owned(),
+                    ext_qos: push_ext::QoSType::DEFAULT,
+                    ext_tstamp: None,
+                    ext_nodeid: push_ext::NodeIdType::DEFAULT,
+                    ext_ts_stack: None,
+                    payload: PushBody::Put(Put {
+                        timestamp: None,
+                        encoding: zenoh_protocol::core::Encoding::default(),
+                        ext_sinfo: None,
+                        ext_shm: None,
+                        ext_attachment: None,
+                        ext_unknown: vec![],
+                        payload: zenoh_buffers::ZBuf::default(),
+                    }),
+                }),
+            }
+        }
+
+        fn interest() -> NetworkMessage {
+            NetworkMessage {
+                reliability: Reliability::BestEffort,
+                body: NetworkBody::Interest(Interest {
+                    id: 1,
+                    mode: InterestMode::Current,
+                    options: InterestOptions::KEYEXPRS,
+                    wire_expr: None,
+                    ext_qos: interest::ext::QoSType::DEFAULT,
+                    ext_tstamp: None,
+                    ext_nodeid: interest::ext::NodeIdType::DEFAULT,
+                }),
+            }
+        }
+
+        fn frame(payload: Vec<NetworkMessage>) -> TransportMessage {
+            TransportMessage {
+                body: TransportBody::Frame(Frame {
+                    reliability: Reliability::BestEffort,
+                    sn: 1,
+                    ext_qos: FrameQoS::DEFAULT,
+                    payload,
+                }),
+            }
+        }
+
+        /// Decode through the C ABI and return `(key, start, length)` in the order returned.
+        fn decode(bytes: &[u8]) -> Vec<(String, u32, u32)> {
+            let mut count = 0u32;
+            let ptr =
+                zenoh_codec_ffi_decode_transport(bytes.as_ptr(), bytes.len() as u32, &mut count);
+            assert!(!ptr.is_null(), "decode failed");
+            let spans = unsafe { std::slice::from_raw_parts(ptr, count as usize) };
+            let out = spans
+                .iter()
+                .map(|s| {
+                    let key = unsafe { std::ffi::CStr::from_ptr(s.key.as_ptr()) }
+                        .to_str()
+                        .unwrap()
+                        .to_owned();
+                    (key, s.start, s.length)
+                })
+                .collect();
+            zenoh_codec_ffi_free_spans(ptr, count);
+            out
+        }
+
+        fn find<'a>(spans: &'a [(String, u32, u32)], key: &str) -> &'a (String, u32, u32) {
+            spans
+                .iter()
+                .find(|(k, _, _)| k == key)
+                .unwrap_or_else(|| panic!("no span for {key}"))
+        }
+
+        /// The bytes a wire expression with scope 0 and `key` as its suffix occupies.
+        fn wire_expr_bytes(key: &str) -> Vec<u8> {
+            let mut v = vec![0x00, key.len() as u8];
+            v.extend_from_slice(key.as_bytes());
+            v
+        }
+
+        #[test]
+        fn keep_alive_then_frame_keeps_both_messages() {
+            let mut batch = encode(&TransportMessage {
+                body: TransportBody::KeepAlive(KeepAlive),
+            });
+            let frame_at = batch.len() as u32;
+            batch.extend(encode(&frame(vec![push("demo")])));
+
+            let spans = decode(&batch);
+            assert_eq!(find(&spans, "zenoh.transport.keep_alive").1, 0);
+            assert_eq!(find(&spans, "zenoh.transport.frame").1, frame_at);
+            let we = find(&spans, "zenoh.transport.frame.network.push.wire_expr");
+            assert!(
+                we.1 > frame_at,
+                "offsets must stay relative to the whole batch"
+            );
+            assert_eq!(
+                &batch[we.1 as usize..(we.1 + we.2) as usize],
+                &wire_expr_bytes("demo")[..]
+            );
+        }
+
+        #[test]
+        fn interest_does_not_misalign_the_next_network_message() {
+            let batch = encode(&frame(vec![interest(), push("demo")]));
+            let spans = decode(&batch);
+            let we = find(&spans, "zenoh.transport.frame.network.push.wire_expr");
+            assert_eq!(
+                &batch[we.1 as usize..(we.1 + we.2) as usize],
+                &wire_expr_bytes("demo")[..],
+                "the Push after an Interest must be read from its own first byte"
+            );
+        }
+
+        #[test]
+        fn mapping_flag_is_exposed_for_push() {
+            use zenoh_protocol::network::Mapping;
+            let with = |mapping: Mapping| {
+                let mut msg = push("demo");
+                if let NetworkBody::Push(p) = &mut msg.body {
+                    p.wire_expr.mapping = mapping;
+                }
+                let batch = encode(&frame(vec![msg]));
+                let spans = decode(&batch);
+                let m = find(
+                    &spans,
+                    "zenoh.transport.frame.network.push.wire_expr.mapping",
+                );
+                assert_eq!(m.2, 1, "the mapping span is the one header byte");
+                batch[m.1 as usize] & 0x40 != 0
+            };
+            assert!(with(Mapping::Sender), "M set means the sender's mapping");
+            assert!(
+                !with(Mapping::Receiver),
+                "M clear means the receiver's mapping"
+            );
+        }
+
+        #[test]
+        fn spans_come_back_in_wire_order() {
+            let batch = encode(&frame(vec![push("a"), push("b")]));
+            let spans = decode(&batch);
+            assert!(
+                spans.windows(2).all(|w| w[0].1 <= w[1].1),
+                "starts must not decrease: {spans:?}"
+            );
+            let pushes: Vec<_> = spans
+                .iter()
+                .filter(|(k, _, _)| k == "zenoh.transport.frame.network.push.wire_expr")
+                .collect();
+            assert_eq!(pushes.len(), 2, "one wire_expr span per Push");
+            assert_eq!(
+                &batch[pushes[0].1 as usize..(pushes[0].1 + pushes[0].2) as usize],
+                &wire_expr_bytes("a")[..]
+            );
+            assert_eq!(
+                &batch[pushes[1].1 as usize..(pushes[1].1 + pushes[1].2) as usize],
+                &wire_expr_bytes("b")[..]
+            );
+        }
+
+        // ---- network messages with a body, deletes, tails, extensions ----
+
+        fn request_query() -> NetworkMessage {
+            use zenoh_protocol::{
+                network::{request::ext::QueryTarget, Request},
+                zenoh::{query::ConsolidationMode, Query, RequestBody},
+            };
+            NetworkMessage {
+                reliability: Reliability::BestEffort,
+                body: NetworkBody::Request(Request {
+                    id: 1,
+                    wire_expr: WireExpr::from("demo/query").to_owned(),
+                    ext_qos: push_ext::QoSType::DEFAULT,
+                    ext_tstamp: None,
+                    ext_nodeid: push_ext::NodeIdType::DEFAULT,
+                    ext_ts_stack: None,
+                    ext_target: QueryTarget::DEFAULT,
+                    ext_budget: None,
+                    ext_timeout: None,
+                    payload: RequestBody::Query(Query {
+                        parameters: "p=1".to_string(),
+                        consolidation: ConsolidationMode::DEFAULT,
+                        ext_sinfo: None,
+                        ext_body: None,
+                        ext_attachment: None,
+                        ext_unknown: vec![],
+                    }),
+                }),
+            }
+        }
+
+        fn response_reply() -> NetworkMessage {
+            use zenoh_protocol::{
+                network::Response,
+                zenoh::{query::ConsolidationMode, PushBody, Put, Reply, ResponseBody},
+            };
+            NetworkMessage {
+                reliability: Reliability::BestEffort,
+                body: NetworkBody::Response(Response {
+                    rid: 1,
+                    wire_expr: WireExpr::from("demo/answer").to_owned(),
+                    ext_qos: push_ext::QoSType::DEFAULT,
+                    ext_tstamp: None,
+                    ext_ts_stack: None,
+                    ext_respid: None,
+                    payload: ResponseBody::Reply(Reply {
+                        consolidation: ConsolidationMode::DEFAULT,
+                        ext_unknown: vec![],
+                        payload: PushBody::Put(Put {
+                            timestamp: None,
+                            encoding: zenoh_protocol::core::Encoding::default(),
+                            ext_sinfo: None,
+                            ext_shm: None,
+                            ext_attachment: None,
+                            ext_unknown: vec![],
+                            payload: zenoh_buffers::ZBuf::from(b"answer".to_vec()),
+                        }),
+                    }),
+                }),
+            }
+        }
+
+        fn response_final(rid: u32) -> NetworkMessage {
+            NetworkMessage {
+                reliability: Reliability::BestEffort,
+                body: NetworkBody::ResponseFinal(zenoh_protocol::network::ResponseFinal {
+                    rid,
+                    ext_qos: push_ext::QoSType::DEFAULT,
+                    ext_tstamp: None,
+                }),
+            }
+        }
+
+        fn push_del(key: &str) -> NetworkMessage {
+            let mut msg = push(key);
+            if let NetworkBody::Push(p) = &mut msg.body {
+                p.payload = PushBody::Del(zenoh_protocol::zenoh::Del {
+                    timestamp: None,
+                    ext_sinfo: None,
+                    ext_attachment: None,
+                    ext_unknown: vec![],
+                });
+            }
+            msg
+        }
+
+        /// The bytes of the span with this key, in the order the spans came back.
+        fn bytes_of<'a>(batch: &'a [u8], spans: &[(String, u32, u32)], key: &str) -> Vec<&'a [u8]> {
+            spans
+                .iter()
+                .filter(|(k, _, _)| k == key)
+                .map(|(_, s, l)| &batch[*s as usize..(*s + *l) as usize])
+                .collect()
+        }
+
+        fn ends_where_next_starts(spans: &[(String, u32, u32)], first: &str, second: &str) {
+            let a = spans.iter().find(|(k, _, _)| k == first).expect(first);
+            let b = spans.iter().find(|(k, _, _)| k == second).expect(second);
+            assert_eq!(
+                a.1 + a.2,
+                b.1,
+                "{first} must end where {second} starts: {spans:?}"
+            );
+        }
+
+        #[test]
+        fn reply_then_response_final_stay_aligned() {
+            let batch = encode(&frame(vec![response_reply(), response_final(7)]));
+            let spans = decode(&batch);
+            let rid = find(&spans, "zenoh.transport.frame.network.response_final.rid");
+            assert_eq!(
+                batch[rid.1 as usize], 7,
+                "rid of the ResponseFinal: {spans:?}"
+            );
+            ends_where_next_starts(
+                &spans,
+                "zenoh.transport.frame.network.response",
+                "zenoh.transport.frame.network.response_final",
+            );
+        }
+
+        #[test]
+        fn request_then_push_stay_aligned() {
+            let batch = encode(&frame(vec![request_query(), push("demo")]));
+            let spans = decode(&batch);
+            assert_eq!(
+                bytes_of(
+                    &batch,
+                    &spans,
+                    "zenoh.transport.frame.network.push.wire_expr"
+                ),
+                vec![&wire_expr_bytes("demo")[..]],
+                "the Push after a Request must be read from its own first byte: {spans:?}"
+            );
+            ends_where_next_starts(
+                &spans,
+                "zenoh.transport.frame.network.request",
+                "zenoh.transport.frame.network.push",
+            );
+        }
+
+        #[test]
+        fn delete_is_not_recorded_as_a_put_and_does_not_shift_the_next_push() {
+            let mut second = push("demo");
+            if let NetworkBody::Push(p) = &mut second.body {
+                if let PushBody::Put(put) = &mut p.payload {
+                    put.payload = zenoh_buffers::ZBuf::from(b"x".to_vec());
+                }
+            }
+            let batch = encode(&frame(vec![push_del("gone"), second]));
+            let spans = decode(&batch);
+            assert_eq!(
+                bytes_of(
+                    &batch,
+                    &spans,
+                    "zenoh.transport.frame.network.push.wire_expr"
+                ),
+                vec![&wire_expr_bytes("gone")[..], &wire_expr_bytes("demo")[..]],
+                "{spans:?}"
+            );
+            assert_eq!(
+                spans
+                    .iter()
+                    .filter(|(k, _, _)| k.ends_with(".put.payload"))
+                    .count(),
+                1,
+                "only the second Push is a Put: {spans:?}"
+            );
+        }
+
+        #[test]
+        fn undecodable_tail_after_a_frame_is_not_a_second_message() {
+            // 0x04 is a valid transport message (KeepAlive) but not a network id, so the Frame
+            // stops before it. The byte belongs to the Frame's tail, not to a new message.
+            let mut batch = encode(&frame(vec![push("demo")]));
+            batch.push(0x04);
+            let spans = decode(&batch);
+            assert!(
+                !spans
+                    .iter()
+                    .any(|(k, _, _)| k == "zenoh.transport.keep_alive"),
+                "a phantom KeepAlive was decoded from the tail: {spans:?}"
+            );
+        }
+
+        #[test]
+        fn frame_qos_and_node_id_extensions_are_recorded() {
+            let mut msg = push("demo");
+            if let NetworkBody::Push(p) = &mut msg.body {
+                p.ext_nodeid = push_ext::NodeIdType { node_id: 7 };
+            }
+            let mut tm = frame(vec![msg]);
+            if let TransportBody::Frame(f) = &mut tm.body {
+                f.ext_qos = FrameQoS::new(zenoh_protocol::core::Priority::RealTime);
+            }
+            let batch = encode(&tm);
+            let spans = decode(&batch);
+            find(&spans, "zenoh.transport.frame.ext_qos");
+            find(&spans, "zenoh.transport.frame.network.push.ext_nodeid");
+        }
+
+        #[test]
+        fn request_extensions_are_recorded() {
+            let mut msg = request_query();
+            if let NetworkBody::Request(r) = &mut msg.body {
+                r.ext_target = zenoh_protocol::network::request::ext::QueryTarget::All;
+                r.ext_budget = Some(5u32.try_into().unwrap());
+                r.ext_timeout = Some(std::time::Duration::from_millis(250));
+            }
+            let batch = encode(&frame(vec![msg, push("demo")]));
+            let spans = decode(&batch);
+            find(&spans, "zenoh.transport.frame.network.request.ext_target");
+            find(&spans, "zenoh.transport.frame.network.request.ext_budget");
+            find(&spans, "zenoh.transport.frame.network.request.ext_timeout");
+            assert_eq!(
+                bytes_of(
+                    &batch,
+                    &spans,
+                    "zenoh.transport.frame.network.push.wire_expr"
+                ),
+                vec![&wire_expr_bytes("demo")[..]],
+                "{spans:?}"
+            );
+        }
+
+        #[test]
+        fn put_with_a_shared_memory_extension_keeps_the_next_message_aligned() {
+            let mut msg = push("shm");
+            if let NetworkBody::Push(p) = &mut msg.body {
+                if let PushBody::Put(put) = &mut p.payload {
+                    put.ext_shm = Some(zenoh_protocol::zenoh::put::ext::ShmType::new());
+                    put.payload = zenoh_buffers::ZBuf::from(b"bytes".to_vec());
+                }
+            }
+            let batch = encode(&frame(vec![msg, push("demo")]));
+            let spans = decode(&batch);
+            assert_eq!(
+                bytes_of(
+                    &batch,
+                    &spans,
+                    "zenoh.transport.frame.network.push.wire_expr"
+                ),
+                vec![&wire_expr_bytes("shm")[..], &wire_expr_bytes("demo")[..]],
+                "{spans:?}"
+            );
+        }
+
+        #[test]
+        fn declare_subscriber_exposes_its_mapping_flag() {
+            use zenoh_protocol::network::{
+                declare::ext as dext, Declare, DeclareBody, DeclareSubscriber, Mapping,
+            };
+            let with = |mapping: Mapping| {
+                let mut we = WireExpr::from("demo").to_owned();
+                we.scope = 1;
+                we.mapping = mapping;
+                let msg = NetworkMessage {
+                    reliability: Reliability::BestEffort,
+                    body: NetworkBody::Declare(Declare {
+                        interest_id: None,
+                        ext_qos: dext::QoSType::DEFAULT,
+                        ext_tstamp: None,
+                        ext_nodeid: dext::NodeIdType::DEFAULT,
+                        body: DeclareBody::DeclareSubscriber(DeclareSubscriber {
+                            id: 1,
+                            wire_expr: we,
+                        }),
+                    }),
+                };
+                let batch = encode(&frame(vec![msg]));
+                let spans = decode(&batch);
+                let m = find(
+                    &spans,
+                    "zenoh.transport.frame.network.declare.declare_subscriber.wire_expr.mapping",
+                );
+                assert_eq!(m.2, 1, "the mapping span is the one header byte");
+                batch[m.1 as usize] & 0x40 != 0
+            };
+            assert!(with(Mapping::Sender));
+            assert!(!with(Mapping::Receiver));
+        }
     }
 }

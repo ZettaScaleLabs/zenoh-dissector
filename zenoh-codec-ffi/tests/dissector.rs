@@ -298,29 +298,6 @@ fn write_multi_tcp_pcap(path: &Path, batches: &[&[u8]]) {
     }
 }
 
-/// Write a pcap with two independent TCP connections ("links") interleaved.
-/// Link A uses src_port=60000, link B uses src_port=60001, both dst_port=7447.
-/// `link_a` and `link_b` are sequences of zenoh batch payloads (without TCP length prefix).
-fn write_two_link_pcap(path: &Path, link_a: &[&[u8]], link_b: &[&[u8]]) {
-    let mut f = std::fs::File::create(path).unwrap();
-    f.write_all(&pcap_global_header()).unwrap();
-    let mut seq_a: u32 = 1;
-    let mut seq_b: u32 = 1;
-    // Interleave: all of link_a first, then all of link_b.
-    for batch in link_a {
-        let frame = zenoh_batch_frame(batch);
-        let pkt = ethernet_ipv4_tcp_packet_ports(&frame, seq_a, 60000, 7447);
-        f.write_all(&pcap_record(&pkt)).unwrap();
-        seq_a += frame.len() as u32;
-    }
-    for batch in link_b {
-        let frame = zenoh_batch_frame(batch);
-        let pkt = ethernet_ipv4_tcp_packet_ports(&frame, seq_b, 60001, 7447);
-        f.write_all(&pcap_record(&pkt)).unwrap();
-        seq_b += frame.len() as u32;
-    }
-}
-
 fn write_single_udp_pcap(path: &Path, payload: &[u8], dstport: u16) {
     let mut f = std::fs::File::create(path).unwrap();
     f.write_all(&pcap_global_header()).unwrap();
@@ -443,6 +420,11 @@ fn run_tshark(pcap: &Path) -> String {
         ])
         .output()
         .expect("tshark not found");
+    assert!(
+        out.status.success(),
+        "tshark failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
@@ -1149,6 +1131,11 @@ fn run_udp_heuristic(name: &str, payload: &[u8]) -> String {
         ])
         .output()
         .expect("tshark not found");
+    assert!(
+        out.status.success(),
+        "tshark failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
@@ -1460,10 +1447,11 @@ fn open_ack_compression_ext_highlighted() {
 
 /// Verify that a compressed batch is transparently decoded.
 ///
-/// The pcap contains three TCP segments:
-///  1. InitSyn  with ext_compression — triggers is_compression in the dissector
-///  2. InitAck  with ext_compression — sets is_compression flag for subsequent batches
-///  3. A Frame  carrying a Push, whose payload is lz4-compressed and prefixed with
+/// The pcap contains five TCP segments:
+///  1. InitSyn  with ext_compression
+///  2. InitAck  with ext_compression — compression is now negotiated
+///  3. OpenSyn and 4. OpenAck — the handshake ends; none of the four has a BatchHeader
+///  5. A Frame  carrying a Push, whose payload is lz4-compressed and prefixed with
 ///     BatchHeader byte 0x01.
 ///
 /// The dissector must decompress segment 3 and expose the inner Frame fields.
@@ -1523,7 +1511,16 @@ fn compressed_batch_decodes_frame_fields() {
     compressed_batch.extend_from_slice(&compressed);
 
     let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("compressed_frame.pcap");
-    write_multi_tcp_pcap(&pcap, &[&init_syn, &init_ack, &compressed_batch]);
+    write_multi_tcp_pcap(
+        &pcap,
+        &[
+            &init_syn,
+            &init_ack,
+            &open_syn_bytes(),
+            &open_ack_bytes(),
+            &compressed_batch,
+        ],
+    );
 
     let pdml = run_tshark(&pcap);
 
@@ -1542,63 +1539,971 @@ fn compressed_batch_decodes_frame_fields() {
     );
 }
 
-/// Verify cross-link key-expression resolution.
-///
-/// When a DeclareKeyExpr is sent on link A (TCP connection :60000→:7447) and a
-/// Push using that scope id arrives on link B (TCP connection :60001→:7447) from
-/// the *same source IP*, the dissector must resolve the key expression and show
-/// `zenoh.key_expr_resolved` on the Push packet even though the declaration was
-/// never seen on link B's conversation.
+// ---------------------------------------------------------------------------
+// Sessions: handshakes, per-peer state, nesting, heuristics
+// ---------------------------------------------------------------------------
+
+/// Write a pcap of one TCP conversation over loopback. Each entry is
+/// `(src_port, dst_port, zenoh batch payload without the length prefix)`; every direction keeps
+/// its own sequence number.
+fn write_conversation(path: &Path, packets: &[(u16, u16, Vec<u8>)]) {
+    let mut f = std::fs::File::create(path).unwrap();
+    f.write_all(&pcap_global_header()).unwrap();
+    let mut seqs: std::collections::HashMap<(u16, u16), u32> = std::collections::HashMap::new();
+    for (src, dst, batch) in packets {
+        let frame = zenoh_batch_frame(batch);
+        let seq = seqs.entry((*src, *dst)).or_insert(1);
+        let pkt = ethernet_ipv4_tcp_packet_ports(&frame, *seq, *src, *dst);
+        f.write_all(&pcap_record(&pkt)).unwrap();
+        *seq += frame.len() as u32;
+    }
+}
+
+/// Like `run_tshark`, but with two passes, so each packet is dissected again after the whole
+/// capture has been seen.
+fn run_tshark_two_pass(pcap: &Path) -> String {
+    let out = Command::new("tshark")
+        .args([
+            "-2",
+            "-r",
+            pcap.to_str().unwrap(),
+            "-T",
+            "pdml",
+            "-d",
+            "tcp.port==7447,zenoh",
+            "-o",
+            "tcp.desegment_tcp_streams:TRUE",
+        ])
+        .output()
+        .expect("tshark not found");
+    assert!(
+        out.status.success(),
+        "tshark failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    String::from_utf8_lossy(&out.stdout).into_owned()
+}
+
+fn init_syn_zid(zid: &str, compression: bool) -> Vec<u8> {
+    encode_transport(&TransportMessage {
+        body: TransportBody::InitSyn(InitSyn {
+            version: 0x08,
+            whatami: WhatAmI::Client,
+            zid: zid.parse().unwrap(),
+            resolution: Resolution::default(),
+            batch_size: BatchSize::default(),
+            ext_qos: None,
+            ext_qos_link: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: compression.then(Default::default),
+            ext_patch: PatchType::NONE,
+            ext_region_name: None,
+        }),
+    })
+}
+
+fn init_ack_zid(zid: &str, compression: bool) -> Vec<u8> {
+    encode_transport(&TransportMessage {
+        body: TransportBody::InitAck(InitAck {
+            version: 0x08,
+            whatami: WhatAmI::Router,
+            zid: zid.parse().unwrap(),
+            resolution: Resolution::default(),
+            batch_size: BatchSize::default(),
+            cookie: zenoh_buffers::ZSlice::from(vec![0xab; 8]),
+            ext_qos: None,
+            ext_qos_link: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: compression.then(Default::default),
+            ext_patch: PatchType::NONE,
+            ext_region_name: None,
+        }),
+    })
+}
+
+fn declare_key_expr(id: ExprId, wire_expr: WireExpr<'static>) -> NetworkMessage {
+    make_declare_msg(declare::DeclareBody::DeclareKeyExpr(DeclareKeyExpr {
+        id,
+        wire_expr,
+    }))
+}
+
+fn wire_expr(
+    scope: ExprId,
+    suffix: &str,
+    mapping: zenoh_protocol::network::Mapping,
+) -> WireExpr<'static> {
+    WireExpr {
+        scope,
+        suffix: std::borrow::Cow::Owned(suffix.to_string()),
+        mapping,
+    }
+}
+
+fn push_to(wire_expr: WireExpr<'static>) -> NetworkMessage {
+    let mut msg = make_push_put("unused", b"v");
+    if let NetworkBody::Push(p) = &mut msg.body {
+        p.wire_expr = wire_expr;
+    }
+    msg
+}
+
+fn frame_batch(msgs: Vec<NetworkMessage>) -> Vec<u8> {
+    encode_transport(&make_frame_with(msgs))
+}
+
+fn resolved(pdml: &str) -> Vec<String> {
+    field_shows(pdml, "zenoh.key_expr_resolved")
+}
+
+/// Every `proto` and `field` element in document order, with its nesting depth.
+fn field_tree(pdml: &str) -> Vec<(String, usize)> {
+    let mut depth = 0usize;
+    let mut out = Vec::new();
+    for line in pdml.lines() {
+        let t = line.trim();
+        if t.starts_with("<field ") || t.starts_with("<proto ") {
+            if let Some(i) = t.find("name=\"") {
+                let rest = &t[i + 6..];
+                if let Some(j) = rest.find('"') {
+                    out.push((rest[..j].to_string(), depth));
+                }
+            }
+            if !t.ends_with("/>") {
+                depth += 1;
+            }
+        } else if t == "</field>" || t == "</proto>" {
+            depth = depth.saturating_sub(1);
+        }
+    }
+    out
+}
+
+fn depths_of(tree: &[(String, usize)], name: &str) -> Vec<usize> {
+    tree.iter()
+        .filter(|(n, _)| n == name)
+        .map(|(_, d)| *d)
+        .collect()
+}
+
+/// The Src and Dst ZID shown on a packet are those of its own two endpoints. On loopback both
+/// endpoints share an IP address, so only the port tells them apart.
 #[test]
-fn declare_key_expr_resolves_across_links() {
+fn session_zids_are_tracked_per_endpoint() {
     if !tshark_available() {
         return;
     }
     install_dissector();
 
-    // Link A: DeclareKeyExpr id=1 → "cross/link/key"
-    let decl = make_declare_msg(declare::DeclareBody::DeclareKeyExpr(DeclareKeyExpr {
-        id: 1 as ExprId,
-        wire_expr: WireExpr::from("cross/link/key"),
-    }));
-    let link_a_frame = encode_transport(&make_frame_with(vec![decl]));
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("zid_per_endpoint.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            (60000, 7447, init_syn_zid("aa", false)),
+            (7447, 60000, init_ack_zid("bb", false)),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert_eq!(
+        field_shows(&pdml, "zenoh.session.src_zid"),
+        vec!["aa", "bb"],
+        "each packet shows its sender's ZID; PDML:\n{pdml}"
+    );
+    assert_eq!(
+        field_shows(&pdml, "zenoh.session.dst_zid"),
+        vec!["aa"],
+        "only the InitAck knows its destination's ZID; PDML:\n{pdml}"
+    );
+}
 
-    // Link B: Push with wire_expr scope=1, no suffix — requires cross-link resolution
-    let push = NetworkMessage {
-        body: NetworkBody::Push(Push {
-            wire_expr: WireExpr {
-                scope: 1 as ExprId,
-                suffix: std::borrow::Cow::Borrowed(""),
-                mapping: zenoh_protocol::network::Mapping::Sender,
-            },
+/// The same id is declared again for another key. Each Push keeps the key that was declared when
+/// it was sent, also when the capture is dissected a second time.
+#[test]
+fn redeclared_key_expr_resolves_per_packet_on_second_pass() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let sender = |msgs| (60000u16, 7447u16, frame_batch(msgs));
+    let scope_1 = || push_to(wire_expr(1, "", zenoh_protocol::network::Mapping::Sender));
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("redeclared_key_expr.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            sender(vec![declare_key_expr(1, WireExpr::from("first/key"))]),
+            sender(vec![scope_1()]),
+            sender(vec![declare_key_expr(1, WireExpr::from("second/key"))]),
+            sender(vec![scope_1()]),
+        ],
+    );
+    let pdml = run_tshark_two_pass(&pcap);
+    assert_eq!(
+        resolved(&pdml),
+        vec!["first/key", "second/key"],
+        "PDML:\n{pdml}"
+    );
+}
+
+/// A declaration that carries no suffix of its own must not shift the pairing of the ids and
+/// suffixes around it.
+#[test]
+fn declarations_without_a_suffix_keep_their_own_key() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let sender = |msgs| (60000u16, 7447u16, frame_batch(msgs));
+    let sender_map = zenoh_protocol::network::Mapping::Sender;
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("decl_without_suffix.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            sender(vec![
+                declare_key_expr(1, WireExpr::from("x/y")),
+                // Id 2 is an alias of id 1: a scope and an empty suffix.
+                declare_key_expr(2, wire_expr(1, "", sender_map)),
+                declare_key_expr(3, WireExpr::from("z")),
+            ]),
+            sender(vec![
+                push_to(wire_expr(2, "", sender_map)),
+                push_to(wire_expr(3, "", sender_map)),
+            ]),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert_eq!(resolved(&pdml), vec!["x/y", "z"], "PDML:\n{pdml}");
+}
+
+/// A wire expression is the declared key plus its own suffix.
+#[test]
+fn resolved_key_expr_includes_the_wire_expr_suffix() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let sender = |msgs| (60000u16, 7447u16, frame_batch(msgs));
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("resolved_with_suffix.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            sender(vec![declare_key_expr(1, WireExpr::from("demo"))]),
+            sender(vec![push_to(wire_expr(
+                1,
+                "/temperature",
+                zenoh_protocol::network::Mapping::Sender,
+            ))]),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert_eq!(resolved(&pdml), vec!["demo/temperature"], "PDML:\n{pdml}");
+}
+
+/// Mapping::Receiver names an id that the destination declared. The client declares id 1 as
+/// "cli/key" and the server declares id 1 as "srv/key"; the client's two Pushes differ only in
+/// their mapping.
+#[test]
+fn receiver_mapping_resolves_in_the_destinations_declarations() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    use zenoh_protocol::network::Mapping;
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("receiver_mapping.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            (
+                60000,
+                7447,
+                frame_batch(vec![declare_key_expr(1, WireExpr::from("cli/key"))]),
+            ),
+            (
+                7447,
+                60000,
+                frame_batch(vec![declare_key_expr(1, WireExpr::from("srv/key"))]),
+            ),
+            (
+                60000,
+                7447,
+                frame_batch(vec![push_to(wire_expr(1, "", Mapping::Sender))]),
+            ),
+            (
+                60000,
+                7447,
+                frame_batch(vec![push_to(wire_expr(1, "", Mapping::Receiver))]),
+            ),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert_eq!(resolved(&pdml), vec!["cli/key", "srv/key"], "PDML:\n{pdml}");
+}
+
+/// Two links of one peer share declarations only when both links announce the same ZID.
+fn two_links(zid_b: &str) -> String {
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(format!("links_{zid_b}.pcap"));
+    write_conversation(
+        &pcap,
+        &[
+            (60000, 7447, init_syn_zid("aa", false)),
+            (
+                60000,
+                7447,
+                frame_batch(vec![declare_key_expr(1, WireExpr::from("cross/link/key"))]),
+            ),
+            (60001, 7447, init_syn_zid(zid_b, false)),
+            (
+                60001,
+                7447,
+                frame_batch(vec![push_to(wire_expr(
+                    1,
+                    "",
+                    zenoh_protocol::network::Mapping::Sender,
+                ))]),
+            ),
+        ],
+    );
+    run_tshark(&pcap)
+}
+
+#[test]
+fn key_expr_is_shared_between_links_of_the_same_peer() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let pdml = two_links("aa");
+    assert_eq!(resolved(&pdml), vec!["cross/link/key"], "PDML:\n{pdml}");
+}
+
+#[test]
+fn key_expr_is_not_shared_between_different_peers() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    // Same host, a different ZID: another process, so another id space.
+    let pdml = two_links("cc");
+    assert!(
+        resolved(&pdml).is_empty(),
+        "another peer's declaration must not resolve this Push; PDML:\n{pdml}"
+    );
+}
+
+/// With compression negotiated, the Init and Open messages still travel without a BatchHeader.
+/// An OpenAck with lease 5 s and initial sn 1 is the bytes 62 05 01; read with a header byte
+/// first it looks like a KeepAlive.
+#[test]
+fn open_ack_after_negotiated_compression_is_not_read_as_framed() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let open_ack = encode_transport(&TransportMessage {
+        body: TransportBody::OpenAck(OpenAck {
+            lease: std::time::Duration::from_secs(5),
+            initial_sn: 1,
+            ext_qos: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: None,
+            ext_remote_bound: None,
+        }),
+    });
+    assert_eq!(open_ack, vec![0x62, 0x05, 0x01], "fixture changed");
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("open_ack_unframed.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            (60000, 7447, init_syn_zid("aa", true)),
+            (7447, 60000, init_ack_zid("bb", true)),
+            (7447, 60000, open_ack),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert!(
+        !field_spans(&pdml, "zenoh.transport.open_ack").is_empty(),
+        "the OpenAck was not decoded as an OpenAck; PDML:\n{pdml}"
+    );
+    assert!(
+        field_spans(&pdml, "zenoh.transport.keep_alive").is_empty(),
+        "the OpenAck was read as a KeepAlive; PDML:\n{pdml}"
+    );
+}
+
+/// Fields sit under the message that holds them, and each repeated message has its own subtree.
+#[test]
+fn decoded_fields_nest_under_their_message() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let sender_map = zenoh_protocol::network::Mapping::Sender;
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("nesting.pcap");
+    write_conversation(
+        &pcap,
+        &[(
+            60000,
+            7447,
+            frame_batch(vec![
+                push_to(wire_expr(0, "a/b", sender_map)),
+                push_to(wire_expr(0, "c/d", sender_map)),
+            ]),
+        )],
+    );
+    let tree = field_tree(&run_tshark(&pcap));
+    let frame = depths_of(&tree, "zenoh.transport.frame");
+    let push = depths_of(&tree, "zenoh.transport.frame.network.push");
+    let wire = depths_of(&tree, "zenoh.transport.frame.network.push.wire_expr");
+    assert_eq!(frame.len(), 1, "one Frame; tree: {tree:?}");
+    assert_eq!(push.len(), 2, "one subtree per Push; tree: {tree:?}");
+    assert_eq!(wire.len(), 2, "one wire_expr per Push; tree: {tree:?}");
+    assert!(
+        push.iter().all(|&d| d > frame[0]),
+        "a Push is nested in its Frame; tree: {tree:?}"
+    );
+    assert!(
+        wire.iter().all(|&d| d > push[0]),
+        "a wire_expr is nested in its Push; tree: {tree:?}"
+    );
+    assert!(
+        push.iter().all(|&d| d == push[0]),
+        "the two Pushes are siblings, not nested in each other; tree: {tree:?}"
+    );
+    assert!(
+        wire.iter().all(|&d| d == push[0] + 1),
+        "a wire_expr is a direct child of its Push; tree: {tree:?}"
+    );
+}
+
+/// Installing the plugin must not make it claim unrelated traffic: both heuristics are off until
+/// a user turns them on.
+#[test]
+fn heuristics_are_disabled_by_default() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let tcp = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("heuristic_default_tcp.pcap");
+    write_single_tcp_pcap_port(&tcp, &encode_transport(&make_init_syn()), 12345);
+    let udp = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("heuristic_default_udp.pcap");
+    write_single_udp_pcap(&udp, &encode_transport(&make_init_syn()), 12345);
+    for pcap in [&tcp, &udp] {
+        let out = Command::new("tshark")
+            .args([
+                "-r",
+                pcap.to_str().unwrap(),
+                "-T",
+                "pdml",
+                "-o",
+                "tcp.desegment_tcp_streams:TRUE",
+            ])
+            .output()
+            .expect("tshark not found");
+        let pdml = String::from_utf8_lossy(&out.stdout);
+        assert!(
+            !pdml.contains("proto name=\"zenoh\""),
+            "the plugin claimed {pcap:?} without the heuristic being enabled:\n{pdml}"
+        );
+    }
+
+    // Positive control: the same TCP capture IS claimed once the heuristic is enabled. Without
+    // this, a plugin that never loaded would pass the assertions above.
+    let out = Command::new("tshark")
+        .args([
+            "-r",
+            tcp.to_str().unwrap(),
+            "-T",
+            "pdml",
+            "-o",
+            "tcp.desegment_tcp_streams:TRUE",
+            "--enable-heuristic",
+            "zenoh_tcp_heur",
+        ])
+        .output()
+        .expect("tshark not found");
+    assert!(out.status.success(), "tshark failed");
+    let pdml = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        pdml.contains("zenoh.transport.init_syn"),
+        "the heuristic did not claim the capture even when enabled:\n{pdml}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Handshake order and compression, message bodies, extensions, undeclare
+// ---------------------------------------------------------------------------
+
+fn open_syn_bytes() -> Vec<u8> {
+    encode_transport(&TransportMessage {
+        body: TransportBody::OpenSyn(OpenSyn {
+            lease: std::time::Duration::from_secs(10),
+            initial_sn: TransportSn::default(),
+            cookie: zenoh_buffers::ZSlice::from(vec![0xcd; 8]),
+            ext_qos: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: Some(Default::default()),
+            ext_remote_bound: None,
+        }),
+    })
+}
+
+fn open_ack_bytes() -> Vec<u8> {
+    encode_transport(&TransportMessage {
+        body: TransportBody::OpenAck(OpenAck {
+            lease: std::time::Duration::from_secs(10),
+            initial_sn: TransportSn::default(),
+            ext_qos: None,
+            ext_shm: None,
+            ext_auth: None,
+            ext_mlink: None,
+            ext_lowlatency: None,
+            ext_compression: Some(Default::default()),
+            ext_remote_bound: None,
+        }),
+    })
+}
+
+/// The four packets of a handshake that negotiates compression.
+fn compressed_handshake(client: u16, server: u16) -> Vec<(u16, u16, Vec<u8>)> {
+    vec![
+        (client, server, init_syn_zid("aa", true)),
+        (server, client, init_ack_zid("bb", true)),
+        (client, server, open_syn_bytes()),
+        (server, client, open_ack_bytes()),
+    ]
+}
+
+/// A batch as a connection with compression negotiated sends it once the handshake is done: a
+/// BatchHeader byte with the compression bit set, then the lz4 block.
+fn compressed_batch(transport_message: &[u8]) -> Vec<u8> {
+    let mut batch = vec![0x01u8];
+    batch.extend_from_slice(&lz4_flex::block::compress(transport_message));
+    batch
+}
+
+fn wire_exprs_of_pushes(pdml: &str) -> Vec<usize> {
+    field_spans(pdml, &format!("{NP}.push.wire_expr"))
+        .into_iter()
+        .map(|(_, size)| size)
+        .collect()
+}
+
+#[test]
+fn init_ack_after_a_compressed_init_syn_is_decoded() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("compressed_init_pair.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            (60000, 7447, init_syn_zid("aa", true)),
+            (7447, 60000, init_ack_zid("bb", true)),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert!(
+        !field_spans(&pdml, &format!("{TP}.init_syn")).is_empty(),
+        "InitSyn not decoded:\n{pdml}"
+    );
+    assert_size!(&pdml, &format!("{TP}.init_ack.ext_compression"), 1);
+}
+
+/// A Close sent between InitAck and OpenAck is still part of the handshake, which runs with
+/// compression off. It is the two bytes 03 xx, and read with a header byte first it is not a
+/// message at all.
+#[test]
+fn close_between_init_ack_and_open_ack_is_decoded() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let close = encode_transport(&TransportMessage {
+        body: TransportBody::Close(Close {
+            reason: 0x07,
+            session: false,
+        }),
+    });
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("close_during_handshake.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            (60000, 7447, init_syn_zid("aa", true)),
+            (7447, 60000, init_ack_zid("bb", true)),
+            (60000, 7447, close),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert_size!(&pdml, &format!("{TP}.close.reason"), 1);
+}
+
+/// After the OpenAck every batch carries a BatchHeader. The same bytes before the OpenAck would
+/// be a message, so the header must not be expected earlier.
+#[test]
+fn compressed_batch_is_read_with_a_header_after_the_handshake() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let frame = encode_transport(&make_frame_with(vec![make_push_put("test/key", b"hello")]));
+    let mut packets = compressed_handshake(60000, 7447);
+    packets.push((60000, 7447, compressed_batch(&frame)));
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("compressed_after_handshake.pcap");
+    write_conversation(&pcap, &packets);
+    let pdml = run_tshark(&pcap);
+    assert_size!(&pdml, &format!("{TP}.open_ack.ext_compression"), 1);
+    assert_eq!(wire_exprs_of_pushes(&pdml), vec![10], "PDML:\n{pdml}");
+    assert!(pdml.contains("zenoh.batch.compressed"), "PDML:\n{pdml}");
+}
+
+/// A batch that is only a BatchHeader has nothing to decode. It must not break the batches after
+/// it.
+#[test]
+fn header_only_batch_is_skipped_and_the_next_batch_decodes() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let frame = encode_transport(&make_frame_with(vec![make_push_put("test/key", b"hello")]));
+    let mut packets = compressed_handshake(60000, 7447);
+    packets.push((60000, 7447, vec![0x01]));
+    packets.push((60000, 7447, compressed_batch(&frame)));
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("header_only_batch.pcap");
+    write_conversation(&pcap, &packets);
+    let pdml = run_tshark(&pcap);
+    assert_eq!(wire_exprs_of_pushes(&pdml), vec![10], "PDML:\n{pdml}");
+}
+
+fn ethernet_ipv4_udp_packet_ports(udp_payload: &[u8], src_port: u16, dst_port: u16) -> Vec<u8> {
+    let mut pkt = ethernet_ipv4_udp_packet(udp_payload, dst_port);
+    // The source port is the first two bytes of the UDP header: 14 (Ethernet) + 20 (IPv4).
+    pkt[34..36].copy_from_slice(&src_port.to_be_bytes());
+    pkt
+}
+
+/// UDP unicast negotiates compression the same way as TCP, and a datagram has no length prefix.
+#[test]
+fn udp_batch_after_the_handshake_is_read_with_a_header() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let frame = encode_transport(&make_frame_with(vec![make_push_put("test/key", b"hello")]));
+    let mut packets = compressed_handshake(60001, 7447);
+    packets.push((60001, 7447, compressed_batch(&frame)));
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("udp_compressed.pcap");
+    let mut f = std::fs::File::create(&pcap).unwrap();
+    f.write_all(&pcap_global_header()).unwrap();
+    for (src, dst, payload) in &packets {
+        let pkt = ethernet_ipv4_udp_packet_ports(payload, *src, *dst);
+        f.write_all(&pcap_record(&pkt)).unwrap();
+    }
+    drop(f);
+    let pdml = run_tshark(&pcap);
+    assert_eq!(wire_exprs_of_pushes(&pdml), vec![10], "PDML:\n{pdml}");
+}
+
+fn request_query_msg() -> NetworkMessage {
+    NetworkMessage {
+        body: NetworkBody::Request(Request {
+            id: 1,
+            wire_expr: WireExpr::from("demo/query"),
             ext_qos: dec_ext::QoSType::DEFAULT,
             ext_tstamp: None,
             ext_nodeid: dec_ext::NodeIdType::DEFAULT,
             ext_ts_stack: None,
-            payload: zenoh_protocol::zenoh::PushBody::Put(Put {
-                timestamp: None,
-                encoding: zenoh_protocol::core::Encoding::default(),
+            ext_target: zenoh_protocol::network::request::ext::QueryTarget::All,
+            ext_budget: None,
+            ext_timeout: None,
+            payload: RequestBody::Query(Query {
+                parameters: "p=1".to_string(),
+                consolidation: zenoh_protocol::zenoh::query::ConsolidationMode::DEFAULT,
                 ext_sinfo: None,
-                ext_shm: None,
+                ext_body: None,
                 ext_attachment: None,
                 ext_unknown: vec![],
-                payload: zenoh_buffers::ZBuf::from(b"value".to_vec()),
             }),
         }),
-        reliability: Reliability::BestEffort,
-    };
-    let link_b_frame = encode_transport(&make_frame_with(vec![push]));
+        reliability: Reliability::Reliable,
+    }
+}
 
-    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("cross_link_key_expr.pcap");
-    write_two_link_pcap(&pcap, &[&link_a_frame], &[&link_b_frame]);
+fn response_reply_msg() -> NetworkMessage {
+    NetworkMessage {
+        body: NetworkBody::Response(Response {
+            rid: 1,
+            wire_expr: WireExpr::from("demo/answer"),
+            ext_qos: dec_ext::QoSType::DEFAULT,
+            ext_tstamp: None,
+            ext_ts_stack: None,
+            ext_respid: None,
+            payload: ResponseBody::Reply(Reply {
+                consolidation: zenoh_protocol::zenoh::query::ConsolidationMode::DEFAULT,
+                ext_unknown: vec![],
+                payload: PushBody::Put(Put {
+                    timestamp: None,
+                    encoding: zenoh_protocol::core::Encoding::default(),
+                    ext_sinfo: None,
+                    ext_shm: None,
+                    ext_attachment: None,
+                    ext_unknown: vec![],
+                    payload: zenoh_buffers::ZBuf::from(b"answer".to_vec()),
+                }),
+            }),
+        }),
+        reliability: Reliability::Reliable,
+    }
+}
 
+fn response_final_msg(rid: u32) -> NetworkMessage {
+    NetworkMessage {
+        body: NetworkBody::ResponseFinal(ResponseFinal {
+            rid,
+            ext_qos: dec_ext::QoSType::DEFAULT,
+            ext_tstamp: None,
+        }),
+        reliability: Reliability::Reliable,
+    }
+}
+
+fn push_del_msg(key: &str) -> NetworkMessage {
+    let mut msg = push_to(WireExpr::from(key.to_string()));
+    if let NetworkBody::Push(p) = &mut msg.body {
+        p.payload = PushBody::Del(zenoh_protocol::zenoh::Del {
+            timestamp: None,
+            ext_sinfo: None,
+            ext_attachment: None,
+            ext_unknown: vec![],
+        });
+    }
+    msg
+}
+
+/// A query reply followed by its final, a delete followed by a put, and a request followed by a
+/// push: each pair is one Frame, and the second message must be read from its own first byte.
+#[test]
+fn bodies_do_not_shift_the_next_message() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("bodies_alignment.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            (
+                60000,
+                7447,
+                frame_batch(vec![response_reply_msg(), response_final_msg(7)]),
+            ),
+            (
+                60000,
+                7447,
+                frame_batch(vec![push_del_msg("gone"), make_push_put("demo", b"x")]),
+            ),
+            (
+                60000,
+                7447,
+                frame_batch(vec![
+                    request_query_msg(),
+                    push_to(wire_expr(
+                        0,
+                        "after",
+                        zenoh_protocol::network::Mapping::Sender,
+                    )),
+                ]),
+            ),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert_size!(&pdml, &format!("{NP}.response_final.rid"), 1);
+    assert_eq!(
+        wire_exprs_of_pushes(&pdml),
+        vec![6, 6, 7],
+        "the three Push wire expressions: gone, demo, after; PDML:\n{pdml}"
+    );
+    assert_eq!(
+        field_spans(&pdml, &format!("{NP}.push.put.payload")).len(),
+        2,
+        "the deleted Push has no payload; the other two Pushes are puts with one"
+    );
+    assert!(
+        !field_spans(&pdml, &format!("{NP}.request.ext_target")).is_empty(),
+        "the query target extension is not highlighted:\n{pdml}"
+    );
+}
+
+#[test]
+fn frame_qos_and_node_id_extensions_are_highlighted() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let mut push = make_push_put("demo", b"x");
+    if let NetworkBody::Push(p) = &mut push.body {
+        p.ext_nodeid = dec_ext::NodeIdType { node_id: 7 };
+    }
+    let mut message = make_frame_with(vec![push]);
+    if let TransportBody::Frame(f) = &mut message.body {
+        f.ext_qos = frame_ext::QoSType::new(zenoh_protocol::core::Priority::RealTime);
+    }
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("frame_extensions.pcap");
+    write_single_tcp_pcap(&pcap, &encode_transport(&message));
     let pdml = run_tshark(&pcap);
     assert!(
-        pdml.contains("zenoh.key_expr_resolved"),
-        "Cross-link resolved key-expr not shown in Push on link B:\n{pdml}"
+        !field_spans(&pdml, &format!("{TP}.frame.ext_qos")).is_empty(),
+        "Frame QoS not highlighted:\n{pdml}"
     );
     assert!(
-        pdml.contains("cross/link/key"),
-        "Cross-link resolved key-expr value 'cross/link/key' not found in PDML:\n{pdml}"
+        !field_spans(&pdml, &format!("{NP}.push.ext_nodeid")).is_empty(),
+        "NodeId not highlighted:\n{pdml}"
     );
+}
+
+/// Two batches in one TCP segment: the second one resolves with what the first one declared.
+#[test]
+fn two_batches_in_one_segment_share_state() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let sender_map = zenoh_protocol::network::Mapping::Sender;
+    let declare = frame_batch(vec![declare_key_expr(1, WireExpr::from("multi/seg"))]);
+    let push = frame_batch(vec![push_to(wire_expr(1, "", sender_map))]);
+    let segment = [zenoh_batch_frame(&declare), zenoh_batch_frame(&push)].concat();
+
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("two_batches_one_segment.pcap");
+    let mut f = std::fs::File::create(&pcap).unwrap();
+    f.write_all(&pcap_global_header()).unwrap();
+    f.write_all(&pcap_record(&ethernet_ipv4_tcp_packet_ports(
+        &segment, 1, 60000, 7447,
+    )))
+    .unwrap();
+    drop(f);
+    let pdml = run_tshark(&pcap);
+    assert_eq!(resolved(&pdml), vec!["multi/seg"], "PDML:\n{pdml}");
+}
+
+#[test]
+fn undeclared_key_expr_no_longer_resolves() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let sender_map = zenoh_protocol::network::Mapping::Sender;
+    let sender = |msgs| (60000u16, 7447u16, frame_batch(msgs));
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("undeclare_forgets.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            sender(vec![declare_key_expr(1, WireExpr::from("short/lived"))]),
+            sender(vec![push_to(wire_expr(1, "", sender_map))]),
+            sender(vec![make_declare_msg(
+                declare::DeclareBody::UndeclareKeyExpr(UndeclareKeyExpr { id: 1 as ExprId }),
+            )]),
+            sender(vec![push_to(wire_expr(1, "", sender_map))]),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert_eq!(resolved(&pdml), vec!["short/lived"], "PDML:\n{pdml}");
+}
+
+#[test]
+fn redeclaring_an_id_with_an_unknown_scope_forgets_the_old_key() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    let sender_map = zenoh_protocol::network::Mapping::Sender;
+    let sender = |msgs| (60000u16, 7447u16, frame_batch(msgs));
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("redeclare_unknown_scope.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            sender(vec![declare_key_expr(1, WireExpr::from("old/key"))]),
+            sender(vec![push_to(wire_expr(1, "", sender_map))]),
+            // Id 1 now extends id 9, which this capture never saw declared.
+            sender(vec![declare_key_expr(1, wire_expr(9, "/x", sender_map))]),
+            sender(vec![push_to(wire_expr(1, "", sender_map))]),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert_eq!(resolved(&pdml), vec!["old/key"], "PDML:\n{pdml}");
+}
+
+/// A subscriber declaration carries its own mapping flag. Receiver names an id that the
+/// destination declared.
+#[test]
+fn declare_subscriber_receiver_mapping_resolves_in_the_destinations_table() {
+    if !tshark_available() {
+        return;
+    }
+    install_dissector();
+
+    use zenoh_protocol::network::Mapping;
+    let subscriber = |id: u32, mapping: Mapping| {
+        make_declare_msg(declare::DeclareBody::DeclareSubscriber(DeclareSubscriber {
+            id,
+            wire_expr: wire_expr(1, "", mapping),
+        }))
+    };
+    let pcap = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("subscriber_mapping.pcap");
+    write_conversation(
+        &pcap,
+        &[
+            (
+                60000,
+                7447,
+                frame_batch(vec![declare_key_expr(1, WireExpr::from("cli/key"))]),
+            ),
+            (
+                7447,
+                60000,
+                frame_batch(vec![declare_key_expr(1, WireExpr::from("srv/key"))]),
+            ),
+            (
+                60000,
+                7447,
+                frame_batch(vec![subscriber(5, Mapping::Receiver)]),
+            ),
+            (
+                60000,
+                7447,
+                frame_batch(vec![subscriber(6, Mapping::Sender)]),
+            ),
+        ],
+    );
+    let pdml = run_tshark(&pcap);
+    assert_eq!(resolved(&pdml), vec!["srv/key", "cli/key"], "PDML:\n{pdml}");
 }

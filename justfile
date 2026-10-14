@@ -1,15 +1,17 @@
 build_dir := "_tmp/cmake-build"
+# Cargo names the library by platform; the C plugin links and loads this file.
+lib_ext := if os() == "macos" { "dylib" } else { "so" }
 
 # Build both the Rust cdylib and the C Wireshark plugin
 build:
     cargo build -p zenoh-codec-ffi -j4
-    cmake -B {{build_dir}} -S .
+    cmake -B {{build_dir}} -S . -DCMAKE_BUILD_TYPE=Debug -DZENOH_CODEC_FFI_LIB="$(pwd)/target/debug/libzenoh_codec_ffi.{{lib_ext}}"
     cmake --build {{build_dir}} -j4
 
 # Build in release mode
 build-release:
     cargo build -p zenoh-codec-ffi --release -j4
-    cmake -B {{build_dir}} -S . -DCMAKE_BUILD_TYPE=Release
+    cmake -B {{build_dir}} -S . -DCMAKE_BUILD_TYPE=Release -DZENOH_CODEC_FFI_LIB="$(pwd)/target/release/libzenoh_codec_ffi.{{lib_ext}}"
     cmake --build {{build_dir}} --config Release -j4
 
 # Rebuild only the Rust cdylib (decoding logic / field changes)
@@ -27,7 +29,7 @@ install: build
     plugin_dir=$(tshark -G folders 2>/dev/null | awk -F'\t' '/Personal Plugins/{print $NF}')/epan
     mkdir -p "$plugin_dir"
     ln -sf "$(pwd)/{{build_dir}}/packet-zenoh.so" "$plugin_dir/packet-zenoh.so"
-    ln -sf "$(pwd)/target/debug/libzenoh_codec_ffi.so" "$plugin_dir/libzenoh_codec_ffi.so"
+    ln -sf "$(pwd)/target/debug/libzenoh_codec_ffi.{{lib_ext}}" "$plugin_dir/libzenoh_codec_ffi.{{lib_ext}}"
     echo "Installed to $plugin_dir"
 
 # Run unit tests (no Wireshark needed)
